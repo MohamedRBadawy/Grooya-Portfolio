@@ -1,12 +1,11 @@
-
-
-
 import React, { useState, useEffect } from 'react';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateImage } from '../services/aiService';
+import { generateImage, ApiKeyMissingError } from '../services/aiService';
+import { useData } from '../contexts/DataContext';
+import toast from 'react-hot-toast';
 
 interface AIImageGenerationModalProps {
   onClose: () => void;
@@ -16,6 +15,7 @@ interface AIImageGenerationModalProps {
 
 const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose, onImageGenerated, initialPrompt }) => {
   const { t } = useTranslation();
+  const { user, consumeAiFeature } = useData();
   const [prompt, setPrompt] = useState('');
   const [generatedImageUrl, setGeneratedImageUrl] = useState<string | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -29,6 +29,17 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
 
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
+
+    if (user?.subscription?.tier !== 'pro') {
+        toast.error("Upgrade to Pro to generate images.");
+        return;
+    }
+    
+    if (!consumeAiFeature('imageGeneration')) {
+      toast.error("You've run out of AI image credits for this month.");
+      return;
+    }
+
     setIsGenerating(true);
     setError(null);
     setGeneratedImageUrl(null);
@@ -36,8 +47,12 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
       const imageUrl = await generateImage(prompt);
       setGeneratedImageUrl(imageUrl);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An unknown error occurred.');
       console.error(err);
+      if (err instanceof ApiKeyMissingError) {
+          setError(err.message);
+      } else {
+          setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+      }
     } finally {
       setIsGenerating(false);
     }
@@ -49,6 +64,8 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
           onClose();
       }
   }
+
+  const remainingCredits = user?.subscription?.tier === 'pro' ? `(${user.subscription.monthlyCredits.image} credits left)` : '';
 
   return (
     <motion.div
@@ -70,6 +87,7 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
           <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg font-sora flex items-center gap-2">
             <Sparkles className="text-amber-500" size={20} />
             {t('aiImageGeneration')}
+             {user?.subscription?.tier === 'pro' && <span className="text-xs font-normal text-slate-500 dark:text-slate-400">{remainingCredits}</span>}
           </h3>
           <button onClick={onClose} className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label={t('close')}>
             <X size={20} />
@@ -92,7 +110,8 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
             <div className="aspect-video w-full bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center overflow-hidden border border-slate-200 dark:border-slate-700">
                 {isGenerating ? (
                     <div className="text-center p-4">
-                        <svg className="animate-spin h-8 w-8 text-teal-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <svg className="animate-spin h-8 w-8 text-teal-500 mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8
+ 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                         <p className="text-slate-600 dark:text-slate-400">{t('generating')}</p>
                         <p className="text-sm text-slate-500 dark:text-slate-500 mt-1">{t('generatingMessage')}</p>
                     </div>

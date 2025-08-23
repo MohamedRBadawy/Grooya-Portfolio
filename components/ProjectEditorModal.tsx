@@ -1,19 +1,18 @@
-
-
 import React, { useState, useEffect } from 'react';
 import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateProjectDescription } from '../services/aiService';
+import { generateProjectDescription, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
+import { useData } from '../contexts/DataContext';
 
 interface ProjectEditorModalProps {
-  project: Project;
+  project: Project | null;
   onClose: () => void;
-  onSave: (projectData: Project) => void;
+  onSave: (projectData: Project | Omit<Project, 'id'>) => void;
 }
 
 const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string }> = ({ children, htmlFor }) => (
@@ -31,6 +30,7 @@ const EditorTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>
 
 const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClose, onSave }) => {
   const { t } = useTranslation();
+  const { consumeAiFeature, user } = useData();
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
       title: '',
@@ -64,7 +64,11 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
           technologies: formData.technologies.split(',').map(t => t.trim()).filter(Boolean)
       };
       
-      onSave({ ...project, ...projectData });
+      if (project) {
+        onSave({ ...project, ...projectData });
+      } else {
+        onSave(projectData)
+      }
   };
   
   const handleGenerateDescription = async () => {
@@ -72,17 +76,32 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
         toast.error("Please enter a project title first.");
         return;
     }
+    
+    if (!consumeAiFeature('projectDescription')) {
+      const message = user?.subscription?.tier === 'pro'
+        ? "You've run out of AI text credits for this month."
+        : "You've used your one free generation for this feature. Please upgrade to Pro to use it again.";
+      toast.error(message);
+      return;
+    }
+
     setIsGenerating(true);
     try {
         const description = await generateProjectDescription(formData.title, formData.technologies);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {
         console.error(error);
-        toast.error("Failed to generate description. Please try again.");
+        if (error instanceof ApiKeyMissingError) {
+            toast.error(error.message);
+        } else {
+            toast.error("Failed to generate description. Please try again.");
+        }
     } finally {
         setIsGenerating(false);
     }
   };
+
+  const isPro = user?.subscription?.tier === 'pro';
 
   return (
     <motion.div 
@@ -102,7 +121,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
       >
         <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 rounded-t-2xl">
             <h3 className="font-bold text-slate-900 dark:text-slate-200 text-lg font-sora">
-                {t('editProject')}
+                {project ? t('editProject') : t('createProject')}
             </h3>
             <button 
                 onClick={onClose}
@@ -120,7 +139,10 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
             <div className="relative">
                 <div className="flex justify-between items-center">
                     <EditorLabel htmlFor="description">{t('projectDescription')}</EditorLabel>
-                    <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
+                     <div className="flex items-center gap-2">
+                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription?.monthlyCredits.text} credits left</span>}
+                        <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
+                    </div>
                 </div>
                 <EditorTextarea id="description" name="description" value={formData.description} onChange={handleChange} rows={4} required />
             </div>

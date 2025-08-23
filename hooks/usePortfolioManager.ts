@@ -1,5 +1,7 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import * as ReactRouterDOM from 'react-router-dom';
+const { useNavigate } = ReactRouterDOM;
 import { useHistoryState } from './useHistoryState';
 import { useDebouncedCallback } from './useDebouncedCallback';
 import { useData } from '../contexts/DataContext';
@@ -18,7 +20,6 @@ const slugify = (str: string) =>
 export const usePortfolioManager = (portfolioId?: string) => {
     const navigate = useNavigate();
     const { getPortfolioById, updatePortfolio } = useData();
-    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
     const {
         state: portfolio,
@@ -33,6 +34,7 @@ export const usePortfolioManager = (portfolioId?: string) => {
     
     const [activePageId, setActivePageId] = useState<string | null>(null);
     const [editingPageId, setEditingPageId] = useState<string | null>(null);
+    const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
 
     // Load initial portfolio
     useEffect(() => {
@@ -52,37 +54,58 @@ export const usePortfolioManager = (portfolioId?: string) => {
     const activePage = useMemo(() => {
         return portfolio?.pages.find(p => p.id === activePageId) || null;
     }, [portfolio, activePageId]);
-
+    
     // --- Auto-saving logic ---
     const debouncedSave = useDebouncedCallback((p: Portfolio) => {
-        setSaveStatus('saving');
         updatePortfolio(p);
-        setTimeout(() => {
-            setSaveStatus('saved');
-            setTimeout(() => setSaveStatus('idle'), 2000);
-        }, 500);
-    }, 1500);
+        setSaveStatus('saved');
+        setTimeout(() => setSaveStatus('idle'), 2000);
+    }, 1000);
 
-    const debouncedSetHistory = useDebouncedCallback((p: Portfolio) => {
-        setPortfolioHistory(p);
-    }, 500);
-    
+    const isFirstRender = React.useRef(true);
+    useEffect(() => {
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+            return;
+        }
+        if (portfolio) {
+            setSaveStatus('saving');
+            debouncedSave(portfolio);
+        }
+    }, [portfolio, debouncedSave]);
+
+
     // --- State Update Handlers ---
     const updatePortfolioImmediate = useCallback((updater: (p: Portfolio) => Portfolio) => {
         if (!portfolio) return;
         const newPortfolio = updater(portfolio);
         setPresentOnly(newPortfolio);
         setPortfolioHistory(newPortfolio);
-        debouncedSave(newPortfolio);
-    }, [portfolio, setPresentOnly, setPortfolioHistory, debouncedSave]);
+    }, [portfolio, setPresentOnly, setPortfolioHistory]);
+    
+    const debouncedSetHistory = useDebouncedCallback((p: Portfolio) => {
+        setPortfolioHistory(p);
+    }, 500);
     
     const updatePortfolioDebounced = useCallback((updater: (p: Portfolio) => Portfolio) => {
         if (!portfolio) return;
         const newPortfolio = updater(portfolio);
         setPresentOnly(newPortfolio);
         debouncedSetHistory(newPortfolio);
-        debouncedSave(newPortfolio);
-    }, [portfolio, setPresentOnly, debouncedSetHistory, debouncedSave]);
+    }, [portfolio, setPresentOnly, debouncedSetHistory]);
+    
+    const savePortfolio = useCallback(() => {
+        if (portfolio) {
+            setSaveStatus('saving');
+            debouncedSave.cancel(); // Cancel any pending auto-save
+            updatePortfolio(portfolio);
+            setTimeout(() => {
+                setSaveStatus('saved');
+                toast.success('Portfolio saved!');
+                setTimeout(() => setSaveStatus('idle'), 2000);
+            }, 500);
+        }
+    }, [portfolio, updatePortfolio, debouncedSave]);
 
     const updateField = useCallback(<K extends keyof Portfolio>(field: K, value: Portfolio[K]) => {
         updatePortfolioDebounced(p => ({ ...p, [field]: value }));
@@ -331,8 +354,8 @@ export const usePortfolioManager = (portfolioId?: string) => {
 
 
     return {
-        portfolio, saveStatus, activePage, activePageId, setActivePageId, editingPageId, setEditingPageId,
-        undo, redo, canUndo, canRedo,
+        portfolio, savePortfolio, activePage, activePageId, setActivePageId, editingPageId, setEditingPageId,
+        undo, redo, canUndo, canRedo, saveStatus,
         updatePortfolioImmediate, updatePortfolioDebounced, updateField, updateBlock, updateBlockField,
         addBlock, removeBlock, handleDuplicateBlock, handleMoveBlock, handleMoveBlockToPage, handleDragEnd,
         addPage, removePage, handleRenamePage, setHomePage,

@@ -4,7 +4,7 @@ import Button from './ui/Button';
 import { X, Sparkles, Lightbulb, Edit3, FolderKanban, PlusCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Portfolio, User, AIPortfolioReview } from '../types';
-import { generatePortfolioReview } from '../services/aiService';
+import { generatePortfolioReview, ApiKeyMissingError } from '../services/aiService';
 
 const FeedbackSection: React.FC<{ title: string, icon: React.ElementType, children: React.ReactNode }> = ({ title, icon: Icon, children }) => (
     <div>
@@ -32,7 +32,11 @@ const AIPortfolioReviewModal: React.FC<{ portfolio: Portfolio; user: User; onClo
         const result = await generatePortfolioReview(portfolio, user);
         setReview(result);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+        if (err instanceof ApiKeyMissingError) {
+            setError(err.message);
+        } else {
+            setError(err instanceof Error ? err.message : 'An unknown error occurred.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -74,7 +78,7 @@ const AIPortfolioReviewModal: React.FC<{ portfolio: Portfolio; user: User; onClo
                     <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">{t('aiMentor.generating.message')}</p>
                 </div>
             )}
-            {error && <p className="text-rose-500 p-4">{error}</p>}
+            {error && <p className="text-rose-500 p-4 text-center">{error}</p>}
 
             {review && (
                 <div className="space-y-6">

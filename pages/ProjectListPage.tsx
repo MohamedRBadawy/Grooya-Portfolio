@@ -7,6 +7,7 @@ import type { Project } from '../types';
 import { Plus, Search, FilePenLine, Trash2, MoreVertical } from 'lucide-react';
 import ProjectEditorModal from '../components/ProjectEditorModal';
 import { motion, AnimatePresence } from 'framer-motion';
+import toast from 'react-hot-toast';
 
 const ProjectCard: React.FC<{ 
     project: Project,
@@ -99,9 +100,19 @@ const ProjectListPage: React.FC = () => {
     }, [projects, searchTerm]);
 
     const handleDelete = (projectId: string) => {
-        if (window.confirm(t('deleteProjectConfirm'))) {
-            deleteProject(projectId);
-        }
+        toast((toastInstance) => (
+            <div className="flex flex-col items-start gap-3">
+                <span className="font-medium">{t('deleteProjectConfirm')}</span>
+                <div className="flex gap-2 self-stretch">
+                    <Button variant="danger" size="sm" className="flex-grow" onClick={() => { deleteProject(projectId); toast.dismiss(toastInstance.id); }}>
+                        Confirm
+                    </Button>
+                    <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), { duration: 6000 });
     };
 
     const handleSaveProject = (projectData: Project | Omit<Project, 'id'>) => {

@@ -120,6 +120,20 @@
         },
       };
     </script>
+    <style>
+      details summary {
+        list-style: none; /* remove default arrow */
+      }
+      details summary::-webkit-details-marker {
+        display: none; /* remove default arrow for Safari */
+      }
+      details summary .details-arrow {
+        transition: transform 0.2s;
+      }
+      details[open] summary .details-arrow {
+        transform: rotate(90deg);
+      }
+    </style>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <script type="importmap">
 {

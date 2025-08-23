@@ -1,5 +1,5 @@
 
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 
 // Define the shape of the authentication context
 interface AuthContextType {
@@ -11,42 +11,17 @@ interface AuthContextType {
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// Define the key for storing auth status in local storage
-const AUTH_STORAGE_KEY = 'grooya_auth_status';
-
 /**
  * Provides authentication state and functions to the application.
- * This is a mock implementation that uses localStorage for persistence.
+ * This implementation has been simplified to always treat the user as authenticated.
  */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize isAuthenticated state from localStorage or default to false
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    try {
-      const stored = window.localStorage.getItem(AUTH_STORAGE_KEY);
-      return stored === 'true';
-    } catch {
-      return false;
-    }
-  });
+  // Authentication is now always true to hide the login page.
+  const isAuthenticated = true;
 
-  // Effect to persist the authentication status to localStorage whenever it changes
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(AUTH_STORAGE_KEY, String(isAuthenticated));
-    } catch (error) {
-      console.error("Error writing auth status to local storage", error);
-    }
-  }, [isAuthenticated]);
-
-  // Mock login function
-  const login = () => {
-    setIsAuthenticated(true);
-  };
-
-  // Mock logout function
-  const logout = () => {
-    setIsAuthenticated(false);
-  };
+  // Mock login/logout functions as they are no longer needed but might be called by other components.
+  const login = () => {};
+  const logout = () => {};
 
   // Provide the state and functions to children components
   const value = { isAuthenticated, login, logout };

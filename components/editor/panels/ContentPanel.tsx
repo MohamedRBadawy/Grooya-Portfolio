@@ -1,19 +1,25 @@
 
 
 
+
+
 import React from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
-import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import type { Page, Portfolio, Project, Skill } from '../../../types';
+import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import type { Page, Portfolio, Project, Skill, PortfolioBlock } from '../../../types';
 import BlockEditor from '../BlockEditor';
 import BlockInserter from '../BlockInserter';
 import Button from '../../ui/Button';
-import { Plus } from 'lucide-react';
+import { Plus, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useTranslation } from '../../../hooks/useTranslation';
+import BlockListItem from '../BlockListItem';
+import { useApp } from '../../../contexts/LocalizationContext';
 
 interface ContentPanelProps {
     activePage: Page;
     pages: Page[];
+    focusedBlockId: string | null;
+    setFocusedBlockId: (id: string | null) => void;
     handleDragEnd: (event: any) => void;
     setAddingBlockIndex: (index: number) => void;
     setActiveBlockId: (id: string | null) => void;
@@ -33,13 +39,11 @@ interface ContentPanelProps {
     setCreationType: (type: 'project' | 'skill' | null) => void;
 }
 
-/**
- * The main panel in the editor for managing the content blocks of the active page.
- * It handles drag-and-drop reordering and renders the editor for each block.
- */
 const ContentPanel: React.FC<ContentPanelProps> = ({
     activePage,
     pages,
+    focusedBlockId,
+    setFocusedBlockId,
     handleDragEnd,
     setAddingBlockIndex,
     setActiveBlockId,
@@ -59,7 +63,7 @@ const ContentPanel: React.FC<ContentPanelProps> = ({
     setCreationType
 }) => {
     const { t } = useTranslation();
-    // Set up sensors for dnd-kit to allow for both pointer (mouse/touch) and keyboard dragging.
+    const { direction } = useApp();
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -67,52 +71,60 @@ const ContentPanel: React.FC<ContentPanelProps> = ({
         })
     );
 
+    const focusedBlock = activePage.blocks.find(b => b.id === focusedBlockId);
+    const BackIcon = direction === 'rtl' ? ArrowRight : ArrowLeft;
+
+    if (focusedBlock) {
+        return (
+            <div className="p-4 space-y-4">
+                 <Button variant="ghost" size="sm" onClick={() => setFocusedBlockId(null)} className="mb-2">
+                    <BackIcon size={14} className="me-2"/> Back to all blocks
+                </Button>
+                <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg p-4">
+                    <h4 className="font-semibold capitalize text-slate-800 dark:text-slate-200 mb-4 text-lg">{t(`block.${focusedBlock.type}`)} Editor</h4>
+                    <BlockEditor
+                        block={focusedBlock}
+                        onUpdate={updateBlock}
+                        allProjects={projects}
+                        allSkills={skills}
+                        onEditProject={(project) => setEditingProject(project)}
+                        handleSaveNewProject={handleSaveNewProject}
+                        handleSaveNewSkill={handleSaveNewSkill}
+                        isCreatingProject={creatingInBlockId === focusedBlock.id && creationType === 'project'}
+                        onStartCreatingProject={() => { setCreatingInBlockId(focusedBlock.id); setCreationType('project'); }}
+                        isCreatingSkill={creatingInBlockId === focusedBlock.id && creationType === 'skill'}
+                        onStartCreatingSkill={() => { setCreatingInBlockId(focusedBlock.id); setCreationType('skill'); }}
+                        onCancelCreation={() => { setCreatingInBlockId(null); setCreationType(null); }}
+                    />
+                </div>
+            </div>
+        )
+    }
+
     return (
         <div className="p-4">
-            {/* DndContext provides the drag-and-drop context for all its children. */}
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-                {/* SortableContext provides information about the sortable items to dnd-kit. */}
                 <SortableContext items={activePage.blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
                     <div className="space-y-2">
                         {activePage.blocks.map((block, index) => (
                             <React.Fragment key={block.id}>
-                                {/* BlockInserter allows adding a new block at this specific index. */}
                                 <BlockInserter onAdd={() => setAddingBlockIndex(index)} />
-                                {/* When a BlockEditor is focused, it becomes the "active" block. */}
-                                <div onFocus={() => setActiveBlockId(block.id)}>
-                                    <BlockEditor
-                                        block={block}
-                                        onUpdate={updateBlock}
-                                        onRemove={removeBlock}
-                                        onDuplicate={handleDuplicateBlock}
-                                        onMoveUp={(id) => handleMoveBlock(id, 'up')}
-                                        onMoveDown={(id) => handleMoveBlock(id, 'down')}
-                                        onMoveBlockToPage={handleMoveBlockToPage}
-                                        pages={pages}
-                                        activePageId={activePage.id}
-                                        index={index}
-                                        totalBlocks={activePage.blocks.length}
-                                        allProjects={projects}
-                                        allSkills={skills}
-                                        onEditProject={(project) => setEditingProject(project)}
-                                        handleSaveNewProject={handleSaveNewProject}
-                                        handleSaveNewSkill={handleSaveNewSkill}
-                                        isCreatingProject={creatingInBlockId === block.id && creationType === 'project'}
-                                        onStartCreatingProject={() => { setCreatingInBlockId(block.id); setCreationType('project'); }}
-                                        isCreatingSkill={creatingInBlockId === block.id && creationType === 'skill'}
-                                        onStartCreatingSkill={() => { setCreatingInBlockId(block.id); setCreationType('skill'); }}
-                                        onCancelCreation={() => { setCreatingInBlockId(null); setCreationType(null); }}
-                                    />
-                                </div>
+                                <BlockListItem
+                                    block={block}
+                                    onFocus={() => { setFocusedBlockId(block.id); setActiveBlockId(block.id); }}
+                                    onRemove={removeBlock}
+                                    onDuplicate={handleDuplicateBlock}
+                                    onMoveBlockToPage={handleMoveBlockToPage}
+                                    pages={pages}
+                                    activePageId={activePage.id}
+                                />
                             </React.Fragment>
                         ))}
                     </div>
                 </SortableContext>
             </DndContext>
-            {/* BlockInserter at the end to add a block to the bottom of the list. */}
             <BlockInserter onAdd={() => setAddingBlockIndex(activePage.blocks.length)} />
             
-            {/* Empty state shown when a page has no blocks. */}
             {activePage.blocks.length === 0 && (
                 <div className="text-center py-16 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg">
                     <h3 className="text-xl font-medium text-slate-800 dark:text-slate-300">{t('addYourFirstBlock')}</h3>

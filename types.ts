@@ -1,4 +1,3 @@
-
 /**
  * Represents a user of the application.
  */
@@ -9,7 +8,33 @@ export interface User {
   email: string;
   bio: string;
   avatarUrl: string;
+  role: 'user' | 'admin';
+  subscription?: {
+    tier: 'free' | 'pro';
+    // Tracks which free features have been used up.
+    // A feature key will be present and true if used.
+    freeFeaturesUsed: Partial<Record<AIFeature, boolean>>;
+    // Monthly credits for Pro users.
+    monthlyCredits: {
+        text: number;
+        image: number;
+    };
+  };
 }
+
+/**
+ * A union type representing each distinct AI feature for granular credit tracking.
+ */
+export type AIFeature =
+  | 'projectDescription'
+  | 'heroContent'
+  | 'aboutContent'
+  | 'designSuggestions'
+  | 'resumeFromPortfolio'
+  | 'resumeFromJobDescription'
+  | 'resumeTailoring'
+  | 'portfolioReview'
+  | 'imageGeneration';
 
 /**
  * Represents a project that can be showcased in a portfolio.
@@ -96,6 +121,9 @@ export interface Design {
   cornerRadius: CornerRadius;
   animationStyle: AnimationStyle;
   navigationStyle: NavigationStyle;
+  buttonFillStyle?: 'solid' | 'outline';
+  buttonHoverEffect?: 'none' | 'lift' | 'scale';
+  navAlignment?: 'left' | 'center' | 'right';
   transparentHeader?: boolean;
   scrollIndicator?: 'none' | 'progressBar';
   parallax?: boolean;
@@ -144,6 +172,7 @@ interface BlockBase {
         top?: ShapeDivider;
         bottom?: ShapeDivider;
     }
+    animationStyle?: AnimationStyle;
   }
 }
 

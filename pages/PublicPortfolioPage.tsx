@@ -1,34 +1,34 @@
 
 
-
-
-
-
-
-
-
-import React, { useMemo, useState, useRef } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import React, { useMemo, useRef } from 'react';
+import * as ReactRouterDOM from 'react-router-dom';
+const { useParams, Link } = ReactRouterDOM;
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import type { Portfolio, PortfolioBlock, Project, Skill, ExternalLink, ExperienceItem, ContactBlock, CodeBlock, PricingTier, BlogPost, Gradient, Page, ShapeDivider, AnimationStyle } from '../types';
+import type { Portfolio, PortfolioBlock, Project, Skill, Page, ShapeDivider, AnimationStyle, Gradient } from '../types';
 import EditableText from '../components/ui/EditableText';
 import StickyHeaderNav from '../components/ui/StickyHeaderNav';
 import ContextualToolbar from '../components/ui/ContextualToolbar';
-import { Github, Linkedin, Twitter, Globe, Link as LinkIcon, Clipboard, Check, CheckCircle2 } from 'lucide-react';
 import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
 import { defaultPalettes } from '../services/palettes';
 import ShapeDividerComponent from '../components/ui/ShapeDivider';
-import toast from 'react-hot-toast';
 
-// THEME STYLES - are now dynamically generated from palettes
-
-const cornerRadiusStyles = {
-    none: 'rounded-none',
-    sm: 'rounded-md',
-    md: 'rounded-xl',
-    lg: 'rounded-2xl',
-};
+// Import all the new block view components
+import { HeroBlockView } from '../components/blocks/public/HeroBlockView';
+import { AboutBlockView } from '../components/blocks/public/AboutBlockView';
+import { ProjectsBlockView } from '../components/blocks/public/ProjectsBlockView';
+import { SkillsBlockView } from '../components/blocks/public/SkillsBlockView';
+import { GalleryBlockView } from '../components/blocks/public/GalleryBlockView';
+import { TestimonialsBlockView } from '../components/blocks/public/TestimonialsBlockView';
+import { VideoBlockView } from '../components/blocks/public/VideoBlockView';
+import { CtaBlockView } from '../components/blocks/public/CtaBlockView';
+import { ResumeBlockView } from '../components/blocks/public/ResumeBlockView';
+import { LinksBlockView } from '../components/blocks/public/LinksBlockView';
+import { ExperienceBlockView } from '../components/blocks/public/ExperienceBlockView';
+import { ContactBlockView } from '../components/blocks/public/ContactBlockView';
+import { CodeBlockView } from '../components/blocks/public/CodeBlockView';
+import { ServicesBlockView } from '../components/blocks/public/ServicesBlockView';
+import { BlogBlockView } from '../components/blocks/public/BlogBlockView';
 
 const animationVariants = {
     container: {
@@ -59,750 +59,6 @@ const lineHeightStyles: { [key: string]: string } = {
     tight: 'leading-tight',
     normal: 'leading-normal',
     relaxed: 'leading-relaxed',
-};
-const letterSpacingStyles: { [key: string]: string } = {
-    normal: 'tracking-normal',
-    wide: 'tracking-wider',
-};
-
-const shadowStyles: { [key: string]: string } = {
-    none: 'shadow-none',
-    sm: 'shadow-sm',
-    md: 'shadow-md',
-    lg: 'shadow-lg',
-};
-
-const hexToRgba = (hex: string, alpha: number) => {
-    if (!hex.startsWith('#')) return hex;
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
-};
-
-interface BlockViewProps {
-    block: any;
-    design: Portfolio['design'];
-    theme: Portfolio['customPalettes'][0]['colors']; // Palette colors
-    itemVariant: any;
-    isEditable?: boolean;
-    onUpdateBlock?: (blockId: string, field: string, value: any) => void;
-}
-
-const HeroBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const buttonCornerClass = {
-        rounded: design.cornerRadius === 'lg' ? 'rounded-lg' : 'rounded-md',
-        pill: 'rounded-full',
-        square: 'rounded-none',
-    }[design.buttonStyle];
-
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const hasFallbackImage = block.imageUrl && block.imageUrl.trim() !== '';
-
-    if (hasBgImage || hasFallbackImage) {
-        const bgImage = block.designOverrides?.backgroundImage || block.imageUrl;
-        return (
-            <div 
-                className={`text-center relative bg-cover bg-center h-full flex flex-col items-center justify-center`} 
-                id={block.id}
-                style={{ backgroundImage: design.parallax ? 'none' : `url("${bgImage}")` }} // Don't set image here if parallax is on
-            >
-                {/* Overlay is handled by parent for parallax */}
-                {!design.parallax && <div className="absolute inset-0 bg-black/60"></div>}
-
-                <div className={`mx-auto px-4 relative z-10 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                    <motion.div variants={itemVariant} className="overflow-hidden">
-                        <EditableText
-                            as="h1"
-                            value={block.headline}
-                            onSave={(value) => onUpdateBlock?.(block.id, 'headline', value)}
-                            isEditable={isEditable}
-                            className={`text-4xl md:text-6xl font-heading text-white ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        />
-                    </motion.div>
-                    <motion.div variants={itemVariant} className="overflow-hidden">
-                        <EditableText
-                            as="p"
-                            value={block.subheadline}
-                            onSave={(value) => onUpdateBlock?.(block.id, 'subheadline', value)}
-                            isEditable={isEditable}
-                            className={`mt-4 text-lg md:text-xl max-w-3xl mx-auto text-slate-200`}
-                        />
-                    </motion.div>
-                     <motion.div variants={itemVariant} className="mt-8">
-                        <EditableText
-                            as="a"
-                            value={block.ctaText}
-                            onSave={(value) => onUpdateBlock?.(block.id, 'ctaText', value)}
-                            isEditable={isEditable}
-                            href={block.ctaLink}
-                            style={{ backgroundColor: design.accentColor }}
-                            className={`inline-block px-8 py-3 ${buttonCornerClass} font-semibold text-white`}
-                        />
-                    </motion.div>
-                </div>
-            </div>
-        );
-    }
-    
-    // Fallback for no image
-    return (
-        <div className="text-center h-full flex flex-col items-center justify-center" id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="h1"
-                        value={block.headline}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'headline', value)}
-                        isEditable={isEditable}
-                        className={`text-4xl md:text-6xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: theme.heading }}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="p"
-                        value={block.subheadline}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'subheadline', value)}
-                        isEditable={isEditable}
-                        className={`mt-4 text-lg md:text-xl max-w-3xl mx-auto`}
-                        style={{ color: theme.subtle }}
-                    />
-                </motion.div>
-                 <motion.div variants={itemVariant} className="mt-8">
-                    <EditableText
-                        as="a"
-                        value={block.ctaText}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'ctaText', value)}
-                        isEditable={isEditable}
-                        href={block.ctaLink}
-                        style={{ backgroundColor: design.accentColor }}
-                        className={`inline-block px-8 py-3 ${buttonCornerClass} font-semibold text-white`}
-                    />
-                </motion.div>
-            </div>
-        </div>
-    )
-};
-
-const AboutBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const textColor = hasBgImage ? '#f1f5f9' : theme.text;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-
-    if (!block.imageUrl) {
-        return (
-            <div id={block.id}>
-                <div className={`mx-auto px-4 text-center ${design.pageWidth === 'full' ? 'w-full' : 'container max-w-3xl'}`}>
-                    <motion.div variants={itemVariant} className="overflow-hidden">
-                        <EditableText
-                            as="h2"
-                            value={block.title}
-                            onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                            isEditable={isEditable}
-                            className={`text-3xl mb-4 font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                            style={{ color: headingColor }}
-                        />
-                     </motion.div>
-                     <motion.div variants={itemVariant}>
-                         <EditableText
-                            as="div"
-                            multiline
-                            value={block.content}
-                            onSave={(value) => onUpdateBlock?.(block.id, 'content', value)}
-                            isEditable={isEditable}
-                            style={{ color: textColor }}
-                        />
-                     </motion.div>
-                </div>
-            </div>
-        );
-    }
-    
-    // Two-column layout with sticky image
-    const imageContainerClasses = `w-full md:w-5/12 lg:w-4/12`;
-    const stickyImageClasses = block.stickyImage ? `md:sticky md:top-24` : '';
-    const textContainerClasses = 'w-full md:w-7/12 lg:w-8/12';
-    const flexOrderClass = block.imagePosition === 'right' ? 'md:flex-row-reverse' : 'md:flex-row';
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 flex flex-col ${flexOrderClass} gap-8 md:gap-12 items-start ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className={imageContainerClasses}>
-                    <div className={stickyImageClasses}>
-                        <img src={block.imageUrl} alt={block.title} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} />
-                    </div>
-                </motion.div>
-                <motion.div variants={itemVariant} className={textContainerClasses}>
-                    <EditableText
-                        as="h2"
-                        value={block.title}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                        isEditable={isEditable}
-                        className={`text-3xl mb-4 font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: headingColor }}
-                    />
-                    <EditableText
-                        as="div"
-                        multiline
-                        value={block.content}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'content', value)}
-                        isEditable={isEditable}
-                        style={{ color: textColor }}
-                    />
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const ProjectsBlockView: React.FC<BlockViewProps & {allProjects: Project[]}> = ({ block, design, theme, itemVariant, allProjects, isEditable, onUpdateBlock }) => {
-    const projects = allProjects.filter(p => block.projectIds.includes(p.id));
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
-    
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="h2"
-                        value={block.title}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                        isEditable={isEditable}
-                        className={`text-3xl mb-8 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: headingColor }}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariant} className="grid md:grid-cols-2 gap-8">
-                    {projects.map(project => {
-                        const Wrapper = project.link ? 'a' : 'div';
-                        const props = project.link ? { href: project.link, target: '_blank', rel: 'noopener noreferrer' } : {};
-                        const commonClasses = `block overflow-hidden border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`;
-                        const hoverClasses = project.link ? 'transition-all duration-300 hover:shadow-xl hover:-translate-y-1' : '';
-
-                        return (
-                            <Wrapper 
-                                key={project.id} 
-                                {...props} 
-                                className={`${commonClasses} ${hoverClasses}`}
-                                style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}
-                            >
-                                <img src={project.imageUrl} alt={project.title} className="w-full h-56 object-cover" />
-                                <div className="p-6">
-                                    <h3 className={`text-xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: theme.heading }}>{project.title}</h3>
-                                    <p className={`mt-2`} style={{ color: theme.subtle }}>{project.description}</p>
-                                    <div className="mt-4 flex flex-wrap gap-2">
-                                        {project.technologies.map(tech => (
-                                            <span key={tech} className="px-2 py-1 text-xs font-medium rounded-full" style={{ backgroundColor: hexToRgba(design.accentColor, 0.1), color: design.accentColor}}>{tech}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            </Wrapper>
-                        )
-                    })}
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const SkillsBlockView: React.FC<BlockViewProps & {allSkills: Skill[]}> = ({ block, design, theme, itemVariant, allSkills, isEditable, onUpdateBlock }) => {
-    const skills = allSkills.filter(s => block.skillIds.includes(s.id));
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const skillBg = hasBgImage ? 'rgba(255, 255, 255, 0.1)' : theme.cardBackground;
-    const skillBorder = hasBgImage ? 'rgba(255, 255, 255, 0.2)' : theme.cardBorder;
-    const skillColor = hasBgImage ? '#FFFFFF' : theme.text;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full max-w-4xl' : 'container max-w-4xl'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="h2"
-                        value={block.title}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                        isEditable={isEditable}
-                        className={`text-3xl mb-8 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: headingColor }}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariant} className="flex flex-wrap justify-center gap-3">
-                    {skills.map(skill => (
-                        <span key={skill.id} className={`px-4 py-2 font-medium border ${cornerRadiusStyles[design.cornerRadius]}`} style={{ backgroundColor: skillBg, borderColor: skillBorder, color: skillColor }}>
-                            {skill.name}
-                        </span>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const GalleryBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const captionColor = hasBgImage ? '#f1f5f9' : theme.subtle;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-8 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant} className={block.layout === 'masonry' ? 'columns-1 sm:columns-2 md:columns-3 gap-4' : 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4'}>
-                    {block.images.map((image: any) => (
-                        <div key={image.id} className="mb-4 break-inside-avoid">
-                            <img src={image.url} alt={image.caption} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} />
-                            {image.caption && <p className={`mt-2 text-sm text-center`} style={{ color: captionColor }}>{image.caption}</p>}
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
-}
-
-const TestimonialsBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
-    
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-12 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {block.testimonials.map((testimonial: any) => (
-                        <div key={testimonial.id} className={`p-6 border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`} style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}>
-                            <p className={`italic`} style={{ color: theme.text }}>"{testimonial.quote}"</p>
-                            <div className="flex items-center mt-4">
-                                {testimonial.authorAvatarUrl && <img src={testimonial.authorAvatarUrl} alt={testimonial.author} className="w-12 h-12 rounded-full mr-4" />}
-                                <div>
-                                    <p className={`font-heading ${fontWeightHeadingClass}`} style={{ color: theme.heading }}>{testimonial.author}</p>
-                                    <p style={{ color: theme.subtle }}>{testimonial.authorTitle}</p>
-                                </div>
-                            </div>
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const VideoBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const getVideoEmbedUrl = (url: string) => {
-        if (url.includes('youtube.com/watch?v=')) {
-            const videoId = url.split('v=')[1].split('&')[0];
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
-        if (url.includes('youtu.be/')) {
-            const videoId = url.split('youtu.be/')[1].split('?')[0];
-            return `https://www.youtube.com/embed/${videoId}`;
-        }
-        if (url.includes('vimeo.com/')) {
-            const videoId = url.split('vimeo.com/')[1].split('?')[0];
-            return `https://player.vimeo.com/video/${videoId}`;
-        }
-        return null;
-    };
-    const embedUrl = getVideoEmbedUrl(block.videoUrl);
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const captionColor = hasBgImage ? '#f1f5f9' : theme.subtle;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
-
-    return (
-         <div id={block.id}>
-            <div className={`mx-auto px-4 text-center ${design.pageWidth === 'full' ? 'w-full max-w-4xl' : 'container max-w-4xl'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-8 font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant}>
-                {embedUrl ? (
-                    <div className={`aspect-video border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass} overflow-hidden`} style={{ borderColor: theme.cardBorder }}>
-                        <iframe
-                            src={embedUrl}
-                            width="100%"
-                            height="100%"
-                            frameBorder="0"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                            title="Embedded video"
-                        ></iframe>
-                    </div>
-                ) : (
-                    <div className={`aspect-video border flex items-center justify-center ${cornerRadiusStyles[design.cornerRadius]}`} style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}>
-                        <p style={{ color: theme.subtle }}>Invalid video URL. Please use a valid YouTube or Vimeo link.</p>
-                    </div>
-                )}
-                </motion.div>
-                <motion.div variants={itemVariant}><EditableText as="p" value={block.caption} onSave={(value) => onUpdateBlock?.(block.id, 'caption', value)} isEditable={isEditable} className={`mt-4 text-center`} style={{ color: captionColor }} /></motion.div>
-            </div>
-        </div>
-    )
-};
-
-const CtaBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const buttonCornerClass = {
-        rounded: design.cornerRadius === 'lg' ? 'rounded-lg' : 'rounded-md',
-        pill: 'rounded-full',
-        square: 'rounded-none',
-    }[design.buttonStyle];
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 text-center ${design.pageWidth === 'full' ? 'w-full' : 'container'} ${cornerRadiusStyles[design.cornerRadius]}`} style={{backgroundColor: hasBgImage ? 'transparent' : hexToRgba(design.accentColor, 0.1)}}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{color: hasBgImage ? '#FFFFFF' : design.accentColor}} /></motion.div>
-                <motion.div variants={itemVariant}><EditableText as="p" value={block.subtitle} onSave={(value) => onUpdateBlock?.(block.id, 'subtitle', value)} isEditable={isEditable} className={`mt-2 max-w-2xl mx-auto`} style={{color: hasBgImage ? '#f1f5f9' : hexToRgba(design.accentColor, 0.8)}} /></motion.div>
-                <motion.div variants={itemVariant} className="mt-8">
-                     <EditableText
-                        as="a"
-                        value={block.buttonText}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'buttonText', value)}
-                        isEditable={isEditable}
-                        href={block.buttonLink}
-                        style={{ backgroundColor: design.accentColor }}
-                        className={`inline-block px-8 py-3 ${buttonCornerClass} font-semibold text-white`}
-                    />
-                </motion.div>
-            </div>
-        </div>
-    );
-}
-
-const ResumeBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const buttonCornerClass = {
-        rounded: design.cornerRadius === 'lg' ? 'rounded-lg' : 'rounded-md',
-        pill: 'rounded-full',
-        square: 'rounded-none',
-    }[design.buttonStyle];
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const textColor = hasBgImage ? '#f1f5f9' : theme.text;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 text-center ${design.pageWidth === 'full' ? 'w-full max-w-3xl' : 'container max-w-3xl'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-4 font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant}><EditableText as="p" multiline value={block.description} onSave={(value) => onUpdateBlock?.(block.id, 'description', value)} isEditable={isEditable} className={`mb-8`} style={{ color: textColor }} /></motion.div>
-                <motion.div variants={itemVariant}>
-                <EditableText
-                    as="a"
-                    value={block.buttonText}
-                    onSave={(value) => onUpdateBlock?.(block.id, 'buttonText', value)}
-                    isEditable={isEditable}
-                    href={block.fileUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ backgroundColor: design.accentColor }}
-                    className={`inline-block px-8 py-3 ${buttonCornerClass} font-semibold text-white`}
-                />
-                </motion.div>
-            </div>
-        </div>
-    )
-};
-
-const PlatformIcon: React.FC<{platform: ExternalLink['platform']}> = ({ platform }) => {
-    switch (platform) {
-        case 'github': return <Github size={20} className="inline-block me-2" />;
-        case 'linkedin': return <Linkedin size={20} className="inline-block me-2" />;
-        case 'twitter': return <Twitter size={20} className="inline-block me-2" />;
-        case 'website': return <Globe size={20} className="inline-block me-2" />;
-        default: return <LinkIcon size={20} className="inline-block me-2" />;
-    }
-};
-
-const LinksBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 text-center ${design.pageWidth === 'full' ? 'w-full max-w-3xl' : 'container max-w-3xl'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="h2"
-                        value={block.title}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                        isEditable={isEditable}
-                        className={`text-3xl mb-8 font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: headingColor }}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariant} className="flex flex-wrap justify-center gap-4">
-                    {block.links.map((link: ExternalLink) => (
-                        <a
-                            key={link.id}
-                            href={link.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            style={{ backgroundColor: design.accentColor }}
-                            className={`inline-flex items-center px-6 py-3 font-semibold text-white transform hover:scale-105 transition-transform ${cornerRadiusStyles[design.cornerRadius]}`}
-                        >
-                            <PlatformIcon platform={link.platform} />
-                            {link.text || link.platform}
-                        </a>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const ExperienceBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const textColor = hasBgImage ? '#f1f5f9' : theme.text;
-    const subtleColor = hasBgImage ? '#cbd5e1' : theme.subtle;
-    const accent = design.accentColor;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="h2"
-                        value={block.title}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                        isEditable={isEditable}
-                        className={`text-3xl mb-12 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: headingColor }}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariant} className="relative border-s-2 max-w-3xl mx-auto" style={{ borderColor: hasBgImage ? hexToRgba('#FFFFFF', 0.2) : hexToRgba(design.accentColor, 0.2) }}>
-                    {block.items.map((item: ExperienceItem) => (
-                        <div key={item.id} className="mb-10 ms-8 relative">
-                            <span className="absolute flex items-center justify-center w-4 h-4 rounded-full -start-[9px] border-2" style={{ backgroundColor: hasBgImage ? 'transparent' : theme.background, borderColor: accent }}></span>
-                            <h3 className={`text-xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }}>{item.title} at <span style={{ color: accent }}>{item.company}</span></h3>
-                            <time className={`block mb-2 text-sm font-normal leading-none`} style={{ color: subtleColor }}>{item.dateRange}</time>
-                            <p className={`text-base font-normal`} style={{ color: textColor }}>{item.description}</p>
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const ContactBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const { t } = useTranslation();
-    const buttonCornerClass = {
-        rounded: design.cornerRadius === 'lg' ? 'rounded-lg' : 'rounded-md',
-        pill: 'rounded-full',
-        square: 'rounded-none',
-    }[design.buttonStyle];
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        toast(t('contact.formDisabled'));
-    };
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const subtleColor = hasBgImage ? '#cbd5e1' : theme.subtle;
-    const inputBg = hasBgImage ? 'rgba(255, 255, 255, 0.1)' : theme.inputBackground;
-    const inputBorder = hasBgImage ? 'rgba(255, 255, 255, 0.2)' : theme.inputBorder;
-    const inputColor = hasBgImage ? '#FFFFFF' : theme.inputText;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    
-    const inputStyle = `w-full border p-3 transition-colors duration-200 focus:outline-none ${cornerRadiusStyles[design.cornerRadius]}`;
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full max-w-2xl' : 'container max-w-2xl'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-4 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant}><EditableText as="p" value={block.subtitle} onSave={(value) => onUpdateBlock?.(block.id, 'subtitle', value)} isEditable={isEditable} className={`mb-8 text-center`} style={{ color: subtleColor }} /></motion.div>
-                
-                <motion.form variants={itemVariant} onSubmit={handleSubmit} className="space-y-6">
-                    <div>
-                        <label htmlFor="name" className="sr-only">{t('contact.name')}</label>
-                        <input type="text" id="name" name="name" placeholder={t('contact.name')} required className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties} />
-                    </div>
-                    <div>
-                        <label htmlFor="email" className="sr-only">{t('contact.email')}</label>
-                        <input type="email" id="email" name="email" placeholder={t('contact.email')} required className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties} />
-                    </div>
-                    <div>
-                        <label htmlFor="message" className="sr-only">{t('contact.message')}</label>
-                        <textarea id="message" name="message" placeholder={t('contact.message')} required rows={5} className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties}></textarea>
-                    </div>
-                    <button type="submit" style={{ backgroundColor: design.accentColor }} className={`w-full px-8 py-3 ${buttonCornerClass} font-semibold text-white`}>
-                        {block.buttonText || t('contact.submit')}
-                    </button>
-                </motion.form>
-            </div>
-        </div>
-    );
-};
-
-const CodeBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const { t } = useTranslation();
-    const [copied, setCopied] = useState(false);
-
-    const handleCopy = () => {
-        navigator.clipboard.writeText(block.code);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-    };
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
-
-    const isDarkTheme = useMemo(() => {
-        if (hasBgImage) return true;
-        const hexColor = theme.background;
-        if (!hexColor || !hexColor.startsWith('#')) return false;
-        const color = hexColor.substring(1, 7);
-        const r = parseInt(color.substring(0, 2), 16);
-        const g = parseInt(color.substring(2, 4), 16);
-        const b = parseInt(color.substring(4, 6), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance < 0.5;
-    }, [theme.background, hasBgImage]);
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full max-w-4xl' : 'container max-w-4xl'}`}>
-                 <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-8 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                 <motion.div variants={itemVariant} className={`font-mono text-sm overflow-hidden ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`} style={{ backgroundColor: isDarkTheme ? '#0f172a' : '#f1f5f9', color: isDarkTheme ? '#e2e8f0' : '#475569' }}>
-                    <div className="flex justify-between items-center px-4 py-2 border-b" style={{ backgroundColor: isDarkTheme ? 'rgba(30, 41, 59, 0.5)' : 'rgba(226, 232, 240, 0.5)', borderColor: isDarkTheme ? 'rgba(51, 65, 85, 0.5)' : theme.cardBorder }}>
-                        <span style={{ color: theme.subtle }}>{block.language}</span>
-                        <button onClick={handleCopy} className="flex items-center gap-2 text-xs" style={{ color: theme.subtle }}>
-                            {copied ? <Check size={14} className="text-teal-400"/> : <Clipboard size={14}/>}
-                            {copied ? t('code.copied') : t('code.copy')}
-                        </button>
-                    </div>
-                    <pre className="p-4 overflow-x-auto"><code>{block.code}</code></pre>
-                 </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const ServicesBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const buttonCornerClass = {
-        rounded: design.cornerRadius === 'lg' ? 'rounded-lg' : 'rounded-md',
-        pill: 'rounded-full',
-        square: 'rounded-none',
-    }[design.buttonStyle];
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
-
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-12 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
-                    {block.tiers.map((tier: PricingTier) => (
-                        <div 
-                            key={tier.id}
-                            className={`p-8 border flex flex-col h-full transition-all duration-300 ${tier.isFeatured ? 'transform lg:scale-105' : ''} ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`}
-                            style={{ backgroundColor: theme.cardBackground, borderColor: tier.isFeatured ? design.accentColor : theme.cardBorder }}
-                        >
-                            <h3 className={`text-2xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: theme.heading }}>{tier.title}</h3>
-                            <p className={`mt-2`} style={{ color: theme.subtle }}>{tier.description}</p>
-                            <div className="my-6">
-                                <span className={`text-4xl font-heading ${fontWeightHeadingClass}`} style={{ color: theme.heading }}>{tier.price}</span>
-                                <span style={{ color: theme.subtle }}>{tier.frequency}</span>
-                            </div>
-                            <ul className="space-y-4 mb-8 flex-grow">
-                                {tier.features.map((feature: string, index: number) => (
-                                    <li key={index} className="flex items-center">
-                                        <CheckCircle2 size={18} className="me-3" style={{ color: design.accentColor }}/>
-                                        <span style={{ color: theme.text }}>{feature}</span>
-                                    </li>
-                                ))}
-                            </ul>
-                            <a 
-                                href={tier.link || '#'}
-                                className={`block w-full text-center px-6 py-3 font-semibold ${buttonCornerClass}`}
-                                style={{
-                                    backgroundColor: tier.isFeatured ? design.accentColor : 'transparent',
-                                    color: tier.isFeatured ? 'white' : theme.heading,
-                                    border: tier.isFeatured ? 'none' : `1px solid ${theme.cardBorder}`
-                                }}
-                            >
-                                {tier.buttonText}
-                            </a>
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
-};
-
-const BlogBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
-    const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
-    const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
-    
-    return (
-        <div id={block.id}>
-            <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                <motion.div variants={itemVariant} className="overflow-hidden">
-                    <EditableText
-                        as="h2"
-                        value={block.title}
-                        onSave={(value) => onUpdateBlock?.(block.id, 'title', value)}
-                        isEditable={isEditable}
-                        className={`text-3xl mb-12 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
-                        style={{ color: headingColor }}
-                    />
-                </motion.div>
-                <motion.div variants={itemVariant} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                    {block.posts.map((post: BlogPost) => (
-                        <a 
-                            key={post.id} 
-                            href={post.link} 
-                            target="_blank" 
-                            rel="noopener noreferrer" 
-                            className={`block group overflow-hidden border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass} transition-all duration-300 hover:-translate-y-1`}
-                            style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}
-                        >
-                            <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
-                            <div className="p-6">
-                                <h3 className={`text-xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: theme.heading }}>{post.title}</h3>
-                                <p className={`mt-2 text-sm line-clamp-3`} style={{ color: theme.subtle }}>{post.excerpt}</p>
-                            </div>
-                        </a>
-                    ))}
-                </motion.div>
-            </div>
-        </div>
-    );
 };
 
 
@@ -841,6 +97,7 @@ interface PublicPortfolioPageProps {
     onAIAssist?: () => void;
     isAIAssistLoading?: boolean;
     scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
+    focusedBlockId?: string | null;
 }
 
 const fontFamilies: { [key: string]: string } = {
@@ -876,7 +133,7 @@ const ScrollProgressBar: React.FC<{ accentColor: string }> = ({ accentColor }) =
     return (
         <motion.div 
             className="fixed top-0 left-0 right-0 h-1 origin-left z-50" 
-            style={{ scaleX, backgroundColor: accentColor }}
+            style={{ backgroundColor: accentColor, scaleX }}
         />
     );
 };
@@ -908,7 +165,7 @@ const ParallaxBlock: React.FC<{
                 className="absolute inset-[-20%] z-0 bg-cover bg-center"
                 style={{
                     backgroundImage: `url("${backgroundImage}")`,
-                    y
+                    y,
                 }}
              />
              <div className="absolute inset-0 bg-black z-10" style={{ opacity: backgroundOpacity ?? 0.5 }} />
@@ -931,10 +188,12 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     onPageLinkClick,
     onAIAssist,
     isAIAssistLoading,
+    scrollContainerRef,
+    focusedBlockId,
 }) => {
     const params = useParams();
     const { slug, '*': pagePathSplat = '' } = params;
-    const { portfolios, projects, skills, user } = useData();
+    const { portfolios, projects, skills, user: loggedInUser } = useData();
     const { t } = useTranslation();
     
     const portfolio = useMemo(() => {
@@ -951,6 +210,16 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
         return foundPage || portfolio.pages.find(p => p.path === '/');
     }, [portfolio, pagePathSplat, activePageForPreview]);
 
+    const portfolioOwner = useMemo(() => {
+        // In preview mode, the logged-in user is always the owner.
+        if (isEditable) return loggedInUser;
+        // In a real app, you'd fetch the owner's public data. Here we simulate it.
+        if (portfolio?.userId === loggedInUser?.id) return loggedInUser;
+        return null;
+    }, [portfolio, loggedInUser, isEditable]);
+
+    const canRemoveBranding = portfolioOwner?.subscription?.tier === 'pro';
+
     if (!portfolio) {
         return <div className="flex items-center justify-center min-h-screen">{t('portfolioNotFound')}</div>;
     }
@@ -965,7 +234,6 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     }, [portfolio.design.paletteId, portfolio.customPalettes]);
     
     const theme = activePalette.colors;
-    const selectedItemVariant = getVariant(portfolio.design.animationStyle);
     const fontSizeClass = {
         sm: 'text-sm',
         md: 'text-base',
@@ -975,7 +243,6 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     const fontWeightBodyClass = fontWeightStyles[portfolio.design.fontWeightBody] || 'font-normal';
     const lineHeightClass = lineHeightStyles[portfolio.design.lineHeight] || 'leading-normal';
 
-
     const dynamicStyles = {
         '--font-heading': fontFamilies[portfolio.design.headingFont] || fontFamilies['Sora'],
         '--font-body': fontFamilies[portfolio.design.bodyFont] || fontFamilies['Inter'],
@@ -983,12 +250,109 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
         color: theme.text,
     } as React.CSSProperties;
 
+    const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+        const target = e.target as HTMLElement;
+        const anchor = target.closest('a');
+
+        // Check for internal hash links within the preview
+        if (anchor && anchor.getAttribute('href')?.startsWith('#')) {
+            e.preventDefault(); // Stop default browser jump
+            e.stopPropagation(); // Stop this click from bubbling up to other handlers (like block deselection)
+
+            const href = anchor.getAttribute('href')!;
+            const targetId = href.substring(1);
+            
+            let targetElement = document.getElementById(targetId);
+
+            // If an element with the exact ID isn't found, check if it's a semantic link
+            // to a block type (e.g., #projects)
+            if (!targetElement && activePage) {
+                const semanticBlock = activePage.blocks.find(b => b.type === targetId);
+                if (semanticBlock) {
+                    targetElement = document.getElementById(semanticBlock.id);
+                }
+            }
+
+            if (targetElement) {
+                const container = scrollContainerRef?.current;
+                if (container) {
+                    const containerRect = container.getBoundingClientRect();
+                    const targetRect = targetElement.getBoundingClientRect();
+                    const scrollTop = container.scrollTop;
+                    const top = targetRect.top - containerRect.top + scrollTop;
+
+                    container.scrollTo({
+                        top: top,
+                        behavior: 'smooth',
+                    });
+                } else {
+                    targetElement.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            } else {
+                console.warn(`Could not find element for internal link: ${href}`);
+            }
+            return; // Exit early, we've handled the click
+        }
+
+        // If it wasn't an internal link, proceed with the editor's block deselection logic
+        if (isEditable) {
+            setActiveBlockId?.(null);
+        }
+    };
+
+
+    // Focused Block Preview Logic
+    if (isEditable && focusedBlockId) {
+        const focusedBlock = activePage?.blocks.find(b => b.id === focusedBlockId);
+        if (focusedBlock) {
+             const { backgroundImage, backgroundOpacity, background, shapeDividers } = focusedBlock.designOverrides || {};
+             const backgroundStyle: React.CSSProperties = {};
+             let hasOverlay = false;
+             const blockAnimation = focusedBlock.designOverrides?.animationStyle ?? portfolio.design.animationStyle;
+             const blockItemVariant = getVariant(blockAnimation);
+
+             if (backgroundImage) {
+                backgroundStyle.backgroundImage = `url("${backgroundImage}")`;
+                hasOverlay = true;
+             } else if (background) {
+                if (typeof background === 'string') {
+                    backgroundStyle.backgroundColor = background;
+                } else if (typeof background === 'object') {
+                    const gradient = background as Gradient;
+                    backgroundStyle.backgroundImage = `linear-gradient(${gradient.direction}deg, ${gradient.color1}, ${gradient.color2})`;
+                }
+             }
+
+            return (
+                <div style={dynamicStyles}>
+                    <div className="relative isolate" style={backgroundStyle} >
+                        {hasOverlay && <div className="absolute inset-0 bg-black" style={{ opacity: backgroundOpacity ?? 0.5 }} />}
+                        <div className="relative z-10 p-4 md:p-8">
+                            <BlockRenderer 
+                                block={focusedBlock} 
+                                design={portfolio.design} 
+                                theme={theme} 
+                                allProjects={projects} 
+                                allSkills={skills} 
+                                isEditable={false} // Disable inline editing in focused preview
+                                itemVariant={blockItemVariant} 
+                            />
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+    }
+
 
     return (
         <div 
           className={`font-body ${fontSizeClass} ${fontWeightBodyClass} ${lineHeightClass}`} 
           style={dynamicStyles}
-          onClick={() => isEditable && setActiveBlockId?.(null)}
+          onClick={handleContainerClick}
         >
             {portfolio.design.scrollIndicator === 'progressBar' && <ScrollProgressBar accentColor={portfolio.design.accentColor} />}
             {portfolio.design.customCss && <style>{portfolio.design.customCss}</style>}
@@ -998,7 +362,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                     design={portfolio.design} 
                     theme={theme} 
                     variant={portfolio.design.navigationStyle === 'minimalHeader' ? 'minimal' : 'full'} 
-                    userName={user?.name || ''} 
+                    userName={loggedInUser?.name || ''} 
                     portfolioSlug={portfolio.slug}
                     isEditable={isEditable}
                     onPageLinkClick={onPageLinkClick}
@@ -1041,6 +405,8 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                     };
                     
                     const useParallax = portfolio.design.parallax && backgroundImage;
+                    const blockAnimation = block.designOverrides?.animationStyle ?? portfolio.design.animationStyle;
+                    const blockItemVariant = getVariant(blockAnimation);
                     
                     const blockContent = (
                         <div 
@@ -1053,7 +419,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                                 }
                             }}
                         >
-                            <BlockRenderer block={block} design={portfolio.design} theme={theme} allProjects={projects} allSkills={skills} isEditable={isEditable} onUpdateBlock={onUpdateBlock} itemVariant={selectedItemVariant} />
+                            <BlockRenderer block={block} design={portfolio.design} theme={theme} allProjects={projects} allSkills={skills} isEditable={isEditable} onUpdateBlock={onUpdateBlock} itemVariant={blockItemVariant} />
                             {isActive && onDuplicateBlock && onMoveBlock && onDeleteBlock && (
                                 <ContextualToolbar
                                     onDuplicate={() => onDuplicateBlock(block.id)}
@@ -1102,6 +468,11 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                     </div>
                  )}
             </main>
+            {!canRemoveBranding && (
+                <footer className="text-center py-6 text-sm text-slate-500 dark:text-slate-400 border-t" style={{ borderColor: theme.cardBorder }}>
+                    Made with <a href="https://github.com/google/generative-ai-docs/tree/main/demos/palm/web/palm-career-app" target="_blank" rel="noopener noreferrer" className="font-semibold text-teal-600 dark:text-teal-400 hover:underline">Grooya</a>
+                </footer>
+            )}
         </div>
     );
 };

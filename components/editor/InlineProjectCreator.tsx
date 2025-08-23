@@ -1,14 +1,13 @@
-
-
 import React, { useState } from 'react';
 import type { Project } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import Button from '../ui/Button';
 import { Save } from 'lucide-react';
-import { generateProjectDescription } from '../../services/aiService';
+import { generateProjectDescription, ApiKeyMissingError } from '../../services/aiService';
 import AIAssistButton from '../ui/AIAssistButton';
 import toast from 'react-hot-toast';
 import { EditorLabel, EditorInput, EditorTextarea } from '../ui/editor/EditorControls';
+import { useData } from '../../contexts/DataContext';
 
 interface InlineProjectCreatorProps {
   onSave: (projectData: Omit<Project, 'id'>) => void;
@@ -17,6 +16,7 @@ interface InlineProjectCreatorProps {
 
 const InlineProjectCreator: React.FC<InlineProjectCreatorProps> = ({ onSave, onCancel }) => {
   const { t } = useTranslation();
+  const { consumeAiFeature, user } = useData();
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
       title: '',
@@ -45,13 +45,26 @@ const InlineProjectCreator: React.FC<InlineProjectCreatorProps> = ({ onSave, onC
         toast.error("Please enter a project title first.");
         return;
     }
+
+    if (!consumeAiFeature('projectDescription')) {
+      const message = user?.subscription?.tier === 'pro'
+        ? "You've run out of AI text credits for this month."
+        : "You've used your one free generation for this feature. Please upgrade to Pro to use it again.";
+      toast.error(message);
+      return;
+    }
+
     setIsGenerating(true);
     try {
         const description = await generateProjectDescription(formData.title, formData.technologies);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {
         console.error(error);
-        toast.error("Failed to generate description. Please try again.");
+        if (error instanceof ApiKeyMissingError) {
+            toast.error(error.message);
+        } else {
+            toast.error("Failed to generate description. Please try again.");
+        }
     } finally {
         setIsGenerating(false);
     }

@@ -1,5 +1,8 @@
 
+
 import { useRef, useEffect, useMemo } from 'react';
+
+type DebouncedFunction<A extends any[]> = ((...args: A) => void) & { cancel: () => void };
 
 /**
  * Creates a debounced version of a callback function that delays its execution.
@@ -7,12 +10,12 @@ import { useRef, useEffect, useMemo } from 'react';
  * such as on every keystroke in an input field.
  * @param callback The function to debounce.
  * @param wait The delay in milliseconds.
- * @returns A memoized, debounced version of the callback function.
+ * @returns A memoized, debounced version of the callback function with a `cancel` method.
  */
 export function useDebouncedCallback<A extends any[]>(
   callback: (...args: A) => void,
   wait: number
-) {
+): DebouncedFunction<A> {
   // Use a ref to store the latest arguments passed to the debounced function.
   const argsRef = useRef<A | undefined>(undefined);
   // Use a ref to store the timeout ID.
@@ -29,7 +32,7 @@ export function useDebouncedCallback<A extends any[]>(
 
   // useMemo ensures that the debounced function is not recreated on every render.
   const debouncedCallback = useMemo(() => {
-    const fun = (...args: A) => {
+    const fun: DebouncedFunction<A> = (...args: A) => {
       // Store the latest arguments.
       argsRef.current = args;
       // Clear any existing pending timeout.
@@ -41,6 +44,8 @@ export function useDebouncedCallback<A extends any[]>(
         }
       }, wait);
     };
+
+    fun.cancel = cleanup;
 
     return fun;
   }, [callback, wait]);

@@ -69,10 +69,17 @@ export const ar = {
   'resumeTitle': 'عنوان السيرة الذاتية',
   'createFromScratch': 'إنشاء من الصفر',
   'generateFromPortfolio': 'إنشاء من ملف شخصي',
+  'generateFromJobDescription': 'تخصيص لوصف وظيفي',
   'selectPortfolio': 'اختر ملفًا شخصيًا للإنشاء منه',
   'generatingResume': 'جاري إنشاء السيرة الذاتية...',
   'createAndEdit': 'إنشاء وتعديل',
   'generateAndEdit': 'إنشاء وتعديل',
+  'atsFriendlyNote': 'سيقوم الذكاء الاصطناعي بإنشاء سيرة ذاتية متوافقة مع أنظمة تتبع المتقدمين (ATS) ومحسّنة بالكلمات المفتاحية من الوصف الوظيفي.',
+  'selectBaseResume': 'اختر سيرة ذاتية أساسية لتخصيصها',
+  'pasteJobDescriptionHere': 'الصق الوصف الوظيفي الكامل هنا',
+  'tailorAndEdit': 'تخصيص وتعديل',
+  'generatingTailoredResume': 'جاري إنشاء السيرة الذاتية المخصصة...',
+  'noResumesToTailor': 'تحتاج إلى سيرة ذاتية واحدة على الأقل لاستخدامها كأساس للتخصيص.',
 
 
   // Project Management

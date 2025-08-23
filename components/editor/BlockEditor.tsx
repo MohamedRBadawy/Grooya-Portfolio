@@ -1,13 +1,8 @@
-
-
-
 import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioBlock, Gradient, HeroBlock, ProjectsBlock, SkillsBlock, Project, Skill, GalleryBlock, GalleryImage, TestimonialsBlock, Testimonial, VideoBlock, CtaBlock, ResumeBlock, LinksBlock, ExternalLink, ExperienceBlock, ExperienceItem, ContactBlock, CodeBlock, ServicesBlock, PricingTier, BlogBlock, BlogPost, Page, ShapeDivider, AboutBlock } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
-import { useSortable } from '@dnd-kit/sortable';
-import { CSS } from '@dnd-kit/utilities';
-import { motion, AnimatePresence } from 'framer-motion';
-import { X, Plus, Copy, ArrowUp, ArrowDown, MoreVertical, ArrowRight, Trash2, Waves } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import { X, Plus, Waves } from 'lucide-react';
 import Button from '../ui/Button';
 import { MultiItemSelector } from '../ui/MultiItemSelector';
 import { EditorLabel, EditorInput, EditorTextarea } from '../ui/editor/EditorControls';
@@ -17,15 +12,6 @@ import InlineSkillCreator from './InlineSkillCreator';
 const BlockEditor: React.FC<{
     block: PortfolioBlock,
     onUpdate: (blockId: string, newBlockData: any) => void,
-    onRemove: (blockId: string) => void,
-    onDuplicate: (blockId: string) => void,
-    onMoveUp: (blockId: string) => void,
-    onMoveDown: (blockId: string) => void,
-    onMoveBlockToPage: (blockId: string, targetPageId: string) => void,
-    pages: Page[],
-    activePageId: string,
-    index: number;
-    totalBlocks: number;
     allProjects: Project[],
     allSkills: Skill[],
     onEditProject: (project: Project) => void;
@@ -37,34 +23,14 @@ const BlockEditor: React.FC<{
     onStartCreatingSkill: () => void;
     onCancelCreation: () => void;
 }> = ({ 
-    block, onUpdate, onRemove, onDuplicate, onMoveUp, onMoveDown, onMoveBlockToPage, pages, activePageId, 
-    index, totalBlocks, allProjects, allSkills, onEditProject, handleSaveNewProject, handleSaveNewSkill,
+    block, onUpdate, allProjects, allSkills, onEditProject, handleSaveNewProject, handleSaveNewSkill,
     isCreatingProject, onStartCreatingProject, isCreatingSkill, onStartCreatingSkill, onCancelCreation
 }) => {
     
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({id: block.id});
     const { t } = useTranslation();
     const [backgroundType, setBackgroundType] = React.useState<'solid' | 'gradient'>(
         typeof block.designOverrides?.background === 'object' ? 'gradient' : 'solid'
     );
-    const [isMenuOpen, setIsMenuOpen] = useState(false);
-    const menuRef = useRef<HTMLDivElement>(null);
-
-
-     useEffect(() => {
-        const handleClickOutside = (event: MouseEvent) => {
-            if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
-                setIsMenuOpen(false);
-            }
-        };
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, []);
-
-    const style = {
-        transform: CSS.Transform.toString(transform),
-        transition,
-    };
     
     const handleFieldChange = (field: string, value: any) => {
         onUpdate(block.id, { [field]: value });
@@ -189,6 +155,10 @@ const BlockEditor: React.FC<{
                                 <EditorLabel htmlFor={`h-imageUrl-${b.id}`}>Image URL (for no-background fallback)</EditorLabel>
                             </div>
                             <EditorInput id={`h-imageUrl-${b.id}`} value={b.imageUrl} onChange={e => handleFieldChange('imageUrl', e.target.value)} />
+                        </div>
+                         <div>
+                            <EditorLabel htmlFor={`h-ctaText-${b.id}`}>CTA Button Text</EditorLabel>
+                            <EditorInput id={`h-ctaText-${b.id}`} value={b.ctaText} onChange={e => handleFieldChange('ctaText', e.target.value)} />
                         </div>
                         <div><EditorLabel htmlFor={`h-ctaLink-${b.id}`}>CTA Link</EditorLabel><EditorInput id={`h-ctaLink-${b.id}`} value={b.ctaLink} onChange={e => handleFieldChange('ctaLink', e.target.value)} /></div>
                     </>
@@ -370,7 +340,14 @@ const BlockEditor: React.FC<{
                 const b = block as CtaBlock;
                 return (
                     <>
-                        <div><EditorLabel>Button Link</EditorLabel><EditorInput value={b.buttonLink} onChange={e => handleFieldChange('buttonLink', e.target.value)} /></div>
+                        <div>
+                            <EditorLabel htmlFor={`cta-buttonText-${b.id}`}>Button Text</EditorLabel>
+                            <EditorInput id={`cta-buttonText-${b.id}`} value={b.buttonText} onChange={e => handleFieldChange('buttonText', e.target.value)} />
+                        </div>
+                        <div>
+                            <EditorLabel htmlFor={`cta-buttonLink-${b.id}`}>Button Link</EditorLabel>
+                            <EditorInput id={`cta-buttonLink-${b.id}`} value={b.buttonLink} onChange={e => handleFieldChange('buttonLink', e.target.value)} />
+                        </div>
                     </>
                 )
             }
@@ -378,7 +355,14 @@ const BlockEditor: React.FC<{
                 const b = block as ResumeBlock;
                 return (
                     <>
-                        <div><EditorLabel>Resume PDF URL</EditorLabel><EditorInput value={b.fileUrl} onChange={e => handleFieldChange('fileUrl', e.target.value)} /></div>
+                        <div>
+                            <EditorLabel htmlFor={`resume-buttonText-${b.id}`}>Button Text</EditorLabel>
+                            <EditorInput id={`resume-buttonText-${b.id}`} value={b.buttonText} onChange={e => handleFieldChange('buttonText', e.target.value)} />
+                        </div>
+                        <div>
+                            <EditorLabel htmlFor={`resume-fileUrl-${b.id}`}>Resume PDF URL</EditorLabel>
+                            <EditorInput id={`resume-fileUrl-${b.id}`} value={b.fileUrl} onChange={e => handleFieldChange('fileUrl', e.target.value)} />
+                        </div>
                     </>
                 )
             }
@@ -524,7 +508,7 @@ const BlockEditor: React.FC<{
                     handleFieldChange('tiers', newTiers);
                 }
                 const addTier = () => {
-                    const newTier: PricingTier = { id: `tier-${Date.now()}`, title: 'New Plan', price: '$0', frequency: '/mo', description: 'A great plan for new customers.', features: ['Feature 1', 'Feature 2'], buttonText: 'Sign Up', isFeatured: false };
+                    const newTier: PricingTier = { id: `tier-${Date.now()}`, title: 'New Plan', price: '$0', frequency: '/mo', description: 'A great starting point for new customers.', features: ['Feature 1', 'Feature 2'], buttonText: 'Sign Up', isFeatured: false };
                     handleFieldChange('tiers', [...b.tiers, newTier]);
                 }
                 const removeTier = (tierId: string) => {
@@ -606,69 +590,14 @@ const BlockEditor: React.FC<{
     }
     
     const fields = renderFields();
-    const isFirst = index === 0;
-    const isLast = index === totalBlocks - 1;
-
     const currentBg = block.designOverrides?.background;
     const gradient = typeof currentBg === 'object' ? currentBg : { direction: 90, color1: '#ffffff', color2: '#f0f0f0'};
-    const otherPages = pages.filter(p => p.id !== activePageId);
 
     return (
-        <motion.div
-          ref={setNodeRef}
-          style={style}
-          className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg touch-none shadow-sm"
-          layout="position"
-        >
-            <div className="p-3 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
-                <h4 {...attributes} {...listeners} className="font-semibold capitalize text-slate-800 dark:text-slate-200 cursor-grab touch-none flex-grow">{t(`block.${block.type}`)}</h4>
-                <div className="flex items-center gap-1 flex-shrink-0">
-                    <button onClick={() => onMoveUp(block.id)} disabled={isFirst} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 disabled:opacity-30 disabled:cursor-not-allowed" aria-label={t('moveUp')}><ArrowUp size={16} /></button>
-                    <button onClick={() => onMoveDown(block.id)} disabled={isLast} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 disabled:opacity-30 disabled:cursor-not-allowed" aria-label={t('moveDown')}><ArrowDown size={16} /></button>
-                    
-                    <div className="w-px h-4 bg-slate-300 dark:bg-slate-600 mx-1"></div>
-                    
-                    <div className="relative" ref={menuRef}>
-                        <button onClick={() => setIsMenuOpen(p => !p)} className="p-1 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100" aria-label="More options">
-                            <MoreVertical size={16} />
-                        </button>
-                        <AnimatePresence>
-                            {isMenuOpen && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: 10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0, y: 10 }}
-                                    className="absolute top-full end-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 py-1"
-                                >
-                                    <div className="relative group">
-                                        <div className="flex items-center justify-between gap-2 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200">
-                                            <span>Move to Page...</span>
-                                            <ArrowRight size={14} />
-                                        </div>
-                                        <div className="absolute top-0 left-full -mt-1 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-30 py-1 hidden group-hover:block">
-                                            {otherPages.length > 0 ? otherPages.map(page => (
-                                                <button key={page.id} onClick={() => { onMoveBlockToPage(block.id, page.id); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
-                                                    {page.name}
-                                                </button>
-                                            )) : <span className="px-3 py-1.5 text-sm text-slate-500 dark:text-slate-400">No other pages</span>}
-                                        </div>
-                                    </div>
-                                    <button onClick={() => { onDuplicate(block.id); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
-                                        <Copy size={14} /> {t('duplicate')}
-                                    </button>
-                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-                                    <button onClick={() => { onRemove(block.id); setIsMenuOpen(false); }} className="w-full text-left flex items-center gap-2 px-3 py-1.5 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10">
-                                        <Trash2 size={14} /> {t('delete')}
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-                    </div>
-                </div>
-            </div>
-            {fields && <div className="p-4 space-y-4">{fields}</div>}
-             <div className="border-t border-slate-200 dark:border-slate-700">
-                <details className="p-4">
+        <div className="space-y-4">
+            {fields && <div className="space-y-4">{fields}</div>}
+             <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                <details className="">
                     <summary className="cursor-pointer text-sm font-medium text-slate-600 dark:text-slate-400 list-none flex items-center justify-between">
                         <div className="flex items-center gap-2">
                             <span>Style Overrides (Advanced)</span>
@@ -840,10 +769,27 @@ const BlockEditor: React.FC<{
                                 </div>
                             </details>
                         </div>
+                         <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                            <EditorLabel>Animation Style Override</EditorLabel>
+                            <select
+                                value={block.designOverrides?.animationStyle || ''}
+                                onChange={e => handleDesignOverrideChange('animationStyle', e.target.value || undefined)}
+                                className="block w-full bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-lg shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500"
+                            >
+                                <option value="">Default (from Design tab)</option>
+                                <option value="none">None</option>
+                                <option value="fadeIn">Fade In</option>
+                                <option value="slideInUp">Slide In Up</option>
+                                <option value="scaleIn">Scale In</option>
+                                <option value="slideInFromLeft">Slide In From Left</option>
+                                <option value="revealUp">Reveal Up</option>
+                                <option value="blurIn">Blur In</option>
+                            </select>
+                        </div>
                     </div>
                 </details>
              </div>
-        </motion.div>
+        </div>
     )
 };
 

@@ -1,5 +1,6 @@
 
-import React from 'react';
+
+import React, { useRef } from 'react';
 import PublicPortfolioPage from '../../pages/PublicPortfolioPage';
 import type { Portfolio, Page } from '../../types';
 
@@ -15,8 +16,11 @@ export const PortfolioPreview: React.FC<{
     onAIAssist: () => void;
     isAIAssistLoading: boolean;
     onPageLinkClick: (pageId: string) => void;
-}> = ({ portfolio, activePage, onUpdateBlock, activeBlockId, setActiveBlockId, onDuplicateBlock, onMoveBlock, onDeleteBlock, onAIAssist, isAIAssistLoading, onPageLinkClick }) => {
+    focusedBlockId?: string | null;
+}> = ({ portfolio, activePage, onUpdateBlock, activeBlockId, setActiveBlockId, onDuplicateBlock, onMoveBlock, onDeleteBlock, onAIAssist, isAIAssistLoading, onPageLinkClick, focusedBlockId }) => {
     
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
     if (!portfolio || !activePage) {
         return <div className="flex items-center justify-center h-full bg-slate-100 dark:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400">Loading Preview...</div>;
     }
@@ -34,11 +38,13 @@ export const PortfolioPreview: React.FC<{
         onAIAssist={onAIAssist}
         isAIAssistLoading={isAIAssistLoading}
         onPageLinkClick={onPageLinkClick}
+        focusedBlockId={focusedBlockId}
+        scrollContainerRef={scrollContainerRef}
     />;
 
     return (
         <div className="w-full h-full bg-white dark:bg-slate-950 rounded-lg shadow-inner overflow-hidden border border-slate-200 dark:border-slate-800">
-            <div className="w-full h-full overflow-y-auto">
+            <div ref={scrollContainerRef} className="w-full h-full overflow-y-auto">
                 <MockPublicPage />
             </div>
         </div>

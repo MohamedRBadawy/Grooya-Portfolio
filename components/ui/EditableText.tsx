@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import RichTextEditor from './RichTextEditor';
 
@@ -31,6 +32,9 @@ const EditableText: React.FC<EditableTextProps> = ({
   // Local state to hold the value during editing.
   const [currentValue, setCurrentValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // The primary fix: links should not be editable on-click, to allow navigation to work.
+  const isLink = Tag === 'a';
 
   // Sync local state if the external value prop changes.
   useEffect(() => {
@@ -65,8 +69,8 @@ const EditableText: React.FC<EditableTextProps> = ({
     }
   };
   
-  // Render the editing UI if in edit mode.
-  if (isEditable && isEditing) {
+  // Only render the editing UI if it's editable, in edit mode, and NOT a link.
+  if (isEditable && isEditing && !isLink) {
     // For multiline, use the Rich Text Editor.
     if (multiline) {
         return (
@@ -91,8 +95,8 @@ const EditableText: React.FC<EditableTextProps> = ({
     );
   }
   
-  // Render the display mode.
-  const editableProps = isEditable ? {
+  // Add editing props only if the element is editable AND not a link.
+  const editableProps = isEditable && !isLink ? {
       onClick: (e: React.MouseEvent) => {
         // Stop propagation to prevent deselecting the active block in the editor.
         e.stopPropagation();

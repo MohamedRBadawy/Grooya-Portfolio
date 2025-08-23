@@ -1,20 +1,20 @@
-
 import React from 'react';
-import type { Portfolio, PortfolioAsset, Page } from '../../../types';
+import type { Portfolio, PortfolioAsset, Page, PortfolioBlock } from '../../../types';
 import Button from '../../ui/Button';
 import { useTranslation } from '../../../hooks/useTranslation';
-import { Sparkles, ImageIcon, Trash2, RefreshCw, Plus } from 'lucide-react';
+import { Sparkles, ImageIcon, Trash2, RefreshCw, Plus, Upload, Download } from 'lucide-react';
 
 interface AssetsPanelProps {
     portfolio: Portfolio;
     activePage: Page | null;
+    onAddAsset: (assetData: Omit<PortfolioAsset, 'id' | 'createdAt'>) => void;
     setIsGeneratingAsset: (isGenerating: boolean) => void;
     handleDeleteAsset: (assetId: string) => void;
     setRegeneratingPrompt: (prompt: string | null) => void;
     applyingAssetId: string | null;
     setApplyingAssetId: (id: string | null) => void;
     applyMenuRef: React.RefObject<HTMLDivElement>;
-    handleApplyAssetToBlock: (asset: PortfolioAsset, blockId: string) => void;
+    handleApplyAssetToBlock: (asset: PortfolioAsset, blockId: string, action: 'background' | 'mainImage' | 'addToGallery') => void;
 }
 
 /**
@@ -23,6 +23,7 @@ interface AssetsPanelProps {
 const AssetsPanel: React.FC<AssetsPanelProps> = ({
     portfolio,
     activePage,
+    onAddAsset,
     setIsGeneratingAsset,
     handleDeleteAsset,
     setRegeneratingPrompt,
@@ -32,11 +33,53 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
     handleApplyAssetToBlock
 }) => {
     const { t } = useTranslation();
+    const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+    const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const url = e.target?.result as string;
+                onAddAsset({ url, prompt: file.name });
+            };
+            reader.readAsDataURL(file);
+        }
+        if(event.target) event.target.value = '';
+    };
+
+    const handleDownloadAsset = (asset: PortfolioAsset) => {
+        const link = document.createElement('a');
+        link.href = asset.url;
+        const fileExtension = asset.url.startsWith('data:image/jpeg') ? 'jpeg' : 'png';
+        link.download = `grooya-asset-${asset.id}.${fileExtension}`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
+    const getApplyActions = (block: PortfolioBlock) => {
+        const actions: { label: string, action: 'background' | 'mainImage' | 'addToGallery' }[] = [
+            { label: 'Set as Background', action: 'background' }
+        ];
+        if (block.type === 'hero' || block.type === 'about') {
+            actions.push({ label: 'Set as Main Image', action: 'mainImage' });
+        }
+        if (block.type === 'gallery') {
+            actions.push({ label: 'Add to Gallery', action: 'addToGallery' });
+        }
+        return actions;
+    };
+
 
     return (
         <div className="p-4">
-            <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">Asset Library</h3>
+            <input type="file" ref={fileInputRef} onChange={handleFileUpload} accept="image/*" className="hidden" />
+            <div className="flex justify-between items-center mb-4 gap-2">
+                 <Button variant="secondary" size="sm" onClick={() => fileInputRef.current?.click()}>
+                    <Upload size={14} className="me-2" />
+                    Upload
+                </Button>
                 <Button variant="primary" size="sm" onClick={() => setIsGeneratingAsset(true)}>
                     <Sparkles size={14} className="me-2" />
                     {t('generateNewImage')}
@@ -47,7 +90,7 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
             {(portfolio.assets || []).length > 0 ? (
                 <div className="grid grid-cols-2 gap-4">
                     {portfolio.assets?.map(asset => (
-                        <div key={asset.id} className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden flex flex-col">
+                        <div key={asset.id} className="border border-slate-200 dark:border-slate-700 rounded-lg overflow-hidden flex flex-col group">
                             {/* Asset Image and Prompt Overlay */}
                             <div className="relative">
                                 <img src={asset.url} alt={asset.prompt} className="w-full h-32 object-cover" />
@@ -56,28 +99,10 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                                 </div>
                             </div>
                             {/* Action Buttons for the Asset */}
-                            <div className="p-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-2">
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    className="text-rose-500 hover:text-rose-600 hover:bg-rose-100 dark:hover:bg-rose-900/50 dark:hover:text-rose-400"
-                                    onClick={() => handleDeleteAsset(asset.id)}
-                                >
-                                    <Trash2 size={14} className="me-1.5" />
-                                    {t('delete')}
-                                </Button>
-                                <Button
-                                    size="sm"
-                                    variant="ghost"
-                                    onClick={() => {
-                                        // Re-use the prompt to generate a new image.
-                                        setRegeneratingPrompt(asset.prompt);
-                                        setIsGeneratingAsset(true);
-                                    }}
-                                >
-                                    <RefreshCw size={14} className="me-1.5" />
-                                    {t('regenerate')}
-                                </Button>
+                            <div className="p-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-1">
+                                <Button size="sm" variant="ghost" className="p-1.5 h-auto" onClick={() => handleDownloadAsset(asset)} title="Download Asset"><Download size={14} /></Button>
+                                <Button size="sm" variant="ghost" className="p-1.5 h-auto" onClick={() => { setRegeneratingPrompt(asset.prompt); setIsGeneratingAsset(true); }} title="Regenerate with same prompt"><RefreshCw size={14} /></Button>
+                                <Button size="sm" variant="ghost" className="p-1.5 h-auto text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={() => handleDeleteAsset(asset.id)} title="Delete Asset"><Trash2 size={14} /></Button>
                                 <div className="relative">
                                     {/* The "Apply" button toggles a dropdown menu. */}
                                     <Button
@@ -97,18 +122,26 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                                         <div
                                             ref={applyMenuRef}
                                             onClick={e => e.stopPropagation()}
-                                            className="absolute bottom-full right-0 mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 p-1"
+                                            className="absolute bottom-full right-0 mb-2 w-56 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 p-1"
                                         >
-                                            <p className="text-xs text-slate-500 dark:text-slate-400 p-2">{t('selectBlockToApply')}</p>
-                                            <div className="max-h-48 overflow-y-auto">
+                                            <div className="max-h-60 overflow-y-auto">
                                                 {activePage?.blocks.map(b => (
-                                                    <button
-                                                        key={b.id}
-                                                        onClick={() => handleApplyAssetToBlock(asset, b.id)}
-                                                        className="w-full text-left text-sm p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700"
-                                                    >
-                                                        <span className="capitalize">{b.type}</span>: {(b as any).title || (b as any).headline || b.id}
-                                                    </button>
+                                                    <div key={b.id} className="text-sm">
+                                                        <div className="px-2 py-1.5 font-semibold text-slate-800 dark:text-slate-200 capitalize border-b border-slate-200 dark:border-slate-700">
+                                                            {b.type}: {(b as any).title || (b as any).headline || 'Untitled'}
+                                                        </div>
+                                                        <div className="p-1">
+                                                        {getApplyActions(b).map(action => (
+                                                            <button
+                                                                key={action.action}
+                                                                onClick={() => handleApplyAssetToBlock(asset, b.id, action.action)}
+                                                                className="w-full text-left p-2 rounded hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300"
+                                                            >
+                                                                {action.label}
+                                                            </button>
+                                                        ))}
+                                                        </div>
+                                                    </div>
                                                 ))}
                                             </div>
                                         </div>

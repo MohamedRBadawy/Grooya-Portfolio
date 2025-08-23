@@ -1,36 +1,40 @@
 
-
-
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
+const { useNavigate } = ReactRouterDOM;
 import type { Portfolio, Page, Project, Skill, Palette, PortfolioAsset } from '../../types';
 import Button from '../ui/Button';
 import { useTranslation } from '../../hooks/useTranslation';
-import { ArrowLeft, ArrowRight, Trash2, Palette as PaletteIcon, FileText, X, Eye, Command, Undo2, Redo2, Award, File, MoreVertical, Home, FilePenLine } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Trash2, Palette as PaletteIcon, FileText, X, Eye, Command, Undo2, Redo2, Award, File, MoreVertical, Home, FilePenLine, Save } from 'lucide-react';
 import PagesPanel from './panels/PagesPanel';
 import ContentPanel from './panels/ContentPanel';
 import DesignPanel from './panels/DesignPanel';
 import AssetsPanel from './panels/AssetsPanel';
 import { Check, ImageIcon } from 'lucide-react';
 
-const SaveStatus: React.FC<{ status: 'idle' | 'saving' | 'saved' }> = ({ status }) => {
+const SaveButton: React.FC<{ onSave: () => void; status: 'idle' | 'saving' | 'saved' }> = ({ onSave, status }) => {
+    const { t } = useTranslation();
     if (status === 'saving') {
         return (
-            <div className="flex items-center gap-2 px-3 text-sm text-slate-500 dark:text-slate-400">
-                <svg className="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <Button variant="primary" size="sm" disabled>
+                <svg className="animate-spin -ms-1 me-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
                 Saving...
-            </div>
+            </Button>
         );
     }
     if (status === 'saved') {
         return (
-             <div className="flex items-center gap-2 px-3 text-sm text-teal-600 dark:text-teal-400">
-                <Check size={16} /> All changes saved
-            </div>
+            <Button variant="primary" size="sm" disabled className="!bg-teal-700 dark:!bg-teal-800">
+                <Check size={16} className="me-2" />
+                Saved
+            </Button>
         );
     }
-    // idle
-    return null;
+    return (
+        <Button onClick={onSave} variant="primary" size="sm">
+            <Save size={14} className="me-2" /> {t('save')}
+        </Button>
+    );
 };
 
 
@@ -46,7 +50,7 @@ interface EditorSidebarProps {
     redo: () => void;
     isMac: boolean;
     setIsCommandPaletteOpen: (isOpen: boolean) => void;
-    setIsReviewModalOpen: (isOpen: boolean) => void;
+    setIsReviewModalOpen: () => void;
     handleDelete: () => void;
     handleSave: () => void;
     setMobileView: (view: 'editor' | 'preview') => void;
@@ -65,6 +69,8 @@ interface EditorSidebarProps {
     removePage: (pageId: string) => void;
 
     // ContentPanel Props
+    focusedBlockId: string | null;
+    setFocusedBlockId: (id: string | null) => void;
     handleDragEnd: (event: any) => void;
     setAddingBlockIndex: (index: number) => void;
     setActiveBlockId: (id: string | null) => void;
@@ -93,13 +99,14 @@ interface EditorSidebarProps {
     handleDeletePalette: (paletteId: string) => void;
 
     // AssetsPanel Props
+    onAddAsset: (assetData: Omit<PortfolioAsset, 'id' | 'createdAt'>) => void;
     setIsGeneratingAsset: (isGenerating: boolean) => void;
     handleDeleteAsset: (assetId: string) => void;
     setRegeneratingPrompt: (prompt: string | null) => void;
     applyingAssetId: string | null;
     setApplyingAssetId: (id: string | null) => void;
     applyMenuRef: React.RefObject<HTMLDivElement>;
-    handleApplyAssetToBlock: (asset: PortfolioAsset, blockId: string) => void;
+    handleApplyAssetToBlock: (asset: PortfolioAsset, blockId: string, action: 'background' | 'mainImage' | 'addToGallery') => void;
 }
 
 const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
@@ -124,12 +131,12 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                                 <kbd className="font-sans">{props.isMac ? '⌘' : 'Ctrl+'}K</kbd>
                             </span>
                         </Button>
-                        <Button onClick={() => props.setIsReviewModalOpen(true)} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
+                        <Button onClick={props.setIsReviewModalOpen} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
                             <Award size={14} className="me-1.5" />
                             <span className="hidden sm:inline">{t('aiMentor')}</span>
                         </Button>
                         <Button onClick={props.handleDelete} variant="danger" size="sm"><Trash2 className="w-4 h-4" /></Button>
-                        <SaveStatus status={props.saveStatus} />
+                        <SaveButton onSave={props.handleSave} status={props.saveStatus} />
                         <Button onClick={() => props.setMobileView('preview')} variant="secondary" size="sm" className="md:hidden"><Eye className="w-4 h-4 me-2" /> Preview</Button>
                     </div>
                 </div>
@@ -182,6 +189,8 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                     <ContentPanel
                         activePage={props.activePage}
                         pages={props.portfolio.pages}
+                        focusedBlockId={props.focusedBlockId}
+                        setFocusedBlockId={props.setFocusedBlockId}
                         handleDragEnd={props.handleDragEnd}
                         setAddingBlockIndex={props.setAddingBlockIndex}
                         setActiveBlockId={props.setActiveBlockId}
@@ -218,6 +227,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                      <AssetsPanel
                         portfolio={props.portfolio}
                         activePage={props.activePage}
+                        onAddAsset={props.onAddAsset}
                         setIsGeneratingAsset={props.setIsGeneratingAsset}
                         handleDeleteAsset={props.handleDeleteAsset}
                         setRegeneratingPrompt={props.setRegeneratingPrompt}

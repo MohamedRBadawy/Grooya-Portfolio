@@ -1,9 +1,12 @@
 
+
+
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import type { Portfolio, Page } from '../../types';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link, useLocation } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
+const { Link, useLocation } = ReactRouterDOM;
 
 interface StickyHeaderNavProps {
     pages: Page[];
@@ -135,10 +138,16 @@ const StickyHeaderNav: React.FC<StickyHeaderNavProps> = ({
 
     const homePath = isEditable ? undefined : `/portfolio/${portfolioSlug}`;
 
+    const navAlignmentClass = {
+        left: 'justify-start',
+        center: 'justify-center',
+        right: 'justify-end',
+    }[design.navAlignment || 'right'];
+
     return (
         <header className="sticky top-0 z-40 w-full border-b" style={headerStyles}>
             <div className={`mx-auto px-4 h-16 flex items-center justify-between ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
-                 <div className="flex-1 flex justify-start">
+                 <div className="flex-shrink-0">
                      {userName && (
                         <Link to={homePath || '#'} onClick={() => homePage && onPageLinkClick?.(homePage.id)} className={`font-bold text-lg font-heading`} style={{ color: textColor, textShadow: textShadow }}>
                             {userName}
@@ -147,12 +156,14 @@ const StickyHeaderNav: React.FC<StickyHeaderNavProps> = ({
                  </div>
                  
                  {/* Desktop Navigation */}
-                 <nav className="hidden md:flex items-center space-x-4 sm:space-x-6">
-                    <NavLinks />
+                 <nav className={`hidden md:flex items-center flex-grow px-6 ${navAlignmentClass}`}>
+                    <div className="flex items-center space-x-4 sm:space-x-6">
+                        <NavLinks />
+                    </div>
                  </nav>
 
-                 {/* Mobile Navigation */}
-                 <div className="flex-1 flex justify-end md:hidden" ref={menuRef}>
+                 {/* Mobile Navigation Trigger */}
+                 <div className="flex-shrink-0 md:hidden" ref={menuRef}>
                     <button onClick={() => setIsMenuOpen(!isMenuOpen)} style={{ color: textColor }}>
                         {isMenuOpen ? <X size={24} /> : <Menu size={24} />}
                     </button>
@@ -170,8 +181,6 @@ const StickyHeaderNav: React.FC<StickyHeaderNavProps> = ({
                     )}
                     </AnimatePresence>
                  </div>
-
-                 {variant !== 'minimal' && <div className="hidden md:flex flex-1 justify-end"></div>}
             </div>
         </header>
     );

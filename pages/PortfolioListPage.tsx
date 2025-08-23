@@ -1,16 +1,18 @@
 
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
+const { Link, useNavigate } = ReactRouterDOM;
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import type { Portfolio } from '../types';
-import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban } from 'lucide-react';
+import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban, Sparkles } from 'lucide-react';
 import PortfolioPreviewModal from './PortfolioPreviewModal';
 import { useApp } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIGuidedCreationModal from '../components/AIGuidedCreationModal';
+import toast from 'react-hot-toast';
 
 const PortfolioCard: React.FC<{
     portfolio: Portfolio,
@@ -49,7 +51,7 @@ const PortfolioCard: React.FC<{
             <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 font-sora">{portfolio.title}</h3>
              <span className={`px-2 py-0.5 text-xs font-medium rounded-full ${
                 portfolio.isPublished 
-                ? 'bg-teal-100 text-teal-800 dark:bg-teal-900/50 dark:text-teal-300' 
+                ? 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-300' 
                 : 'bg-amber-100 text-amber-800 dark:bg-amber-500/20 dark:text-amber-300'
             }`}>
                 {portfolio.isPublished ? t('published') : t('draft')}
@@ -63,7 +65,7 @@ const PortfolioCard: React.FC<{
             {t('updated')}: {new Date(portfolio.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
          </p>
          <div className="flex items-center gap-2">
-            <Link to={`/edit/${portfolio.id}`} onClick={e => e.stopPropagation()}>
+            <Link to={`/dashboard/edit/${portfolio.id}`} onClick={e => e.stopPropagation()}>
                 <Button variant="secondary" size="sm" className="!px-3">
                     <FilePenLine size={14} className="me-1.5" />
                     {t('edit')}
@@ -88,7 +90,7 @@ const PortfolioCard: React.FC<{
                             <Copy size={16} /> {t('duplicate')}
                         </button>
                         <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-                        <button onClick={() => { onDelete(portfolio.id); setIsMenuOpen(false); }} className="w-full text-start flex items-center gap-2 px-4 py-2 text-sm text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10">
+                        <button onClick={() => { onDelete(portfolio.id); setIsMenuOpen(false); }} className="w-full text-start flex items-center gap-2 px-4 py-2 text-sm text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10">
                             <Trash2 size={16} /> {t('delete')}
                         </button>
                     </motion.div>
@@ -109,6 +111,10 @@ const PortfolioListPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'title'>('updatedAt');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  const isPro = user?.subscription?.tier === 'pro';
+  const maxPortfolios = isPro ? 5 : 1;
+  const canCreate = portfolios.length < maxPortfolios;
 
   const containerVariants = {
       hidden: { opacity: 0 },
@@ -139,12 +145,16 @@ const PortfolioListPage: React.FC = () => {
   }, [portfolios, searchTerm, sortBy]);
 
   const handleCreateNew = () => {
-    setIsCreateModalOpen(true);
+    if (canCreate) {
+        setIsCreateModalOpen(true);
+    } else {
+        navigate('/dashboard/upgrade');
+    }
   };
 
   const handleCreationComplete = (newPortfolio: Portfolio) => {
     setIsCreateModalOpen(false);
-    navigate(`/edit/${newPortfolio.id}`);
+    navigate(`/dashboard/edit/${newPortfolio.id}`);
   };
 
   const handlePreview = (portfolio: Portfolio) => {
@@ -156,13 +166,27 @@ const PortfolioListPage: React.FC = () => {
   };
 
   const handleDelete = (portfolioId: string) => {
-      if (window.confirm(t('deleteConfirm'))) {
-          deletePortfolio(portfolioId);
-      }
+    toast((toastInstance) => (
+        <div className="flex flex-col items-start gap-3">
+            <span className="font-medium">{t('deleteConfirm')}</span>
+            <div className="flex gap-2 self-stretch">
+                <Button variant="danger" size="sm" className="flex-grow" onClick={() => { deletePortfolio(portfolioId); toast.dismiss(toastInstance.id); }}>
+                    Confirm
+                </Button>
+                <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                    Cancel
+                </Button>
+            </div>
+        </div>
+    ), { duration: 6000 });
   };
   
   const handleDuplicate = (portfolioId: string) => {
-      duplicatePortfolio(portfolioId);
+      if (canCreate) {
+        duplicatePortfolio(portfolioId);
+      } else {
+        navigate('/dashboard/upgrade');
+      }
   }
 
   return (
@@ -174,11 +198,21 @@ const PortfolioListPage: React.FC = () => {
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-sora">{t('yourPortfolios')}</h1>
                 {user && <p className="text-slate-600 dark:text-slate-400 mt-1">{t('welcomeBack', { name: user.name.split(' ')[0] })}</p>}
             </div>
-            <Button onClick={handleCreateNew} variant="primary">
+            <Button onClick={handleCreateNew} variant="primary" disabled={!canCreate} title={!canCreate ? 'Upgrade to create more portfolios' : ''}>
                <Plus className="w-5 h-5 me-2" />
               {t('createNew')}
             </Button>
           </div>
+
+          {!canCreate && (
+             <motion.div 
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="p-4 mb-8 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-center"
+             >
+                <p className="text-amber-800 dark:text-amber-200 text-sm">You've reached your portfolio limit on the Starter plan. <Link to="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-100">Upgrade to Pro</Link> to create more.</p>
+            </motion.div>
+          )}
 
           <div className="flex flex-col md:flex-row gap-4 mb-8 p-4 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl">
             <div className="relative flex-grow">
@@ -188,13 +222,13 @@ const PortfolioListPage: React.FC = () => {
                     placeholder={t('searchPlaceholder')}
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
-                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm ps-10 pe-4 py-2 sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 dark:placeholder-slate-500"
+                    className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm ps-10 pe-4 py-2 sm:text-sm focus:ring-cyan-500 focus:border-cyan-500 text-slate-900 dark:text-slate-50 placeholder-slate-400 dark:placeholder-slate-500"
                 />
             </div>
             <select
                 value={sortBy}
                 onChange={e => setSortBy(e.target.value as any)}
-                className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm px-4 py-2 sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-900 dark:text-slate-50"
+                className="bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm px-4 py-2 sm:text-sm focus:ring-cyan-500 focus:border-cyan-500 text-slate-900 dark:text-slate-50"
             >
                 <option value="updatedAt">{t('sortBy')}: {t('lastModified')}</option>
                 <option value="createdAt">{t('sortBy')}: {t('dateCreated')}</option>

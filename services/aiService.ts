@@ -1,15 +1,25 @@
-
 import { GoogleGenAI, Type } from "@google/genai";
-import type { ColorTheme, FontPairing, Portfolio, User, Resume, ExperienceItem, Skill, ResumeProjectItem, Project, AITailoringSuggestions, AIPortfolioReview, ProjectsBlock, SkillsBlock } from '../types';
+import type { ColorTheme, FontPairing, Portfolio, User, Resume, ExperienceItem, Skill, ResumeProjectItem, Project, AITailoringSuggestions, AIPortfolioReview, ProjectsBlock, SkillsBlock, EducationItem } from '../types';
 
-// Warn if the API key is not set in the environment.
-// In a real production app, this would be handled server-side or via a secure build process.
-if (!process.env.API_KEY) {
-  console.warn("API_KEY environment variable not set. AI features will not work.");
+// A custom error class for API key issues that can be caught in the UI.
+export class ApiKeyMissingError extends Error {
+    constructor(message = "We're sorry, but the AI service is temporarily unavailable as the API key is not configured.") {
+        super(message);
+        this.name = "ApiKeyMissingError";
+    }
 }
 
-// Initialize the Google GenAI client. Assumes API_KEY is available.
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
+// Helper function to get the AI client or throw our custom error.
+const getAiClient = () => {
+    const API_KEY = process.env.API_KEY;
+    if (!API_KEY) {
+        console.error("API_KEY environment variable not set. AI features will not work.");
+        throw new ApiKeyMissingError();
+    }
+    // Initialize the Google GenAI client.
+    return new GoogleGenAI({ apiKey: API_KEY });
+};
+
 
 /**
  * Generates an image using the Imagen model based on a text prompt.
@@ -19,6 +29,7 @@ const ai = new GoogleGenAI({ apiKey: process.env.API_KEY! });
  */
 export const generateImage = async (prompt: string): Promise<string> => {
     try {
+        const ai = getAiClient();
         const response = await ai.models.generateImages({
             model: 'imagen-3.0-generate-002',
             prompt: prompt,
@@ -36,6 +47,9 @@ export const generateImage = async (prompt: string): Promise<string> => {
             throw new Error("API did not return any images.");
         }
     } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error; // Re-throw to be caught by UI
+        }
         console.error("Error generating image:", error);
         throw new Error("Failed to generate image. Please check your prompt or API key.");
     }
@@ -49,6 +63,7 @@ export const generateImage = async (prompt: string): Promise<string> => {
  */
 export const generateProjectDescription = async (title: string, technologies: string): Promise<string> => {
   try {
+    const ai = getAiClient();
     // Prompt engineering: Provide clear instructions and an example (few-shot prompting).
     const prompt = `Generate a professional and engaging project description for a software portfolio. The project is called "${title}" and uses the following technologies: ${technologies}. The description should be concise (around 2-3 sentences), highlight the project's purpose and key features, and be suitable for attracting potential employers. Use the STAR (Situation, Task, Action, Result) method as a loose guideline. For example: "Developed a full-stack e-commerce platform (Situation/Task) using React and Node.js to create a responsive and user-friendly shopping experience (Action), resulting in a 20% increase in user engagement (Result)."`;
 
@@ -59,8 +74,11 @@ export const generateProjectDescription = async (title: string, technologies: st
     
     return response.text.trim();
   } catch (error) {
+    if (error instanceof ApiKeyMissingError) {
+        throw error;
+    }
     console.error("Error generating project description:", error);
-    return "Failed to generate description. Please try again.";
+    throw new Error("Failed to generate description. Please try again.");
   }
 };
 
@@ -72,6 +90,7 @@ export const generateProjectDescription = async (title: string, technologies: st
  */
 export const generateHeroContent = async (name: string, title: string): Promise<{ headline: string, subheadline: string }> => {
     try {
+        const ai = getAiClient();
         const prompt = `Generate a compelling hero section for a personal portfolio. The user's name is "${name}" and their title is "${title}". Generate a short, punchy headline and a slightly longer subheadline (one sentence) that expands on their value proposition. For example, headline: "Hi, I'm Alex Doe", subheadline: "A passionate Frontend Engineer crafting beautiful web experiences."`;
 
         // Request a JSON response and provide a schema for the expected output.
@@ -96,8 +115,11 @@ export const generateHeroContent = async (name: string, title: string): Promise<
         return json;
 
     } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
         console.error("Error generating hero content:", error);
-        return { headline: "Failed to generate", subheadline: "Please try again." };
+        throw new Error("Failed to generate hero content.");
     }
 };
 
@@ -110,6 +132,7 @@ export const generateHeroContent = async (name: string, title: string): Promise<
  */
 export const generateAboutContent = async (name: string, title: string, existingContent?: string): Promise<string> => {
     try {
+        const ai = getAiClient();
         const prompt = `You are an expert career coach and copywriter. A user named "${name}", who is a "${title}", wants to write an "About Me" section for their portfolio.
         
         ${existingContent ? `They have provided the following draft: "${existingContent}". Your task is to rewrite and improve this draft.` : 'Your task is to write a compelling "About Me" section from scratch for them.'}
@@ -123,8 +146,11 @@ export const generateAboutContent = async (name: string, title: string, existing
         
         return response.text.trim();
     } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
         console.error("Error generating about content:", error);
-        return "Failed to generate content. Please try again.";
+        throw new Error("Failed to generate about content.");
     }
 };
 
@@ -135,6 +161,7 @@ export const generateAboutContent = async (name: string, title: string, existing
  */
 export const generateDesignSuggestions = async (userTitle: string): Promise<{ theme: ColorTheme, headingFont: string, bodyFont: string, accentColor: string }> => {
   try {
+    const ai = getAiClient();
     const prompt = `As a world-class UI/UX designer, suggest a design theme for a personal portfolio for a "${userTitle}". 
     
     Provide a color theme, a font pairing style, and a vibrant accent color (as a hex code).
@@ -219,9 +246,12 @@ export const generateDesignSuggestions = async (userTitle: string): Promise<{ th
     };
 
   } catch (error) {
+    if (error instanceof ApiKeyMissingError) {
+        throw error;
+    }
     console.error("Error generating design suggestions:", error);
     // Return a sensible default on error to prevent crashes.
-    return { theme: 'light', headingFont: 'Sora', bodyFont: 'Inter', accentColor: '#3B82F6' };
+    throw new Error("Failed to generate design suggestions.");
   }
 };
 
@@ -240,6 +270,7 @@ export const generateResumeFromPortfolio = async (
     allSkills: Skill[]
 ): Promise<Omit<Resume, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'title' | 'template' | 'accentColor'>> => {
     try {
+        const ai = getAiClient();
         // 1. Pre-process the data to create a simplified, relevant context for the AI.
         const allBlocks = portfolio.pages.flatMap(p => p.blocks);
         
@@ -309,7 +340,19 @@ Return the result as a single JSON object. Do not include any text outside of th
                                 }
                             }
                         },
-                        education: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: {} } },
+                        education: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    institution: { type: Type.STRING },
+                                    degree: { type: Type.STRING },
+                                    dateRange: { type: Type.STRING },
+                                    description: { type: Type.STRING, description: 'Optional' }
+                                }
+                            }
+                        },
                         skills: {
                             type: Type.ARRAY,
                             items: {
@@ -341,6 +384,9 @@ Return the result as a single JSON object. Do not include any text outside of th
         return JSON.parse(response.text);
 
     } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
         console.error("Error generating resume from portfolio:", error);
         throw new Error("Failed to generate resume from portfolio. Please try again.");
     }
@@ -354,6 +400,7 @@ Return the result as a single JSON object. Do not include any text outside of th
  */
 export const generateResumeTailoringSuggestions = async (resume: Resume, jobDescription: string): Promise<AITailoringSuggestions> => {
     try {
+        const ai = getAiClient();
         const simplifiedResume = {
             jobTitle: resume.jobTitle,
             summary: resume.summary,
@@ -407,10 +454,144 @@ export const generateResumeTailoringSuggestions = async (resume: Resume, jobDesc
         return JSON.parse(response.text);
 
     } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
         console.error("Error generating resume tailoring suggestions:", error);
         throw new Error("Failed to generate resume suggestions. Please try again.");
     }
 };
+
+
+/**
+ * Generates a complete, tailored resume based on a user's base resume and a target job description.
+ * @param baseResume The user's existing resume to use as a foundation.
+ * @param jobDescription The raw text of the target job description.
+ * @returns A promise resolving to the core data for a new, tailored Resume object.
+ */
+export const generateResumeForJobDescription = async (
+    baseResume: Resume, 
+    jobDescription: string
+): Promise<Omit<Resume, 'id' | 'userId' | 'createdAt' | 'updatedAt' | 'title' | 'template' | 'accentColor'>> => {
+    try {
+        const ai = getAiClient();
+        
+        // Simplify the resume data to send to the AI.
+        const simplifiedResume = {
+            fullName: baseResume.fullName,
+            jobTitle: baseResume.jobTitle,
+            email: baseResume.email,
+            phone: baseResume.phone,
+            website: baseResume.website,
+            linkedin: baseResume.linkedin,
+            github: baseResume.github,
+            summary: baseResume.summary,
+            experience: baseResume.experience,
+            education: baseResume.education,
+            skills: baseResume.skills,
+            projects: baseResume.projects,
+        };
+
+        const prompt = `You are an expert career coach and ATS optimization specialist. Your task is to analyze a user's base resume and a target job description, then generate a new, tailored resume in a structured JSON format that is optimized for Applicant Tracking Systems (ATS).
+
+Here is the user's base resume data:
+${JSON.stringify(simplifiedResume, null, 2)}
+
+Here is the target job description:
+"${jobDescription}"
+
+Based on this information, generate a complete, tailored resume. Follow these instructions carefully:
+1.  **Rewrite the Summary:** Create a new professional summary (2-4 sentences) that is highly tailored to the job description, incorporating key language, skills, and qualifications from it.
+2.  **Optimize Experience:** For each experience item, rewrite the description's bullet points to highlight accomplishments and skills most relevant to the job description. Use action verbs and quantifiable results where possible. Keep the job titles, companies, and dates the same.
+3.  **Prioritize Skills:** Analyze the job description for key skills. Reorder the user's skills list to place the most relevant ones first. Do not add skills the user does not have.
+4.  **Maintain Structure:** Keep all other sections (contact info, education, projects) as they are in the base resume.
+5.  **ATS Friendliness:** Ensure the language is clear, professional, and uses industry-standard keywords found in the job description.
+
+Return the result as a single, complete JSON object matching the provided schema. Do not include any text outside of the JSON object. All original fields must be present.`;
+
+        // The response schema is identical to generateResumeFromPortfolio, which is good.
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        fullName: { type: Type.STRING },
+                        jobTitle: { type: Type.STRING },
+                        email: { type: Type.STRING },
+                        phone: { type: Type.STRING, description: 'Optional phone number' },
+                        website: { type: Type.STRING, description: 'Optional personal website URL' },
+                        linkedin: { type: Type.STRING, description: 'Optional LinkedIn profile URL' },
+                        github: { type: Type.STRING, description: 'Optional GitHub profile URL' },
+                        summary: { type: Type.STRING },
+                        experience: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    title: { type: Type.STRING },
+                                    company: { type: Type.STRING },
+                                    dateRange: { type: Type.STRING },
+                                    description: { type: Type.STRING }
+                                }
+                            }
+                        },
+                        education: {
+                             type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    institution: { type: Type.STRING },
+                                    degree: { type: Type.STRING },
+                                    dateRange: { type: Type.STRING },
+                                    description: { type: Type.STRING, description: 'Optional' }
+                                }
+                            }
+                        },
+                        skills: {
+                            type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    name: { type: Type.STRING },
+                                    category: { type: Type.STRING }
+                                }
+                            }
+                        },
+                        projects: {
+                             type: Type.ARRAY,
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    id: { type: Type.STRING },
+                                    title: { type: Type.STRING },
+                                    description: { type: Type.STRING },
+                                    technologies: { type: Type.ARRAY, items: { type: Type.STRING } }
+                                }
+                            }
+                        }
+                    },
+                    required: ["fullName", "jobTitle", "email", "summary", "experience", "education", "skills", "projects"]
+                }
+            }
+        });
+
+        return JSON.parse(response.text);
+
+    } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
+        console.error("Error generating resume for job description:", error);
+        throw new Error("Failed to generate tailored resume. Please try again.");
+    }
+};
+
 
 /**
  * Performs an AI-powered review of a user's portfolio.
@@ -420,6 +601,7 @@ export const generateResumeTailoringSuggestions = async (resume: Resume, jobDesc
  */
 export const generatePortfolioReview = async (portfolio: Portfolio, user: User): Promise<AIPortfolioReview> => {
     try {
+        const ai = getAiClient();
         // Simplify the portfolio data to send only what's necessary to the AI.
         const allBlocks = portfolio.pages.flatMap(p => p.blocks);
         const simplifiedPortfolio = {
@@ -483,6 +665,9 @@ export const generatePortfolioReview = async (portfolio: Portfolio, user: User):
         return JSON.parse(response.text);
 
     } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
         console.error("Error generating portfolio review:", error);
         throw new Error("Failed to generate portfolio review. Please try again.");
     }

@@ -69,10 +69,17 @@ export const en = {
   'resumeTitle': 'Resume Title',
   'createFromScratch': 'Create from Scratch',
   'generateFromPortfolio': 'Generate from Portfolio',
+  'generateFromJobDescription': 'Tailor for Job Description',
   'selectPortfolio': 'Select a portfolio to generate from',
   'generatingResume': 'Generating Resume...',
   'createAndEdit': 'Create & Edit',
   'generateAndEdit': 'Generate & Edit',
+  'atsFriendlyNote': "Our AI will generate an ATS-friendly resume optimized with keywords from the job description.",
+  'selectBaseResume': "Select a base resume to tailor from",
+  'pasteJobDescriptionHere': "Paste the full job description here",
+  'tailorAndEdit': "Tailor & Edit",
+  'generatingTailoredResume': "Generating Tailored Resume...",
+  'noResumesToTailor': "You need at least one resume to use as a base for tailoring.",
 
 
   // Project Management

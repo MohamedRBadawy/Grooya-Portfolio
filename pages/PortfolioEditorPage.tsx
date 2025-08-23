@@ -1,18 +1,17 @@
 
-
-
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
+const { useParams, useNavigate } = ReactRouterDOM;
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme } from '../types';
+import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage } from '../types';
 import Button from '../components/ui/Button';
 import AddBlockMenu from '../components/AddBlockMenu';
 import { FilePenLine } from 'lucide-react';
 import { useApp } from '../contexts/LocalizationContext';
 import ProjectEditorModal from '../components/ProjectEditorModal';
 import { CommandPalette } from '../components/CommandPalette';
-import { generateHeroContent, generateAboutContent, generateDesignSuggestions } from '../services/aiService';
+import { generateHeroContent, generateAboutContent, generateDesignSuggestions, ApiKeyMissingError } from '../services/aiService';
 import PaletteEditorModal from '../components/PaletteEditorModal';
 import AIImageGenerationModal from '../components/AIImageGenerationModal';
 import AIPortfolioReviewModal from '../components/AIPortfolioReviewModal';
@@ -30,14 +29,14 @@ import { usePortfolioManager } from '../hooks/usePortfolioManager';
 const PortfolioEditorPage: React.FC = () => {
     const { portfolioId } = useParams<{ portfolioId: string }>();
     const navigate = useNavigate();
-    const { user, projects, skills, createProject, updateProject, deletePortfolio, createSkill } = useData();
+    const { user, projects, skills, createProject, updateProject, deletePortfolio, createSkill, consumeAiFeature } = useData();
     const { t } = useTranslation();
     const { direction } = useApp();
 
     // --- State Management and Data Logic from Custom Hook ---
     const {
-        portfolio, saveStatus, activePage, activePageId, setActivePageId, editingPageId, setEditingPageId,
-        undo, redo, canUndo, canRedo,
+        portfolio, savePortfolio, activePage, activePageId, setActivePageId, editingPageId, setEditingPageId,
+        undo, redo, canUndo, canRedo, saveStatus,
         updatePortfolioImmediate, updatePortfolioDebounced, updateField, updateBlock, updateBlockField,
         addBlock, removeBlock, handleDuplicateBlock: originalHandleDuplicate, handleMoveBlock,
         handleMoveBlockToPage, handleDragEnd, addPage, removePage, handleRenamePage, setHomePage
@@ -46,7 +45,8 @@ const PortfolioEditorPage: React.FC = () => {
     // --- UI State ---
     const [activeTab, setActiveTab] = useState<'pages' | 'content' | 'design' | 'assets'>('pages');
     const [addingBlockIndex, setAddingBlockIndex] = useState<number | null>(null);
-    const [activeBlockId, setActiveBlockId] = useState<string | null>(null);
+    const [activeBlockId, setActiveBlockId] = useState<string | null>(null); // For inline preview highlight
+    const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null); // For focused sidebar editing
     const [editingProject, setEditingProject] = useState<Project | null>(null);
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [isAIAssistLoading, setIsAIAssistLoading] = useState(false);
@@ -70,6 +70,13 @@ const PortfolioEditorPage: React.FC = () => {
     // --- Keyboard Shortcuts from Custom Hook ---
     const { isMac } = useEditorShortcuts({ canUndo, undo, canRedo, redo, setIsCommandPaletteOpen });
 
+    // Reset focused block when switching away from the content tab
+    useEffect(() => {
+        if (activeTab !== 'content') {
+            setFocusedBlockId(null);
+        }
+    }, [activeTab]);
+
     // Click outside handler for the apply asset menu
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -80,19 +87,33 @@ const PortfolioEditorPage: React.FC = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
-
-    const handleSave = () => {
-        if (portfolio) {
-            updatePortfolioDebounced(p => p); // Trigger a save
-            toast.success('Portfolio saved!');
+    
+    const handleTabSwitch = (tab: 'pages' | 'content' | 'design' | 'assets') => {
+        if (activeTab !== tab) {
+            savePortfolio(); // Save changes when switching tabs
+            setActiveTab(tab);
         }
     };
-    
+
     const handleDelete = () => {
-        if (portfolio && window.confirm(t('deleteConfirmEditor'))) {
-            deletePortfolio(portfolio.id);
-            navigate('/');
-        }
+        if (!portfolio) return;
+        toast((toastInstance) => (
+            <div className="flex flex-col items-start gap-3">
+                <span className="font-medium">{t('deleteConfirmEditor')}</span>
+                <div className="flex gap-2 self-stretch">
+                    <Button variant="danger" size="sm" className="flex-grow" onClick={() => {
+                        deletePortfolio(portfolio.id);
+                        navigate('/dashboard');
+                        toast.dismiss(toastInstance.id);
+                    }}>
+                        Confirm
+                    </Button>
+                    <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), { duration: 6000 });
     }
     
     // Wrapper to inject setActiveBlockId
@@ -184,9 +205,17 @@ const PortfolioEditorPage: React.FC = () => {
     // --- AI Features ---
     const handleAIAssist = async () => {
         if (!portfolio || !activeBlockId || !user || !activePageId) return;
-
         const block = activePage?.blocks.find(b => b.id === activeBlockId);
-        if (!block) return;
+        if (!block || (block.type !== 'hero' && block.type !== 'about')) return;
+
+        const feature = block.type === 'hero' ? 'heroContent' : 'aboutContent';
+        if (!consumeAiFeature(feature)) {
+            const message = user?.subscription?.tier === 'pro'
+                ? "You've run out of AI text credits for this month."
+                : "You've used your one free generation for this feature. Please upgrade to Pro.";
+            toast.error(message);
+            return;
+        }
 
         setIsAIAssistLoading(true);
         try {
@@ -199,7 +228,11 @@ const PortfolioEditorPage: React.FC = () => {
             }
         } catch (error) {
             console.error("AI Assist failed:", error);
-            toast.error("AI Assist failed. Please check the console for details.");
+            if (error instanceof ApiKeyMissingError) {
+                toast.error(error.message);
+            } else {
+                toast.error("AI Assist failed. Please check the console for details.");
+            }
         } finally {
             setIsAIAssistLoading(false);
         }
@@ -207,6 +240,14 @@ const PortfolioEditorPage: React.FC = () => {
     
     const handleAIDesignSuggest = async () => {
         if (!user) return;
+        if (!consumeAiFeature('designSuggestions')) {
+            const message = user?.subscription?.tier === 'pro'
+                ? "You've run out of AI text credits for this month."
+                : "You've used your one free design suggestion. Please upgrade to Pro.";
+            toast.error(message);
+            return;
+        }
+
         setIsAIDesignLoading(true);
         try {
             const suggestions = await generateDesignSuggestions(user.title);
@@ -220,9 +261,24 @@ const PortfolioEditorPage: React.FC = () => {
             }));
         } catch (error) {
             console.error("AI Design Suggestion failed:", error);
-            toast.error("AI Design Suggestion failed. Please check the console for details.");
+            if (error instanceof ApiKeyMissingError) {
+                toast.error(error.message);
+            } else {
+                toast.error("AI Design Suggestion failed. Please check the console for details.");
+            }
         } finally {
             setIsAIDesignLoading(false);
+        }
+    };
+
+    const handleOpenReviewModal = () => {
+        if (consumeAiFeature('portfolioReview')) {
+            setIsReviewModalOpen(true);
+        } else {
+             const message = user?.subscription?.tier === 'pro'
+                ? "You've run out of AI text credits for this month."
+                : "You've used your one free portfolio review. Please upgrade to Pro.";
+            toast.error(message);
         }
     };
 
@@ -240,12 +296,26 @@ const PortfolioEditorPage: React.FC = () => {
     };
 
     const handleDeletePalette = (paletteId: string) => {
-        if (!window.confirm("Are you sure you want to delete this custom palette?")) return;
-        updatePortfolioImmediate(p => {
-            const newPalettes = p.customPalettes?.filter(cp => cp.id !== paletteId) || [];
-            const newDesign = p.design.paletteId === paletteId ? { ...p.design, paletteId: 'default-light' } : p.design;
-            return { ...p, customPalettes: newPalettes, design: newDesign };
-        });
+        toast((toastInstance) => (
+            <div className="flex flex-col items-start gap-3">
+                <span className="font-medium">Delete this custom palette?</span>
+                <div className="flex gap-2 self-stretch">
+                    <Button variant="danger" size="sm" className="flex-grow" onClick={() => {
+                        updatePortfolioImmediate(p => {
+                            const newPalettes = p.customPalettes?.filter(cp => cp.id !== paletteId) || [];
+                            const newDesign = p.design.paletteId === paletteId ? { ...p.design, paletteId: 'default-light' } : p.design;
+                            return { ...p, customPalettes: newPalettes, design: newDesign };
+                        });
+                        toast.dismiss(toastInstance.id);
+                    }}>
+                        Confirm
+                    </Button>
+                    <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), { duration: 6000 });
     };
     
     const handleImageGenerated = (assetData: { url: string; prompt: string }) => {
@@ -260,47 +330,87 @@ const PortfolioEditorPage: React.FC = () => {
             assets: [...(p.assets || []), newAsset]
         }));
     };
+
+    const handleAddAsset = (assetData: Omit<PortfolioAsset, 'id' | 'createdAt'>) => {
+        const newAsset: PortfolioAsset = {
+            id: `asset-${Date.now()}`,
+            ...assetData,
+            createdAt: Date.now()
+        };
+        updatePortfolioImmediate(p => ({
+            ...p,
+            assets: [...(p.assets || []), newAsset]
+        }));
+    };
     
     const handleDeleteAsset = (assetId: string) => {
-        if (!portfolio || !window.confirm(t('deleteAssetConfirm'))) return;
-        
-        const assetToDelete = portfolio.assets?.find(a => a.id === assetId);
-        if (!assetToDelete) return;
-
-        updatePortfolioImmediate(p => {
-            const newAssets = p.assets?.filter(a => a.id !== assetId) || [];
-            const newPages = p.pages.map(page => ({
-                ...page,
-                blocks: page.blocks.map(b => {
-                    if (b.designOverrides?.backgroundImage === assetToDelete.url) {
-                        const { backgroundImage, backgroundOpacity, textColor, ...restOverrides } = b.designOverrides;
-                        if (Object.keys(restOverrides).length === 0) {
-                            const { designOverrides, ...restBlock } = b;
-                            return restBlock as PortfolioBlock;
-                        }
-                        return { ...b, designOverrides: restOverrides };
-                    }
-                    return b;
-                })
-            }));
-            return { ...p, assets: newAssets, pages: newPages };
-        });
+        if (!portfolio) return;
+        toast((toastInstance) => (
+            <div className="flex flex-col items-start gap-3">
+                <span className="font-medium">{t('deleteAssetConfirm')}</span>
+                <div className="flex gap-2 self-stretch">
+                    <Button variant="danger" size="sm" className="flex-grow" onClick={() => {
+                        const assetToDelete = portfolio.assets?.find(a => a.id === assetId);
+                        if (!assetToDelete) return;
+                        updatePortfolioImmediate(p => {
+                            const newAssets = p.assets?.filter(a => a.id !== assetId) || [];
+                            const newPages = p.pages.map(page => ({
+                                ...page,
+                                blocks: page.blocks.map(b => {
+                                    if (b.designOverrides?.backgroundImage === assetToDelete.url) {
+                                        const { backgroundImage, backgroundOpacity, textColor, ...restOverrides } = b.designOverrides;
+                                        if (Object.keys(restOverrides).length === 0) {
+                                            const { designOverrides, ...restBlock } = b;
+                                            return restBlock as PortfolioBlock;
+                                        }
+                                        return { ...b, designOverrides: restOverrides };
+                                    }
+                                    return b;
+                                })
+                            }));
+                            return { ...p, assets: newAssets, pages: newPages };
+                        });
+                        toast.dismiss(toastInstance.id);
+                    }}>
+                        Confirm
+                    </Button>
+                    <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), { duration: 6000 });
     };
 
-    const handleApplyAssetToBlock = (asset: PortfolioAsset, blockId: string) => {
+    const handleApplyAssetToBlock = (asset: PortfolioAsset, blockId: string, action: 'background' | 'mainImage' | 'addToGallery') => {
         if (!activePageId) return;
         updatePortfolioImmediate(p => ({
             ...p,
             pages: p.pages.map(page => 
                 page.id === activePageId
                 ? { ...page, blocks: page.blocks.map(b => {
-                        if (b.id === blockId) {
-                            return {
-                                ...b,
-                                designOverrides: { ...(b.designOverrides || {}), backgroundImage: asset.url, backgroundOpacity: 0.5, textColor: '#FFFFFF' }
-                            };
+                        if (b.id !== blockId) return b;
+
+                        switch(action) {
+                            case 'background':
+                                return {
+                                    ...b,
+                                    designOverrides: { ...(b.designOverrides || {}), backgroundImage: asset.url, backgroundOpacity: 0.5, textColor: '#FFFFFF' }
+                                };
+                            case 'mainImage':
+                                if (b.type === 'hero' || b.type === 'about') {
+                                    return { ...b, imageUrl: asset.url };
+                                }
+                                return b;
+                            case 'addToGallery':
+                                if (b.type === 'gallery') {
+                                    const newImage: GalleryImage = { id: `gal-${Date.now()}`, url: asset.url, caption: asset.prompt };
+                                    return { ...b, images: [...b.images, newImage] };
+                                }
+                                return b;
+                            default:
+                                return b;
                         }
-                        return b;
                     })}
                 : page
             )
@@ -314,7 +424,7 @@ const PortfolioEditorPage: React.FC = () => {
         
     const commandPaletteActions = {
         onSwitchTab: setActiveTab,
-        onSave: handleSave,
+        onSave: savePortfolio,
         onDelete: handleDelete,
         onAddBlock: (type: PortfolioBlock['type']) => handleAddBlock(type, activePage.blocks.length),
         onSetTheme: (theme: ColorTheme) => updatePortfolioImmediate(p => ({ ...p, design: { ...p.design, paletteId: `default-${theme}` } })),
@@ -346,11 +456,11 @@ const PortfolioEditorPage: React.FC = () => {
                         canRedo={canRedo} redo={redo}
                         isMac={isMac}
                         setIsCommandPaletteOpen={setIsCommandPaletteOpen}
-                        setIsReviewModalOpen={setIsReviewModalOpen}
+                        setIsReviewModalOpen={handleOpenReviewModal}
                         handleDelete={handleDelete}
-                        handleSave={handleSave}
+                        handleSave={savePortfolio}
                         setMobileView={setMobileView}
-                        activeTab={activeTab} setActiveTab={setActiveTab}
+                        activeTab={activeTab} setActiveTab={handleTabSwitch}
                         saveStatus={saveStatus}
                         
                         // PagesPanel Props
@@ -364,6 +474,8 @@ const PortfolioEditorPage: React.FC = () => {
                         removePage={removePage}
 
                         // ContentPanel Props
+                        focusedBlockId={focusedBlockId}
+                        setFocusedBlockId={setFocusedBlockId}
                         handleDragEnd={handleDragEnd}
                         setAddingBlockIndex={setAddingBlockIndex}
                         setActiveBlockId={setActiveBlockId}
@@ -391,6 +503,7 @@ const PortfolioEditorPage: React.FC = () => {
                         handleDeletePalette={handleDeletePalette}
 
                         // AssetsPanel Props
+                        onAddAsset={handleAddAsset}
                         setIsGeneratingAsset={setIsGeneratingAsset}
                         handleDeleteAsset={handleDeleteAsset}
                         setRegeneratingPrompt={setRegeneratingPrompt}
@@ -419,6 +532,7 @@ const PortfolioEditorPage: React.FC = () => {
                         onAIAssist={handleAIAssist}
                         isAIAssistLoading={isAIAssistLoading}
                         onPageLinkClick={(pageId) => setActivePageId(pageId)}
+                        focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
                     />
                 </main>
             </div>
@@ -435,11 +549,11 @@ const PortfolioEditorPage: React.FC = () => {
                         canRedo={canRedo} redo={redo}
                         isMac={isMac}
                         setIsCommandPaletteOpen={setIsCommandPaletteOpen}
-                        setIsReviewModalOpen={setIsReviewModalOpen}
+                        setIsReviewModalOpen={handleOpenReviewModal}
                         handleDelete={handleDelete}
-                        handleSave={handleSave}
+                        handleSave={savePortfolio}
                         setMobileView={setMobileView}
-                        activeTab={activeTab} setActiveTab={setActiveTab}
+                        activeTab={activeTab} setActiveTab={handleTabSwitch}
                         saveStatus={saveStatus}
                         
                         // PagesPanel Props
@@ -453,6 +567,8 @@ const PortfolioEditorPage: React.FC = () => {
                         removePage={removePage}
 
                         // ContentPanel Props
+                        focusedBlockId={focusedBlockId}
+                        setFocusedBlockId={setFocusedBlockId}
                         handleDragEnd={handleDragEnd}
                         setAddingBlockIndex={setAddingBlockIndex}
                         setActiveBlockId={setActiveBlockId}
@@ -480,6 +596,7 @@ const PortfolioEditorPage: React.FC = () => {
                         handleDeletePalette={handleDeletePalette}
 
                         // AssetsPanel Props
+                        onAddAsset={handleAddAsset}
                         setIsGeneratingAsset={setIsGeneratingAsset}
                         handleDeleteAsset={handleDeleteAsset}
                         setRegeneratingPrompt={setRegeneratingPrompt}
@@ -503,6 +620,7 @@ const PortfolioEditorPage: React.FC = () => {
                                 onAIAssist={handleAIAssist}
                                 isAIAssistLoading={isAIAssistLoading}
                                 onPageLinkClick={(pageId) => setActivePageId(pageId)}
+                                focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
                             />
                         </div>
                         <Button 

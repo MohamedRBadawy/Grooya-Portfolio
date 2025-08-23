@@ -1,3 +1,4 @@
+
 # Grooya - Product Roadmap
 
 This document outlines the strategic plan for evolving the Grooya Portfolio Hub from an MVP into a world-class, AI-powered Career Operating System.
@@ -43,7 +44,7 @@ Our immediate focus is to refine the user interface and interactions to make the
 
 ## Part 2: A Strategic Plan for the "AI Career Operating System"
 
-This is the long-term vision to make Grooya an indispensable career tool using the power of the Gemini API.
+This is the long-term vision to make Grooya an indispensable career tool using the power of the Gemini API. The primary focus is strictly on features related to portfolio and resume creation and enhancement.
 
 ### ✅ Phase 1: AI-Guided Onboarding & Staged Creation
 - [x] **AI Mentor Introduction:** Replace the standard template selection with a goal-oriented AI conversation to understand the user's objectives (e.g., get a job, find freelance work).
@@ -61,12 +62,11 @@ This is the long-term vision to make Grooya an indispensable career tool using t
 - [x] **Intelligent Resume Builder:**
     - [x] Generate tailored resumes from portfolio data using various templates.
     - [x] **AI Tailoring:** Allow users to paste a job description, and have Gemini analyze it to recommend resume optimizations and keyword inclusion.
-- [ ] **Job Application Tracker & Analyzer:**
-    - [ ] Implement a hub for users to save and track job applications.
-    - [ ] **AI Match Scoring:** Provide a "match score" for saved jobs against the user's profile, identifying strengths and gaps.
-    - [ ] **AI Interview Prep:** Generate likely interview questions based on the job description and offer a mock interview chat experience.
+    - [x] Full-featured editor for all resume sections (Experience, Education, Skills, Projects) with drag-and-drop reordering.
+- [ ] **(OUT OF SCOPE)** ~~Job Application Tracker & Analyzer~~
+- [ ] **(OUT OF SCOPE)** ~~AI Interview Prep~~
 
 ### 🚀 Phase 4: The Complete Career Companion
 - [ ] **Proactive Skill Development:** Create personalized learning plans based on career goals and analysis of target job descriptions.
 - [ ] **Personal Branding Assistant:** Repurpose portfolio content into drafts for LinkedIn posts or blog articles.
-- [ ] **Network & Opportunity Finder:** Proactively suggest relevant professionals to connect with and highlight "reach" job opportunities to create a long-term career roadmap.
+- [ ] **(OUT OF SCOPE)** ~~Network & Opportunity Finder~~

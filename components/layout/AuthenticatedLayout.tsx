@@ -1,10 +1,10 @@
 
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import * as ReactRouterDOM from 'react-router-dom';
+const { NavLink, Link } = ReactRouterDOM;
 import { useData } from '../../contexts/DataContext';
-import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
-import { FolderKanban, LogOut, Package, Sparkles, Settings, FileText, Menu, X } from 'lucide-react';
+import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield } from 'lucide-react';
 import ThemeSwitcher from '../ThemeSwitcher';
 import LanguageSwitcher from '../LanguageSwitcher';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -28,7 +28,6 @@ const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?:
 
 const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }) => {
     const { user } = useData();
-    const { logout } = useAuth();
     const { t } = useTranslation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -58,13 +57,13 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex items-center justify-between h-16">
                         <div className="flex items-center gap-4">
-                            <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-                                <h1 className="text-2xl font-bold text-teal-500 font-sora">Grooya</h1>
+                            <Link to="/dashboard" className="flex items-center gap-2 flex-shrink-0">
+                                <h1 className="text-2xl font-bold text-cyan-500 font-sora">Grooya</h1>
                             </Link>
                              <nav className="hidden md:flex items-center gap-6">
-                                <HeaderNavLink to="/">{t('nav.portfolios')}</HeaderNavLink>
-                                <HeaderNavLink to="/projects">{t('nav.projects')}</HeaderNavLink>
-                                <HeaderNavLink to="/resumes">{t('nav.resumes')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard">{t('nav.portfolios')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard/projects">{t('nav.projects')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard/resumes">{t('nav.resumes')}</HeaderNavLink>
                                 <div className="text-sm font-medium text-slate-400 dark:text-slate-600 cursor-not-allowed flex items-center relative" title="Coming Soon">
                                     {t('nav.skills')}
                                     <span className="ml-2 text-xs bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">Soon</span>
@@ -81,7 +80,7 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                             {/* User Menu */}
                             {user && (
                                 <div className="relative" ref={userMenuRef}>
-                                    <button onClick={() => setIsUserMenuOpen(prev => !prev)} className="w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900">
+                                    <button onClick={() => setIsUserMenuOpen(prev => !prev)} className="w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900">
                                         <img src={user.avatarUrl} alt="User avatar" className="w-full h-full object-cover" />
                                     </button>
                                     <AnimatePresence>
@@ -98,12 +97,20 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                     <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.title}</p>
                                                 </div>
                                                 <div className="p-2">
-                                                    <NavLink to="/profile" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
+                                                    {user.role === 'admin' && (
+                                                        <NavLink to="/admin/dashboard" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
+                                                            <Shield size={16} className="mr-3" /> Admin Panel
+                                                        </NavLink>
+                                                    )}
+                                                    <NavLink to="/dashboard/profile" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
                                                         <Settings size={16} className="mr-3" /> {t('nav.settings')}
                                                     </NavLink>
-                                                    <button onClick={logout} className="flex items-center w-full px-3 py-2 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-md">
-                                                        <LogOut size={16} className="mr-3" /> {t('logout')}
-                                                    </button>
+                                                    <NavLink to="/dashboard/upgrade" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
+                                                        <Sparkles size={16} className="mr-3 text-amber-500" /> Upgrade Plan
+                                                    </NavLink>
+                                                </div>
+                                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
+                                                    <p className="text-xs text-slate-600 dark:text-slate-400">Current Plan: <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">{user.subscription?.tier}</span></p>
                                                 </div>
                                             </motion.div>
                                         )}
@@ -130,9 +137,9 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                             className="md:hidden border-t border-slate-200 dark:border-slate-800 overflow-hidden"
                         >
                             <nav className="p-4 space-y-3">
-                                <HeaderNavLink to="/" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.portfolios')}</HeaderNavLink>
-                                <HeaderNavLink to="/projects" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.projects')}</HeaderNavLink>
-                                <HeaderNavLink to="/resumes" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.resumes')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.portfolios')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard/projects" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.projects')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard/resumes" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.resumes')}</HeaderNavLink>
                             </nav>
                              <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between">
                                 <span className="text-sm text-slate-600 dark:text-slate-400">Appearance</span>

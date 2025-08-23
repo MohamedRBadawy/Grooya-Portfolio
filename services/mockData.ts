@@ -1,4 +1,3 @@
-
 import type { User, Project, Skill, Portfolio, EducationItem, Resume } from '../types';
 
 export const mockUser: User = {
@@ -8,7 +7,62 @@ export const mockUser: User = {
   email: 'alex.doe@example.com',
   bio: 'Creative frontend developer with a passion for building beautiful, responsive, and intuitive user interfaces. I turn complex problems into elegant solutions.',
   avatarUrl: 'https://picsum.photos/seed/alexdoe/200/200',
+  role: 'admin',
+  subscription: {
+    tier: 'pro',
+    freeFeaturesUsed: {},
+    monthlyCredits: {
+      text: 100,
+      image: 20,
+    },
+  },
 };
+
+export const mockAllUsers: User[] = [
+    mockUser,
+    {
+      id: 'user-2',
+      name: 'Jane Smith',
+      title: 'UX/UI Designer',
+      email: 'jane.smith@example.com',
+      bio: 'Designing user-centric digital experiences that are both beautiful and functional.',
+      avatarUrl: 'https://picsum.photos/seed/janesmith/200/200',
+      role: 'user',
+      subscription: {
+        tier: 'free',
+        freeFeaturesUsed: { heroContent: true },
+        monthlyCredits: { text: 0, image: 0 },
+      },
+    },
+    {
+      id: 'user-3',
+      name: 'Sam Wilson',
+      title: 'Backend Developer',
+      email: 'sam.wilson@example.com',
+      bio: 'Building scalable and efficient server-side applications.',
+      avatarUrl: 'https://picsum.photos/seed/samwilson/200/200',
+      role: 'user',
+      subscription: {
+        tier: 'pro',
+        freeFeaturesUsed: {},
+        monthlyCredits: { text: 85, image: 12 },
+      },
+    },
+    {
+      id: 'user-4',
+      name: 'Maria Garcia',
+      title: 'Product Manager',
+      email: 'maria.garcia@example.com',
+      bio: 'Leading product strategy from concept to launch.',
+      avatarUrl: 'https://picsum.photos/seed/mariagarcia/200/200',
+      role: 'user',
+      subscription: {
+        tier: 'free',
+        freeFeaturesUsed: {},
+        monthlyCredits: { text: 0, image: 0 },
+      },
+    }
+];
 
 export const masterSkillsList: Skill[] = [
   { id: 'skill-1', name: 'TypeScript', category: 'Language' },
@@ -126,6 +180,9 @@ export const initialPortfolios: Portfolio[] = [
       cornerRadius: 'md',
       animationStyle: 'fadeIn',
       navigationStyle: 'stickyHeader',
+      buttonFillStyle: 'solid',
+      buttonHoverEffect: 'lift',
+      navAlignment: 'right',
       transparentHeader: true,
       scrollIndicator: 'none',
       parallax: false,
@@ -194,6 +251,9 @@ export const initialPortfolios: Portfolio[] = [
       cornerRadius: 'lg',
       animationStyle: 'slideInUp',
       navigationStyle: 'minimalHeader',
+      buttonFillStyle: 'solid',
+      buttonHoverEffect: 'scale',
+      navAlignment: 'center',
       transparentHeader: false,
       scrollIndicator: 'none',
       parallax: false,
@@ -250,6 +310,9 @@ export const initialPortfolios: Portfolio[] = [
       cornerRadius: 'md',
       animationStyle: 'fadeIn',
       navigationStyle: 'stickyHeader',
+      buttonFillStyle: 'outline',
+      buttonHoverEffect: 'lift',
+      navAlignment: 'right',
       transparentHeader: true,
       scrollIndicator: 'progressBar',
       parallax: true,
