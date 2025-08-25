@@ -3,6 +3,7 @@
 
 
 
+
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
@@ -47,7 +48,7 @@ const AdminLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
                     <AdminNavLink to="/admin/users" icon={Users}>Users</AdminNavLink>
                     <AdminNavLink to="/admin/portfolios" icon={FolderKanban}>Portfolios</AdminNavLink>
                     <AdminNavLink to="/admin/templates" icon={Newspaper}>Templates</AdminNavLink>
-                    <AdminNavLink to="/admin/settings" icon={Settings} disabled>Settings</AdminNavLink>
+                    <AdminNavLink to="/admin/settings" icon={Settings}>Settings</AdminNavLink>
                 </nav>
                 <div className="p-4 border-t border-slate-200 dark:border-slate-800">
                     <div className="flex justify-between items-center mb-4">

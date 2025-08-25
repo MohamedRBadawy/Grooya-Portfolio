@@ -1,3 +1,5 @@
+
+
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -61,6 +63,8 @@ const PortfolioEditorPage: React.FC = () => {
     const [creationType, setCreationType] = useState<'project' | 'skill' | null>(null);
     
     const applyMenuRef = useRef<HTMLDivElement>(null);
+    const scrollContainerRef = useRef<HTMLDivElement>(null);
+
 
     // --- Sidebar Resizing from Custom Hook ---
     const { sidebarWidth, handleMouseDown } = useResizableSidebar();
@@ -85,6 +89,19 @@ const PortfolioEditorPage: React.FC = () => {
         document.addEventListener("mousedown", handleClickOutside);
         return () => document.removeEventListener("mousedown", handleClickOutside);
     }, []);
+    
+    // Effect to scroll the preview pane when a block is focused in the sidebar
+    useEffect(() => {
+        if (focusedBlockId && scrollContainerRef.current) {
+            const element = scrollContainerRef.current.querySelector(`#${focusedBlockId}`);
+            if (element) {
+                element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+    }, [focusedBlockId]);
     
     const handleTabSwitch = (tab: 'pages' | 'content' | 'design' | 'assets') => {
         if (activeTab !== tab) {
@@ -521,6 +538,7 @@ const PortfolioEditorPage: React.FC = () => {
                     <PortfolioPreview 
                         portfolio={portfolio} 
                         activePage={activePage}
+                        activePageId={activePageId}
                         onUpdateBlock={updateBlockField}
                         activeBlockId={activeBlockId}
                         setActiveBlockId={setActiveBlockId}
@@ -531,6 +549,7 @@ const PortfolioEditorPage: React.FC = () => {
                         isAIAssistLoading={isAIAssistLoading}
                         onPageLinkClick={(pageId) => setActivePageId(pageId)}
                         focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
+                        scrollContainerRef={scrollContainerRef}
                     />
                 </main>
             </div>
@@ -609,6 +628,7 @@ const PortfolioEditorPage: React.FC = () => {
                              <PortfolioPreview 
                                 portfolio={portfolio} 
                                 activePage={activePage}
+                                activePageId={activePageId}
                                 onUpdateBlock={updateBlockField}
                                 activeBlockId={activeBlockId}
                                 setActiveBlockId={setActiveBlockId}
@@ -619,6 +639,7 @@ const PortfolioEditorPage: React.FC = () => {
                                 isAIAssistLoading={isAIAssistLoading}
                                 onPageLinkClick={(pageId) => setActivePageId(pageId)}
                                 focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
+                                scrollContainerRef={scrollContainerRef}
                             />
                         </div>
                         <Button 

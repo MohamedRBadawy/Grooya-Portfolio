@@ -131,7 +131,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
 
                         <Button onClick={props.setIsReviewModalOpen} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
                             <Award size={14} className="me-1.5" />
-                            <span className="hidden sm:inline">{t('aiMentor')}</span>
+                            <span className="hidden sm:inline">{t('aiAssistant.getReview')}</span>
                         </Button>
                         <Button onClick={props.handleDelete} variant="danger" size="sm"><Trash2 className="w-4 h-4" /></Button>
                         <SaveButton onSave={props.handleSave} status={props.saveStatus} />

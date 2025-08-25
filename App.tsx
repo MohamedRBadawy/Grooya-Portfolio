@@ -22,6 +22,7 @@ import AdminPortfolioManagementPage from './pages/admin/AdminPortfolioManagement
 import AdminTemplateManagementPage from './pages/admin/AdminTemplateManagementPage';
 import AdminTemplateEditorPage from './pages/admin/AdminTemplateEditorPage';
 import TemplateShowcasePage from './pages/TemplateShowcasePage';
+import AdminSettingsPage from './pages/admin/AdminSettingsPage';
 
 /**
  * A wrapper component for routes that require authentication.
@@ -116,6 +117,7 @@ const App: React.FC = () => {
                     <Route path="templates" element={<AdminTemplateManagementPage />} />
                     <Route path="templates/new" element={<AdminTemplateEditorPage />} />
                     <Route path="templates/edit/:templateId" element={<AdminTemplateEditorPage />} />
+                    <Route path="settings" element={<AdminSettingsPage />} />
                 </Route>
 
               </Routes>

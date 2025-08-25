@@ -3,11 +3,12 @@
 
 
 
+
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useTranslation } from '../../hooks/useTranslation';
-import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper } from 'lucide-react';
+import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
@@ -115,6 +116,9 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                     <NavLink to="/dashboard/upgrade" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
                                                         <Sparkles size={16} className="mr-3 text-amber-500" /> Upgrade Plan
                                                     </NavLink>
+                                                     <a href="mailto:grooya.ai@gmail.com" className="flex items-center w-full px-3 py-2 text-sm rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                                        <LifeBuoy size={16} className="mr-3" /> {t('nav.support')}
+                                                    </a>
                                                 </div>
                                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
                                                     <p className="text-xs text-slate-600 dark:text-slate-400">Current Plan: <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">{user.subscription?.tier}</span></p>

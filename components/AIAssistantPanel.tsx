@@ -1,3 +1,5 @@
+
+
 import React, { useMemo } from 'react';
 import type { Portfolio, PortfolioBlock, HeroBlock, AboutBlock, ProjectsBlock, Skill } from '../types';
 import { useTranslation } from '../hooks/useTranslation';

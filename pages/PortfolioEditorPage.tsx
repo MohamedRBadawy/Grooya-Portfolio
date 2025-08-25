@@ -15,7 +15,7 @@ import { generateHeroContent, generateAboutContent, generateDesignSuggestions, A
 import PaletteEditorModal from '../components/PaletteEditorModal';
 import AIImageGenerationModal from '../components/AIImageGenerationModal';
 import AIPortfolioReviewModal from '../components/AIPortfolioReviewModal';
-import AIMentorPanel from '../components/AIMentorPanel';
+import AIAssistantPanel from '../components/AIAssistantPanel';
 import EditorSidebar from '../components/editor/EditorSidebar';
 import PortfolioPreview from '../components/editor/PortfolioPreview';
 import { AnimatePresence } from 'framer-motion';
@@ -450,7 +450,7 @@ const PortfolioEditorPage: React.FC = () => {
         <div className="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
              {/* Desktop Layout */}
             <div className="hidden md:flex h-full">
-                {portfolio.isGuided && <AIMentorPanel 
+                {portfolio.isGuided && <AIAssistantPanel 
                     portfolio={portfolio} 
                     onUpdate={updatePortfolioImmediate}
                     setActiveBlockId={setActiveBlockId}

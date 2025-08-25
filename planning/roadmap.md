@@ -46,9 +46,9 @@ Our immediate focus is to refine the user interface and interactions to make the
 This is the long-term vision to make Grooya an indispensable career tool using the power of the Gemini API. The primary focus is strictly on features related to portfolio and resume creation and enhancement.
 
 ### ✅ Phase 1: AI-Guided Onboarding & Staged Creation
-- [x] **AI Mentor Introduction:** Replace the standard template selection with a goal-oriented AI conversation to understand the user's objectives (e.g., get a job, find freelance work).
-- [x] **Staged Building Process:** Introduce a new "AI Mentor" panel in the editor that guides users through a logical sequence of portfolio-building tasks.
-- [x] **Contextual Guidance:** The mentor provides tips and suggestions relevant to the user's stated goal at each stage, transforming the "blank canvas problem" into a manageable, step-by-step process.
+- [x] **AI Assistant Introduction:** Replace the standard template selection with a goal-oriented AI conversation to understand the user's objectives (e.g., get a job, find freelance work).
+- [x] **Staged Building Process:** Introduce a new "AI Assistant" panel in the editor that guides users through a logical sequence of portfolio-building tasks.
+- [x] **Contextual Guidance:** The assistant provides tips and suggestions relevant to the user's stated goal at each stage, transforming the "blank canvas problem" into a manageable, step-by-step process.
 
 ### ✅ Phase 2: AI-Assisted Content & Design
 - [x] **AI Content Co-pilot:** Integrate Gemini into the editor.
