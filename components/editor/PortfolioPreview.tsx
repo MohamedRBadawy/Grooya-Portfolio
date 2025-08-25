@@ -7,6 +7,7 @@ import type { Portfolio, Page } from '../../types';
 export const PortfolioPreview: React.FC<{ 
     portfolio: Portfolio | null; 
     activePage: Page | null;
+    activePageId: string | null;
     onUpdateBlock: (blockId: string, field: string, value: any) => void;
     activeBlockId: string | null;
     setActiveBlockId: (id: string | null) => void;
@@ -17,10 +18,9 @@ export const PortfolioPreview: React.FC<{
     isAIAssistLoading: boolean;
     onPageLinkClick: (pageId: string) => void;
     focusedBlockId?: string | null;
-}> = ({ portfolio, activePage, onUpdateBlock, activeBlockId, setActiveBlockId, onDuplicateBlock, onMoveBlock, onDeleteBlock, onAIAssist, isAIAssistLoading, onPageLinkClick, focusedBlockId }) => {
+    scrollContainerRef: React.RefObject<HTMLDivElement>;
+}> = ({ portfolio, activePage, activePageId, onUpdateBlock, activeBlockId, setActiveBlockId, onDuplicateBlock, onMoveBlock, onDeleteBlock, onAIAssist, isAIAssistLoading, onPageLinkClick, focusedBlockId, scrollContainerRef }) => {
     
-    const scrollContainerRef = useRef<HTMLDivElement>(null);
-
     if (!portfolio || !activePage) {
         return <div className="flex items-center justify-center h-full bg-slate-100 dark:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400">Loading Preview...</div>;
     }
@@ -28,6 +28,7 @@ export const PortfolioPreview: React.FC<{
     const MockPublicPage = () => <PublicPortfolioPage 
         portfolioForPreview={portfolio} 
         activePageForPreview={activePage}
+        activePageId={activePageId}
         isEditable={true} 
         onUpdateBlock={onUpdateBlock}
         activeBlockId={activeBlockId}

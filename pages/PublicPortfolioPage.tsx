@@ -1,8 +1,7 @@
 
 
-import React, { useMemo, useRef } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useParams, Link } = ReactRouterDOM;
+import React, { useMemo, useRef, useEffect } from 'react';
+import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Portfolio, PortfolioBlock, Project, Skill, Page, ShapeDivider, AnimationStyle, Gradient } from '../types';
@@ -29,27 +28,25 @@ import { ContactBlockView } from '../components/blocks/public/ContactBlockView';
 import { CodeBlockView } from '../components/blocks/public/CodeBlockView';
 import { ServicesBlockView } from '../components/blocks/public/ServicesBlockView';
 import { BlogBlockView } from '../components/blocks/public/BlogBlockView';
+import FloatingDotsNav from '../components/ui/FloatingDotsNav';
 
-const animationVariants = {
-    container: {
-        hidden: { opacity: 0 },
-        visible: (i = 1) => ({
-            opacity: 1,
-            transition: { staggerChildren: 0.1, delayChildren: i * 0.1 },
-        }),
-    },
-    item: {
-        fadeIn: { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 30, stiffness: 200 } } },
-        slideInUp: { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 30, stiffness: 120 } } },
-        scaleIn: { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { type: 'spring', damping: 30, stiffness: 120 } } },
-        slideInFromLeft: { hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0, transition: { type: 'spring', damping: 30, stiffness: 120 } } },
-        revealUp: { hidden: { y: '100%', opacity: 0 }, visible: { y: '0%', opacity: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } },
-        blurIn: { hidden: { filter: 'blur(8px)', opacity: 0 }, visible: { filter: 'blur(0px)', opacity: 1, transition: { duration: 0.6 } } },
-        none: { hidden: {}, visible: {} }
-    }
+const animationDefinitions = {
+    fadeIn: { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 30, stiffness: 200 } } },
+    slideInUp: { hidden: { opacity: 0, y: 50 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 30, stiffness: 120 } } },
+    scaleIn: { hidden: { opacity: 0, scale: 0.95 }, visible: { opacity: 1, scale: 1, transition: { type: 'spring', damping: 30, stiffness: 120 } } },
+    slideInFromLeft: { hidden: { opacity: 0, x: -50 }, visible: { opacity: 1, x: 0, transition: { type: 'spring', damping: 30, stiffness: 120 } } },
+    revealUp: { hidden: { y: '100%', opacity: 0 }, visible: { y: '0%', opacity: 1, transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } } },
+    blurIn: { hidden: { filter: 'blur(8px)', opacity: 0 }, visible: { filter: 'blur(0px)', opacity: 1, transition: { duration: 0.6 } } },
+    none: { hidden: {}, visible: {} }
 };
 
-const getVariant = (style: AnimationStyle) => animationVariants.item[style] || {};
+const containerVariant = {
+    hidden: { opacity: 0 },
+    visible: (i = 1) => ({
+        opacity: 1,
+        transition: { staggerChildren: 0.1, delayChildren: i * 0.1 },
+    }),
+};
 
 const fontWeightStyles: { [key: string]: string } = {
     normal: 'font-normal',
@@ -86,6 +83,7 @@ const BlockRenderer: React.FC<{ block: PortfolioBlock, design: Portfolio['design
 interface PublicPortfolioPageProps {
     portfolioForPreview?: Portfolio | null;
     activePageForPreview?: Page | null;
+    activePageId?: string | null;
     isEditable?: boolean;
     onUpdateBlock?: (blockId: string, field: string, value: any) => void;
     activeBlockId?: string | null;
@@ -133,7 +131,10 @@ const ScrollProgressBar: React.FC<{ accentColor: string }> = ({ accentColor }) =
     return (
         <motion.div 
             className="fixed top-0 left-0 right-0 h-1 origin-left z-50" 
-            style={{ backgroundColor: accentColor, scaleX }}
+            style={{ 
+                backgroundColor: accentColor,
+                scaleX 
+            }}
         />
     );
 };
@@ -150,24 +151,27 @@ const ParallaxBlock: React.FC<{
     });
     const y = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
     const { backgroundImage, backgroundOpacity } = block.designOverrides || {};
+    const motionProps: any = {
+        ref:ref,
+        variants:animationVariants,
+        initial:"hidden",
+        whileInView:"visible",
+        viewport:{ once: true, amount: 0.2 }
+    };
 
     return (
         <motion.section 
-            ref={ref}
             key={block.id}
-            variants={animationVariants.container}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.2 }}
+            {...motionProps}
             className="relative overflow-hidden"
         >
-             <motion.div
+             {backgroundImage && <motion.div
                 className="absolute inset-[-20%] z-0 bg-cover bg-center"
                 style={{
                     backgroundImage: `url("${backgroundImage}")`,
                     y,
                 }}
-             />
+             />}
              <div className="absolute inset-0 bg-black z-10" style={{ opacity: backgroundOpacity ?? 0.5 }} />
              {children}
         </motion.section>
@@ -178,6 +182,7 @@ const ParallaxBlock: React.FC<{
 const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({ 
     portfolioForPreview, 
     activePageForPreview,
+    activePageId,
     isEditable = false, 
     onUpdateBlock,
     activeBlockId,
@@ -195,6 +200,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     const { slug, '*': pagePathSplat = '' } = params;
     const { portfolios, projects, skills, user: loggedInUser } = useData();
     const { t } = useTranslation();
+    const location = useLocation();
     
     const portfolio = useMemo(() => {
         if (portfolioForPreview) return portfolioForPreview;
@@ -204,11 +210,25 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     const activePage = useMemo(() => {
         if (activePageForPreview) return activePageForPreview;
         if (!portfolio) return null;
-
-        const pagePath = `/${pagePathSplat}`;
+        
+        let pagePath = `/${pagePathSplat || ''}`.replace(/\/$/, '');
+        if (pagePath === '') pagePath = '/';
+        
         const foundPage = portfolio.pages.find(p => p.path === pagePath);
         return foundPage || portfolio.pages.find(p => p.path === '/');
     }, [portfolio, pagePathSplat, activePageForPreview]);
+    
+    useEffect(() => {
+        if (location.hash) {
+            const id = location.hash.substring(1);
+            setTimeout(() => {
+                const element = document.getElementById(id);
+                if (element) {
+                    element.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 100);
+        }
+    }, [location.hash, activePage]);
 
     const portfolioOwner = useMemo(() => {
         // In preview mode, the logged-in user is always the owner.
@@ -219,6 +239,11 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     }, [portfolio, loggedInUser, isEditable]);
 
     const canRemoveBranding = portfolioOwner?.subscription?.tier === 'pro';
+    
+    const prefersReducedMotion = useMemo(() => {
+        if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
+        return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }, []);
 
     if (!portfolio) {
         return <div className="flex items-center justify-center min-h-screen">{t('portfolioNotFound')}</div>;
@@ -227,28 +252,74 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     if (!portfolioForPreview && !portfolio.isPublished) {
          return <div className="flex items-center justify-center min-h-screen">{t('portfolioNotPublished')}</div>;
     }
-
-    const activePalette = useMemo(() => {
-        const allPalettes = [...defaultPalettes, ...(portfolio.customPalettes || [])];
-        return allPalettes.find(p => p.id === portfolio.design.paletteId) || defaultPalettes[0];
-    }, [portfolio.design.paletteId, portfolio.customPalettes]);
     
-    const theme = activePalette.colors;
+    // Determine the active theme and design based on high contrast mode
+    const { theme, design } = useMemo(() => {
+        if (portfolio.design.highContrastMode) {
+            const highContrastColors = {
+                background: '#000000',
+                text: '#ffffff',
+                heading: '#ffffff',
+                subtle: '#dddddd',
+                cardBackground: '#000000',
+                cardBorder: '#ffffff',
+                inputBackground: '#000000',
+                inputBorder: '#ffffff',
+                inputText: '#ffffff',
+                inputPlaceholder: '#bbbbbb',
+            };
+            return {
+                theme: highContrastColors,
+                design: {
+                    ...portfolio.design,
+                    accentColor: '#ffff00', // Bright yellow for high contrast
+                    shadowStyle: 'none' as const,
+                    globalGradient: undefined,
+                    parallax: false,
+                    headerBackgroundColor: '#000000',
+                    transparentHeader: false,
+                }
+            };
+        }
+        
+        const originalPalette = [...defaultPalettes, ...(portfolio.customPalettes || [])].find(p => p.id === portfolio.design.paletteId) || defaultPalettes[0];
+
+        return {
+            theme: originalPalette.colors,
+            design: portfolio.design
+        };
+    }, [portfolio.design, portfolio.customPalettes]);
+
+
+    const isMotionActuallyReduced = (design.respectReducedMotion !== false && prefersReducedMotion);
+
     const fontSizeClass = {
         sm: 'text-sm',
         md: 'text-base',
         lg: 'text-lg',
-    }[portfolio.design.fontSize];
+    }[design.fontSize];
     
-    const fontWeightBodyClass = fontWeightStyles[portfolio.design.fontWeightBody] || 'font-normal';
-    const lineHeightClass = lineHeightStyles[portfolio.design.lineHeight] || 'leading-normal';
+    const fontWeightBodyClass = fontWeightStyles[design.fontWeightBody] || 'font-normal';
+    const lineHeightClass = lineHeightStyles[design.lineHeight] || 'leading-normal';
+
+    const linkStyleClass = {
+        underline: 'link-style-underline',
+        underlineOnHover: 'link-style-underline-hover',
+        none: 'link-style-none',
+    }[design.linkStyle || 'underlineOnHover'];
 
     const dynamicStyles = {
-        '--font-heading': fontFamilies[portfolio.design.headingFont] || fontFamilies['Sora'],
-        '--font-body': fontFamilies[portfolio.design.bodyFont] || fontFamilies['Inter'],
+        '--font-heading': fontFamilies[design.headingFont] || fontFamilies['Sora'],
+        '--font-body': fontFamilies[design.bodyFont] || fontFamilies['Inter'],
         backgroundColor: theme.background,
         color: theme.text,
     } as React.CSSProperties;
+
+    if (design.globalGradient) {
+        const { direction, color1, color2 } = design.globalGradient;
+        dynamicStyles.backgroundImage = `linear-gradient(${direction}deg, ${color1}, ${color2})`;
+    }
+
 
     const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
         const target = e.target as HTMLElement;
@@ -311,8 +382,9 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
              const { backgroundImage, backgroundOpacity, background, shapeDividers } = focusedBlock.designOverrides || {};
              const backgroundStyle: React.CSSProperties = {};
              let hasOverlay = false;
-             const blockAnimation = focusedBlock.designOverrides?.animationStyle ?? portfolio.design.animationStyle;
-             const blockItemVariant = getVariant(blockAnimation);
+             
+             // This is a simplified animation for the focused preview only.
+             const itemVariant = animationDefinitions['fadeIn'];
 
              if (backgroundImage) {
                 backgroundStyle.backgroundImage = `url("${backgroundImage}")`;
@@ -333,12 +405,12 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                         <div className="relative z-10 p-4 md:p-8">
                             <BlockRenderer 
                                 block={focusedBlock} 
-                                design={portfolio.design} 
+                                design={design} 
                                 theme={theme} 
                                 allProjects={projects} 
                                 allSkills={skills} 
                                 isEditable={false} // Disable inline editing in focused preview
-                                itemVariant={blockItemVariant} 
+                                itemVariant={itemVariant} 
                             />
                         </div>
                     </div>
@@ -350,30 +422,34 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
 
     return (
         <div 
-          className={`font-body ${fontSizeClass} ${fontWeightBodyClass} ${lineHeightClass}`} 
+          className={`font-body ${fontSizeClass} ${fontWeightBodyClass} ${lineHeightClass} ${linkStyleClass}`} 
           style={dynamicStyles}
           onClick={handleContainerClick}
         >
-            {portfolio.design.scrollIndicator === 'progressBar' && <ScrollProgressBar accentColor={portfolio.design.accentColor} />}
-            {portfolio.design.customCss && <style>{portfolio.design.customCss}</style>}
-            {(portfolio.design.navigationStyle === 'stickyHeader' || portfolio.design.navigationStyle === 'minimalHeader') && 
+            {design.scrollIndicator === 'progressBar' && <ScrollProgressBar accentColor={design.accentColor} />}
+            {design.customCss && <style>{design.customCss}</style>}
+            {(design.navigationStyle === 'stickyHeader' || design.navigationStyle === 'minimalHeader') && 
                 <StickyHeaderNav 
                     pages={portfolio.pages} 
-                    design={portfolio.design} 
+                    design={design} 
                     theme={theme} 
-                    variant={portfolio.design.navigationStyle === 'minimalHeader' ? 'minimal' : 'full'} 
-                    userName={loggedInUser?.name || ''} 
+                    variant={design.navigationStyle === 'minimalHeader' ? 'minimal' : 'full'} 
+                    userName={portfolioOwner?.name || ''} 
                     portfolioSlug={portfolio.slug}
                     isEditable={isEditable}
                     onPageLinkClick={onPageLinkClick}
+                    activePageId={activePageId}
                 />
+            }
+            {design.navigationStyle === 'floatingDots' && activePage &&
+                <FloatingDotsNav blocks={activePage.blocks} design={design} scrollContainerRef={scrollContainerRef || undefined} />
             }
             <main>
                 {activePage?.blocks.map(block => {
                      const isActive = isEditable && activeBlockId === block.id;
                      const canUseAI = isActive && onAIAssist && (block.type === 'hero' || block.type === 'about');
                      
-                     const { backgroundImage, backgroundOpacity, background, shapeDividers } = block.designOverrides || {};
+                     const { backgroundImage, backgroundOpacity, background, shapeDividers, border } = block.designOverrides || {};
                      const backgroundStyle: React.CSSProperties = {};
                      let hasOverlay = false;
 
@@ -390,8 +466,16 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                             backgroundStyle.backgroundImage = `linear-gradient(${gradient.direction}deg, ${gradient.color1}, ${gradient.color2})`;
                         }
                      }
+                     
+                    if (border) {
+                        if (border.top) backgroundStyle.borderTop = `${border.top.width}px ${border.top.style} ${border.top.color}`;
+                        if (border.bottom) backgroundStyle.borderBottom = `${border.bottom.width}px ${border.bottom.style} ${border.bottom.color}`;
+                        if (border.left) backgroundStyle.borderLeft = `${border.left.width}px ${border.left.style} ${border.left.color}`;
+                        if (border.right) backgroundStyle.borderRight = `${border.right.width}px ${border.right.style} ${border.right.color}`;
+                    }
 
-                    const defaultPadding = defaultSpacingValues[portfolio.design.spacing] || defaultSpacingValues.cozy;
+
+                    const defaultPadding = defaultSpacingValues[design.spacing] || defaultSpacingValues.cozy;
                     const paddingOverrides = block.designOverrides?.padding || {};
                     
                     const topDivider = shapeDividers?.top;
@@ -404,10 +488,38 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                         paddingRight: paddingOverrides.right ?? defaultPadding.horizontal,
                     };
                     
-                    const useParallax = portfolio.design.parallax && backgroundImage;
-                    const blockAnimation = block.designOverrides?.animationStyle ?? portfolio.design.animationStyle;
-                    const blockItemVariant = getVariant(blockAnimation);
+                    const useParallax = design.parallax && backgroundImage;
                     
+                    const blockAnimation = block.designOverrides?.animationStyle ?? design.animationStyle;
+                    const itemVariant = useMemo(() => {
+                        if (isMotionActuallyReduced || blockAnimation === 'none') {
+                            return { hidden: {}, visible: {} };
+                        }
+                
+                        const definition = animationDefinitions[blockAnimation as keyof typeof animationDefinitions] || animationDefinitions.none;
+                        const transitionOverride: any = {};
+                
+                        if (block.designOverrides?.animationDuration !== undefined) {
+                            transitionOverride.duration = block.designOverrides.animationDuration;
+                        }
+                        if (block.designOverrides?.animationDelay !== undefined) {
+                            transitionOverride.delay = block.designOverrides.animationDelay;
+                        }
+                
+                        if (Object.keys(transitionOverride).length > 0) {
+                            const newVisible: any = { ...(definition.visible || {}) };
+                            newVisible.transition = {
+                                ...(newVisible.transition || {}),
+                                ...transitionOverride,
+                            };
+                            return {
+                                ...definition,
+                                visible: newVisible,
+                            };
+                        }
+                        return definition;
+                    }, [isMotionActuallyReduced, blockAnimation, block.designOverrides?.animationDuration, block.designOverrides?.animationDelay]);
+
                     const blockContent = (
                         <div 
                             style={contentPaddingStyle}
@@ -419,7 +531,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                                 }
                             }}
                         >
-                            <BlockRenderer block={block} design={portfolio.design} theme={theme} allProjects={projects} allSkills={skills} isEditable={isEditable} onUpdateBlock={onUpdateBlock} itemVariant={blockItemVariant} />
+                            <BlockRenderer block={block} design={design} theme={theme} allProjects={projects} allSkills={skills} isEditable={isEditable} onUpdateBlock={onUpdateBlock} itemVariant={itemVariant} />
                             {isActive && onDuplicateBlock && onMoveBlock && onDeleteBlock && (
                                 <ContextualToolbar
                                     onDuplicate={() => onDuplicateBlock(block.id)}
@@ -435,7 +547,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
 
                     if (useParallax) {
                         return (
-                            <ParallaxBlock key={block.id} block={block} animationVariants={animationVariants}>
+                            <ParallaxBlock key={block.id} block={block} animationVariants={containerVariant}>
                                 {topDivider && <ShapeDividerComponent {...topDivider} position="top" />}
                                 {blockContent}
                                 {bottomDivider && <ShapeDividerComponent {...bottomDivider} position="bottom" />}
@@ -443,15 +555,20 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                         );
                     }
                      
+                    const sectionMotionProps: any = {
+                        variants: containerVariant,
+                        initial: "hidden",
+                        whileInView: "visible",
+                        viewport: { once: true, amount: 0.2 },
+                    };
+
                     return (
                         <motion.section
+                            id={block.id}
                             key={block.id}
                             style={backgroundStyle}
                             className="relative"
-                            variants={animationVariants.container}
-                            initial="hidden"
-                            whileInView="visible"
-                            viewport={{ once: true, amount: 0.2 }}
+                            {...sectionMotionProps}
                         >
                              {topDivider && <ShapeDividerComponent {...topDivider} position="top" />}
                              {hasOverlay && <div className="absolute inset-0 bg-black" style={{ opacity: backgroundOpacity ?? 0.5 }} />}
@@ -464,7 +581,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                     <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
                         <h2 className="text-2xl font-bold" style={{color: theme.heading}}>Page Not Found</h2>
                         <p className="mt-2" style={{color: theme.subtle}}>The page you're looking for doesn't exist.</p>
-                        <Link to={`/portfolio/${portfolio.slug}`} className="mt-6 px-4 py-2 rounded-md font-semibold text-white" style={{backgroundColor: portfolio.design.accentColor}}>Go to Home</Link>
+                        <Link to={`/portfolio/${portfolio.slug}`} className="mt-6 px-4 py-2 rounded-md font-semibold text-white" style={{backgroundColor: design.accentColor}}>Go to Home</Link>
                     </div>
                  )}
             </main>

@@ -1,107 +1,81 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useParams, useNavigate } = ReactRouterDOM;
+
+
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import type { Resume, AITailoringSuggestions, ExperienceItem, EducationItem, ResumeProjectItem, Skill } from '../types';
+import type { Resume, AITailoringSuggestions, ExperienceItem, EducationItem, Skill, ResumeProjectItem } from '../types';
 import Button from '../components/ui/Button';
-import { ArrowLeft, ArrowRight, Save, Trash2, Sparkles, GripVertical, Edit, PlusCircle } from 'lucide-react';
-import { useApp } from '../contexts/LocalizationContext';
-import ResumePreview from '../components/ResumePreview';
-import { AnimatePresence, motion } from 'framer-motion';
-import AITailorModal from '../components/AITailorModal';
+import { Save, ChevronLeft, Download, Sparkles, Plus, Trash2, GripVertical, Palette, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ResumePreview from '../components/ResumePreview';
+import AITailorModal from '../components/AITailorModal';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
-import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
+import { SortableContext, sortableKeyboardCoordinates, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { MultiItemSelector } from '../components/ui/MultiItemSelector';
+import { motion, AnimatePresence } from 'framer-motion';
 
-
-const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string, className?: string }> = ({ children, htmlFor, className }) => (
-    <label htmlFor={htmlFor} className={`block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5 ${className || ''}`}>{children}</label>
+// Reusable components for editor fields
+const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string }> = ({ children, htmlFor }) => (
+    <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1.5">{children}</label>
 );
-
 const EditorInput: React.FC<React.InputHTMLAttributes<HTMLInputElement>> = (props) => (
-    <input {...props} className={`block w-full bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-lg shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-900 dark:text-slate-100 transition-colors p-2 ${props.className}`} />
+    <input {...props} className={`block w-full bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-lg shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-900 dark:text-slate-100 p-2 transition ${props.className}`} />
 );
 const EditorTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>> = (props) => (
-    <textarea {...props} className={`block w-full bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-lg shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-900 dark:text-slate-100 transition-colors p-2 ${props.className}`} />
+    <textarea {...props} className={`block w-full bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 rounded-lg shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-900 dark:text-slate-100 p-2 transition ${props.className}`} />
 );
+const EditorDetails: React.FC<{title: string, children: React.ReactNode, defaultOpen?: boolean}> = ({title, children, defaultOpen=false}) => (
+    <details open={defaultOpen} className="group border-b border-slate-200 dark:border-slate-800 last:border-b-0">
+        <summary className="font-semibold cursor-pointer py-3 list-none flex justify-between items-center">
+            {title}
+            <ChevronLeft className="details-arrow w-4 h-4 transition-transform text-slate-500" />
+        </summary>
+        <div className="pb-4 space-y-4">
+            {children}
+        </div>
+    </details>
+)
 
-// Generic Sortable Item Wrapper
-const SortableItem = ({ id, onEdit, onDelete, children }: { id: string, onEdit: () => void, onDelete: () => void, children: React.ReactNode }) => {
+// Sortable item wrapper for DnD
+const SortableItem: React.FC<{id: string, children: React.ReactNode, onRemove: () => void}> = ({ id, children, onRemove }) => {
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
-    const style = { transform: CSS.Transform.toString(transform), transition };
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
 
     return (
-        <div ref={setNodeRef} style={style} className="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 flex items-start gap-2">
-            <button {...attributes} {...listeners} className="p-2 cursor-grab text-slate-500 touch-none"><GripVertical size={16} /></button>
-            <div className="flex-grow">{children}</div>
-            <div className="flex gap-1">
-                <Button variant="ghost" size="sm" className="p-2 h-auto" onClick={onEdit}><Edit size={14} /></Button>
-                <Button variant="ghost" size="sm" className="p-2 h-auto text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={onDelete}><Trash2 size={14} /></Button>
+        <div ref={setNodeRef} style={style} className="p-4 bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg relative space-y-2">
+            <div className="absolute top-2 right-2 flex gap-1">
+                 <Button variant="ghost" size="sm" className="p-2 h-auto text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={onRemove}><Trash2 size={16} /></Button>
+                 <Button variant="ghost" size="sm" className="p-2 h-auto cursor-grab touch-none" {...attributes} {...listeners}><GripVertical size={16} /></Button>
             </div>
+            {children}
         </div>
     );
-};
-
-// Section-specific form components
-const ExperienceForm: React.FC<{ item: ExperienceItem, onSave: (item: ExperienceItem) => void, onCancel: () => void }> = ({ item, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(item);
-    return (
-        <div className="p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg space-y-2">
-            <EditorInput placeholder="Job Title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} autoFocus/>
-            <EditorInput placeholder="Company" value={formData.company} onChange={e => setFormData({...formData, company: e.target.value})} />
-            <EditorInput placeholder="Date Range (e.g., Jan 2022 - Present)" value={formData.dateRange} onChange={e => setFormData({...formData, dateRange: e.target.value})} />
-            <EditorTextarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={3} />
-            <div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button><Button size="sm" onClick={() => onSave(formData)}>Save</Button></div>
-        </div>
-    );
-};
-const EducationForm: React.FC<{ item: EducationItem, onSave: (item: EducationItem) => void, onCancel: () => void }> = ({ item, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(item);
-    return (
-        <div className="p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg space-y-2">
-            <EditorInput placeholder="Institution" value={formData.institution} onChange={e => setFormData({...formData, institution: e.target.value})} autoFocus/>
-            <EditorInput placeholder="Degree" value={formData.degree} onChange={e => setFormData({...formData, degree: e.target.value})} />
-            <EditorInput placeholder="Date Range (e.g., 2018 - 2022)" value={formData.dateRange} onChange={e => setFormData({...formData, dateRange: e.target.value})} />
-            <EditorTextarea placeholder="Description (optional)" value={formData.description || ''} onChange={e => setFormData({...formData, description: e.target.value})} rows={2} />
-            <div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button><Button size="sm" onClick={() => onSave(formData)}>Save</Button></div>
-        </div>
-    );
-};
-const ProjectForm: React.FC<{ item: ResumeProjectItem, onSave: (item: ResumeProjectItem) => void, onCancel: () => void }> = ({ item, onSave, onCancel }) => {
-    const [formData, setFormData] = useState(item);
-    return (
-        <div className="p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg space-y-2">
-            <EditorInput placeholder="Project Title" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} autoFocus/>
-            <EditorTextarea placeholder="Description" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={2} />
-            <EditorInput placeholder="Technologies (comma-separated)" value={formData.technologies.join(', ')} onChange={e => setFormData({...formData, technologies: e.target.value.split(',').map(t => t.trim())})} />
-            <div className="flex justify-end gap-2"><Button size="sm" variant="secondary" onClick={onCancel}>Cancel</Button><Button size="sm" onClick={() => onSave(formData)}>Save</Button></div>
-        </div>
-    );
-};
-
+}
 
 const ResumeEditorPage: React.FC = () => {
     const { resumeId } = useParams<{ resumeId: string }>();
     const navigate = useNavigate();
-    const { getResumeById, updateResume, deleteResume, skills: masterSkillsList, projects: masterProjectsList } = useData();
+    const { getResumeById, updateResume, skills: masterSkillsList } = useData();
     const { t } = useTranslation();
-    const { direction } = useApp();
 
     const [resume, setResume] = useState<Resume | null>(null);
-    const [isAITailorModalOpen, setIsAITailorModalOpen] = useState(false);
-    const [editingItem, setEditingItem] = useState<{ section: 'experience' | 'education' | 'projects', id: string } | null>(null);
-
-    const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+    const [isTailorModalOpen, setIsTailorModalOpen] = useState(false);
+    const [skillSearch, setSkillSearch] = useState('');
 
     useEffect(() => {
         if (resumeId) {
             const data = getResumeById(resumeId);
-            if (data) setResume(JSON.parse(JSON.stringify(data)));
-            else navigate('/dashboard/resumes');
+            if (data) {
+                setResume(JSON.parse(JSON.stringify(data)));
+            } else {
+                navigate('/dashboard/resumes');
+            }
         }
     }, [resumeId, getResumeById, navigate]);
 
@@ -111,202 +85,216 @@ const ResumeEditorPage: React.FC = () => {
             toast.success(t('resumeSaved'));
         }
     };
-    const handleDelete = () => {
-        if (resume && window.confirm(t('deleteResumeConfirm'))) {
-            deleteResume(resume.id);
-            navigate('/dashboard/resumes');
-        }
-    };
-
-    const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setResume(prev => prev ? { ...prev, [name]: value } : null);
-    };
-
-    const handleSectionChange = <T extends ExperienceItem | EducationItem | ResumeProjectItem>(section: 'experience' | 'education' | 'projects', items: T[]) => {
-        setResume(prev => prev ? { ...prev, [section]: items } : null);
-    };
-
-    const handleAddItem = (section: 'experience' | 'education' | 'projects') => {
-        const newItemId = `item-${Date.now()}`;
-        if (section === 'experience') {
-            const newItem: ExperienceItem = { id: newItemId, title: '', company: '', dateRange: '', description: '' };
-            handleSectionChange(section, [...(resume?.experience || []), newItem]);
-        } else if (section === 'education') {
-            const newItem: EducationItem = { id: newItemId, institution: '', degree: '', dateRange: '', description: '' };
-            handleSectionChange(section, [...(resume?.education || []), newItem]);
-        } else if (section === 'projects') {
-            const newItem: ResumeProjectItem = { id: newItemId, title: '', description: '', technologies: [] };
-            handleSectionChange(section, [...(resume?.projects || []), newItem]);
-        }
-        setEditingItem({ section, id: newItemId });
-    };
-
-    const handleSaveItem = (section: 'experience' | 'education' | 'projects', item: ExperienceItem | EducationItem | ResumeProjectItem) => {
-        if (section === 'experience') {
-            handleSectionChange(section, (resume?.experience || []).map((i) => (i.id === item.id ? (item as ExperienceItem) : i)));
-        } else if (section === 'education') {
-            handleSectionChange(section, (resume?.education || []).map((i) => (i.id === item.id ? (item as EducationItem) : i)));
-        } else if (section === 'projects') {
-            handleSectionChange(section, (resume?.projects || []).map((i) => (i.id === item.id ? (item as ResumeProjectItem) : i)));
-        }
-        setEditingItem(null);
-    };
-
-    const handleDeleteItem = (section: 'experience' | 'education' | 'projects', itemId: string) => {
-        if (section === 'experience') {
-            handleSectionChange(section, (resume?.experience || []).filter((i) => i.id !== itemId));
-        } else if (section === 'education') {
-            handleSectionChange(section, (resume?.education || []).filter((i) => i.id !== itemId));
-        } else if (section === 'projects') {
-            handleSectionChange(section, (resume?.projects || []).filter((i) => i.id !== itemId));
-        }
-    };
-
-    const handleDragEndForSection = (section: 'experience' | 'education' | 'projects') => (event: DragEndEvent) => {
-        const { active, over } = event;
     
-        if (over && active.id !== over.id) {
-            setResume(prev => {
-                if (!prev) return null;
+    const handleDownload = () => {
+        window.print();
+    };
 
-                if (section === 'experience') {
-                    const items = prev.experience;
-                    const oldIndex = items.findIndex((item) => item.id === active.id);
-                    const newIndex = items.findIndex((item) => item.id === over.id);
-                    if (oldIndex > -1 && newIndex > -1) {
-                        return { ...prev, experience: arrayMove(items, oldIndex, newIndex) };
-                    }
-                } else if (section === 'education') {
-                    const items = prev.education;
-                    const oldIndex = items.findIndex((item) => item.id === active.id);
-                    const newIndex = items.findIndex((item) => item.id === over.id);
-                    if (oldIndex > -1 && newIndex > -1) {
-                        return { ...prev, education: arrayMove(items, oldIndex, newIndex) };
-                    }
-                } else if (section === 'projects') {
-                    const items = prev.projects;
-                    const oldIndex = items.findIndex((item) => item.id === active.id);
-                    const newIndex = items.findIndex((item) => item.id === over.id);
-                    if (oldIndex > -1 && newIndex > -1) {
-                        return { ...prev, projects: arrayMove(items, oldIndex, newIndex) };
-                    }
-                }
-                
-                return prev;
-            });
-        }
+    const handleFieldChange = (field: keyof Resume, value: any) => {
+        setResume(prev => prev ? { ...prev, [field]: value } : null);
+    };
+
+    const handleArrayItemChange = (
+        arrayName: 'experience' | 'education' | 'projects',
+        itemId: string,
+        field: string,
+        value: any
+    ) => {
+        setResume(prev => {
+            if (!prev) return null;
+            const array = prev[arrayName] as (ExperienceItem | EducationItem | ResumeProjectItem)[];
+            const newArray = array.map(item =>
+                item.id === itemId ? { ...item, [field]: value } : item
+            );
+            return { ...prev, [arrayName]: newArray };
+        });
+    };
+    
+    const handleSkillToggle = (skillId: string) => {
+        setResume(prev => {
+            if (!prev) return null;
+            const isSelected = prev.skills.some(s => s.id === skillId);
+            if (isSelected) {
+                return { ...prev, skills: prev.skills.filter(s => s.id !== skillId) };
+            } else {
+                const skillToAdd = masterSkillsList.find(s => s.id === skillId);
+                return skillToAdd ? { ...prev, skills: [...prev.skills, skillToAdd] } : prev;
+            }
+        });
+    }
+
+    const handleAddItem = (arrayName: 'experience' | 'education' | 'projects') => {
+        setResume(prev => {
+            if (!prev) return null;
+            const newItem = {
+                id: `${arrayName}-${Date.now()}`,
+                ...(arrayName === 'experience' ? { title: 'Job Title', company: 'Company', dateRange: 'Jan 2023 - Present', description: '' } : {}),
+                ...(arrayName === 'education' ? { institution: 'University', degree: 'Degree', dateRange: '2018 - 2022', description: '' } : {}),
+                ...(arrayName === 'projects' ? { title: 'Project Name', description: '', technologies: [] } : {})
+            };
+            return { ...prev, [arrayName]: [...prev[arrayName] as any, newItem] };
+        });
+    };
+    
+     const handleRemoveItem = (arrayName: 'experience' | 'education' | 'projects', itemId: string) => {
+        setResume(prev => {
+            if (!prev) return null;
+            const newArray = (prev[arrayName] as any[]).filter(item => item.id !== itemId);
+            return { ...prev, [arrayName]: newArray };
+        });
     };
 
     const handleApplySuggestions = (suggestions: AITailoringSuggestions) => {
         setResume(prev => {
             if (!prev) return null;
-            const existingSkillNames = new Set(prev.skills.map(s => s.name.toLowerCase()));
-            const newSkillsToAdd = suggestions.suggestedKeywords
-                .filter(kw => !existingSkillNames.has(kw.toLowerCase()))
-                .map(kw => masterSkillsList.find(s => s.name.toLowerCase() === kw.toLowerCase()) || { id: `skill-${Date.now()}-${kw}`, name: kw, category: 'Tool' as const });
-
-            return { ...prev, summary: suggestions.newSummary, skills: [...prev.skills, ...newSkillsToAdd] };
+            const newSkills = [...prev.skills];
+            suggestions.suggestedKeywords.forEach(keyword => {
+                const existingMasterSkill = masterSkillsList.find(ms => ms.name.toLowerCase() === keyword.toLowerCase());
+                const alreadyOnResume = newSkills.some(s => s.name.toLowerCase() === keyword.toLowerCase());
+                if (!alreadyOnResume) {
+                     newSkills.push(existingMasterSkill || { id: `skill-${Date.now()}`, name: keyword, category: 'Tool' });
+                }
+            });
+            return { ...prev, summary: suggestions.newSummary, skills: newSkills };
         });
-        setIsAITailorModalOpen(false);
+        setIsTailorModalOpen(false);
+        toast.success("AI suggestions applied!");
+    };
+    
+    const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
+
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (!over || active.id === over.id) return;
+        
+        const arrayName = over.data.current?.sortable.containerId as 'experience' | 'education' | 'projects' | 'skills';
+        
+        setResume(prev => {
+            if (!prev) return null;
+            const array = prev[arrayName] as any[];
+            const oldIndex = array.findIndex(item => item.id === active.id);
+            const newIndex = array.findIndex(item => item.id === over.id);
+            return { ...prev, [arrayName]: arrayMove(array, oldIndex, newIndex) };
+        });
     };
 
-    if (!resume) return <div className="flex items-center justify-center h-full">Loading editor...</div>;
-    
-    const BackIcon = direction === 'rtl' ? ArrowRight : ArrowLeft;
+    const filteredSkills = masterSkillsList.filter(s => s.name.toLowerCase().includes(skillSearch.toLowerCase()));
 
-    const renderSection = (sectionName: 'experience' | 'education' | 'projects', title: string) => {
-        const items = resume[sectionName];
-        const ItemFormComponent = sectionName === 'experience' ? ExperienceForm : sectionName === 'education' ? EducationForm : ProjectForm;
-
-        return (
-            <details open className="pt-4">
-                <summary className="text-lg font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">{title}</summary>
-                <div className="pt-4 space-y-2">
-                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEndForSection(sectionName)}>
-                        <SortableContext items={items.map((i: any) => i.id)} strategy={verticalListSortingStrategy}>
-                            {items.map((item: any) => (
-                                editingItem?.section === sectionName && editingItem?.id === item.id 
-                                ? <ItemFormComponent key={item.id} item={item} onSave={(updatedItem) => handleSaveItem(sectionName, updatedItem)} onCancel={() => setEditingItem(null)} />
-                                : <SortableItem key={item.id} id={item.id} onEdit={() => setEditingItem({section: sectionName, id: item.id})} onDelete={() => handleDeleteItem(sectionName, item.id)}>
-                                    <div>
-                                        <p className="font-semibold text-slate-800 dark:text-slate-200">{item.title || item.institution}</p>
-                                        <p className="text-sm text-slate-600 dark:text-slate-400">{item.company || item.degree}</p>
-                                    </div>
-                                  </SortableItem>
-                            ))}
-                        </SortableContext>
-                    </DndContext>
-                    <Button variant="secondary" size="sm" className="w-full" onClick={() => handleAddItem(sectionName)}><PlusCircle size={14} className="me-2"/> Add {title}</Button>
-                </div>
-            </details>
-        )
+    if (!resume) {
+        return <div className="flex items-center justify-center h-full">Loading editor...</div>;
     }
 
     return (
         <>
-        <div className="flex h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
-            <aside className="w-full md:w-[480px] bg-slate-50 dark:bg-slate-900 flex flex-col h-full shadow-2xl border-e border-slate-200 dark:border-slate-800 flex-shrink-0">
-                <header className="p-4 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 sticky top-0 bg-slate-50/80 dark:bg-slate-900/80 backdrop-blur-sm z-20">
-                    <div className="flex justify-between items-center">
-                        <Button variant="ghost" onClick={() => navigate('/dashboard/resumes')}>
-                           <BackIcon className="w-4 h-4 me-2" /> {t('backToList')}
-                        </Button>
-                        <div className="flex items-center gap-2">
-                           <Button onClick={() => setIsAITailorModalOpen(true)} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
-                               <Sparkles size={14} className="me-2" /> {t('aiTailor')}
-                           </Button>
-                           <Button onClick={handleDelete} variant="danger" size="sm"><Trash2 className="w-4 h-4" /></Button>
-                           <Button onClick={handleSave} variant="primary" size="sm"><Save className="w-4 h-4 me-2" /> {t('save')}</Button>
+            <div className="h-full flex flex-col md:flex-row bg-slate-50 dark:bg-slate-950">
+                {/* Sidebar */}
+                <aside className="noprint w-full md:w-[450px] lg:w-[500px] h-full flex-shrink-0 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col">
+                    <header className="p-4 border-b border-slate-200 dark:border-slate-800 flex-shrink-0">
+                        <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard/resumes')}><ChevronLeft size={16} className="me-2"/> Back</Button>
+                        <EditorInput
+                            value={resume.title}
+                            onChange={(e) => handleFieldChange('title', e.target.value)}
+                            className="w-full text-lg font-bold bg-transparent focus:outline-none mt-2 p-0 border-none"
+                            placeholder={t('untitledResume')}
+                        />
+                    </header>
+                    <div className="flex-grow overflow-y-auto p-4">
+                        <EditorDetails title="Personal Info" defaultOpen>
+                             <EditorLabel>Full Name</EditorLabel><EditorInput value={resume.fullName} onChange={e => handleFieldChange('fullName', e.target.value)} />
+                             <EditorLabel>Job Title</EditorLabel><EditorInput value={resume.jobTitle} onChange={e => handleFieldChange('jobTitle', e.target.value)} />
+                             <EditorLabel>Email</EditorLabel><EditorInput type="email" value={resume.email} onChange={e => handleFieldChange('email', e.target.value)} />
+                             <EditorLabel>Phone</EditorLabel><EditorInput type="tel" value={resume.phone || ''} onChange={e => handleFieldChange('phone', e.target.value)} />
+                             <EditorLabel>Website</EditorLabel><EditorInput type="url" value={resume.website || ''} onChange={e => handleFieldChange('website', e.target.value)} />
+                             <EditorLabel>LinkedIn</EditorLabel><EditorInput value={resume.linkedin || ''} onChange={e => handleFieldChange('linkedin', e.target.value)} />
+                             <EditorLabel>GitHub</EditorLabel><EditorInput value={resume.github || ''} onChange={e => handleFieldChange('github', e.target.value)} />
+                        </EditorDetails>
+                        <EditorDetails title="Summary" defaultOpen>
+                             <EditorTextarea rows={5} value={resume.summary} onChange={e => handleFieldChange('summary', e.target.value)} />
+                        </EditorDetails>
+                        <EditorDetails title="Experience" defaultOpen>
+                            <div className="space-y-3">
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                    <SortableContext items={resume.experience.map(e => ({...e, id: e.id}))} strategy={verticalListSortingStrategy}>
+                                        {resume.experience.map(exp => <SortableItem key={exp.id} id={exp.id} onRemove={() => handleRemoveItem('experience', exp.id)}>
+                                            <EditorLabel>Job Title</EditorLabel><EditorInput value={exp.title} onChange={e => handleArrayItemChange('experience', exp.id, 'title', e.target.value)} />
+                                            <EditorLabel>Company</EditorLabel><EditorInput value={exp.company} onChange={e => handleArrayItemChange('experience', exp.id, 'company', e.target.value)} />
+                                            <EditorLabel>Date Range</EditorLabel><EditorInput value={exp.dateRange} onChange={e => handleArrayItemChange('experience', exp.id, 'dateRange', e.target.value)} />
+                                            <EditorLabel>Description</EditorLabel><EditorTextarea rows={3} value={exp.description} onChange={e => handleArrayItemChange('experience', exp.id, 'description', e.target.value)} />
+                                        </SortableItem>)}
+                                    </SortableContext>
+                                </DndContext>
+                                <Button size="sm" variant="secondary" onClick={() => handleAddItem('experience')}><Plus size={14} className="me-2"/> Add Experience</Button>
+                            </div>
+                        </EditorDetails>
+                         <EditorDetails title="Education" defaultOpen>
+                            <div className="space-y-3">
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                    <SortableContext items={resume.education.map(e => ({...e, id: e.id}))} strategy={verticalListSortingStrategy}>
+                                        {resume.education.map(edu => <SortableItem key={edu.id} id={edu.id} onRemove={() => handleRemoveItem('education', edu.id)}>
+                                            <EditorLabel>Institution</EditorLabel><EditorInput value={edu.institution} onChange={e => handleArrayItemChange('education', edu.id, 'institution', e.target.value)} />
+                                            <EditorLabel>Degree</EditorLabel><EditorInput value={edu.degree} onChange={e => handleArrayItemChange('education', edu.id, 'degree', e.target.value)} />
+                                            <EditorLabel>Date Range</EditorLabel><EditorInput value={edu.dateRange} onChange={e => handleArrayItemChange('education', edu.id, 'dateRange', e.target.value)} />
+                                            <EditorLabel>Description</EditorLabel><EditorTextarea rows={2} value={edu.description || ''} onChange={e => handleArrayItemChange('education', edu.id, 'description', e.target.value)} />
+                                        </SortableItem>)}
+                                    </SortableContext>
+                                </DndContext>
+                                <Button size="sm" variant="secondary" onClick={() => handleAddItem('education')}><Plus size={14} className="me-2"/> Add Education</Button>
+                            </div>
+                        </EditorDetails>
+                        <EditorDetails title="Skills" defaultOpen>
+                            <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm">
+                                <div className="p-2 border-b border-slate-300 dark:border-slate-700">
+                                    <input type="text" placeholder="Search skills..." value={skillSearch} onChange={e => setSkillSearch(e.target.value)} className="w-full bg-transparent sm:text-sm focus:outline-none" />
+                                </div>
+                                <div className="max-h-48 overflow-y-auto p-2">
+                                    {filteredSkills.map(skill => {
+                                        const isSelected = resume.skills.some(s => s.id === skill.id);
+                                        return <div key={skill.id} onClick={() => handleSkillToggle(skill.id)} className="flex items-center gap-2 p-2 rounded-md cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-700/50">
+                                            <div className={`w-4 h-4 rounded-sm border-2 flex items-center justify-center transition-colors ${isSelected ? 'bg-teal-500 border-teal-500' : 'border-slate-400 dark:border-slate-500'}`}>{isSelected && <Check size={12} className="text-white"/>}</div>
+                                            <span className="text-sm">{skill.name}</span>
+                                        </div>
+                                    })}
+                                </div>
+                            </div>
+                        </EditorDetails>
+                         <EditorDetails title="Projects" defaultOpen>
+                            <div className="space-y-3">
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                    <SortableContext items={resume.projects.map(p => ({...p, id: p.id}))} strategy={verticalListSortingStrategy}>
+                                        {resume.projects.map(proj => <SortableItem key={proj.id} id={proj.id} onRemove={() => handleRemoveItem('projects', proj.id)}>
+                                            <EditorLabel>Project Title</EditorLabel><EditorInput value={proj.title} onChange={e => handleArrayItemChange('projects', proj.id, 'title', e.target.value)} />
+                                            <EditorLabel>Description</EditorLabel><EditorTextarea rows={2} value={proj.description} onChange={e => handleArrayItemChange('projects', proj.id, 'description', e.target.value)} />
+                                            <EditorLabel>Technologies</EditorLabel><EditorInput value={proj.technologies.join(', ')} onChange={e => handleArrayItemChange('projects', proj.id, 'technologies', e.target.value.split(',').map(t=>t.trim()))} />
+                                        </SortableItem>)}
+                                    </SortableContext>
+                                </DndContext>
+                                <Button size="sm" variant="secondary" onClick={() => handleAddItem('projects')}><Plus size={14} className="me-2"/> Add Project</Button>
+                            </div>
+                        </EditorDetails>
+                         <EditorDetails title="Design">
+                            <div className="space-y-2">
+                                <EditorLabel>Accent Color</EditorLabel>
+                                <input type="color" value={resume.accentColor} onChange={e => handleFieldChange('accentColor', e.target.value)} className="w-full h-10"/>
+                            </div>
+                        </EditorDetails>
+                    </div>
+                </aside>
+                {/* Main Content */}
+                <main className="flex-grow h-full flex flex-col">
+                    <div className="noprint flex-shrink-0 p-2 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex justify-end items-center gap-2">
+                        <Button variant="secondary" onClick={() => setIsTailorModalOpen(true)}><Sparkles size={16} className="me-2 text-amber-500"/>{t('aiTailor')}</Button>
+                        <Button variant="secondary" onClick={handleDownload}><Download size={16} className="me-2"/> Download</Button>
+                        <Button variant="primary" onClick={handleSave}><Save size={16} className="me-2"/>{t('save')}</Button>
+                    </div>
+                    <div className="flex-grow overflow-y-auto p-4 md:p-8 bg-slate-200 dark:bg-slate-950">
+                        <div id="resume-print-area" className="max-w-4xl mx-auto">
+                            <ResumePreview resume={resume} />
                         </div>
                     </div>
-                    <input type="text" name="title" value={resume.title} onChange={handleFieldChange} className="w-full text-2xl font-bold bg-transparent focus:outline-none mt-3 font-sora text-slate-900 dark:text-slate-50" placeholder={t('untitledResume')} />
-                </header>
-                <div className="flex-grow overflow-y-auto p-6 space-y-6">
-                    <details open><summary className="text-lg font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">Contact Information</summary>
-                        <div className="grid grid-cols-2 gap-4 pt-4">
-                            <div><EditorLabel htmlFor="fullName">Full Name</EditorLabel><EditorInput id="fullName" name="fullName" value={resume.fullName} onChange={handleFieldChange} /></div>
-                            <div><EditorLabel htmlFor="jobTitle">Job Title</EditorLabel><EditorInput id="jobTitle" name="jobTitle" value={resume.jobTitle} onChange={handleFieldChange} /></div>
-                            <div><EditorLabel htmlFor="email">Email</EditorLabel><EditorInput id="email" name="email" type="email" value={resume.email} onChange={handleFieldChange} /></div>
-                            <div><EditorLabel htmlFor="phone">Phone</EditorLabel><EditorInput id="phone" name="phone" value={resume.phone || ''} onChange={handleFieldChange} /></div>
-                            <div><EditorLabel htmlFor="website">Website</EditorLabel><EditorInput id="website" name="website" type="url" value={resume.website || ''} onChange={handleFieldChange} /></div>
-                            <div><EditorLabel htmlFor="linkedin">LinkedIn</EditorLabel><EditorInput id="linkedin" name="linkedin" value={resume.linkedin || ''} onChange={handleFieldChange} /></div>
-                        </div>
-                    </details>
-                    <details open><summary className="text-lg font-semibold text-slate-800 dark:text-slate-200 cursor-pointer pt-4">Professional Summary</summary>
-                        <div className="pt-4"><EditorLabel htmlFor="summary" className="sr-only">Summary</EditorLabel><EditorTextarea id="summary" name="summary" value={resume.summary} onChange={handleFieldChange} rows={5} /></div>
-                    </details>
-                    
-                    {renderSection('experience', 'Experience')}
-                    {renderSection('education', 'Education')}
-
-                    <details open className="pt-4">
-                        <summary className="text-lg font-semibold text-slate-800 dark:text-slate-200 cursor-pointer">Skills</summary>
-                        <div className="pt-4">
-                            <MultiItemSelector
-                                items={masterSkillsList}
-                                selectedIds={resume.skills.map(s => s.id)}
-                                onToggle={(id) => {
-                                    const newSkills = resume.skills.some(s => s.id === id) 
-                                        ? resume.skills.filter(s => s.id !== id)
-                                        : [...resume.skills, masterSkillsList.find(s => s.id === id)!];
-                                    setResume(prev => prev ? {...prev, skills: newSkills} : null)
-                                }}
-                                placeholder="Search skills..."
-                            />
-                        </div>
-                    </details>
-
-                    {renderSection('projects', 'Projects')}
-                </div>
-            </aside>
-            <main className="flex-grow h-full bg-slate-200 dark:bg-slate-950 p-8 overflow-y-auto hidden md:block">
-                <div className="w-full max-w-[8.5in] mx-auto"><ResumePreview resume={resume} /></div>
-            </main>
-        </div>
-        <AnimatePresence>
-            {isAITailorModalOpen && (<AITailorModal resume={resume} onClose={() => setIsAITailorModalOpen(false)} onApplySuggestions={handleApplySuggestions} />)}
-        </AnimatePresence>
+                </main>
+            </div>
+            
+            {isTailorModalOpen && <AITailorModal resume={resume} onClose={() => setIsTailorModalOpen(false)} onApplySuggestions={handleApplySuggestions} />}
         </>
     );
 };

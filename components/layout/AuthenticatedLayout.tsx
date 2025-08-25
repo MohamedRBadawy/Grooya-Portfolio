@@ -1,12 +1,13 @@
 
+
+
+
+
 import React, { useState, useEffect, useRef } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { NavLink, Link } = ReactRouterDOM;
+import { NavLink, Link } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useTranslation } from '../../hooks/useTranslation';
-import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield } from 'lucide-react';
-import ThemeSwitcher from '../ThemeSwitcher';
-import LanguageSwitcher from '../LanguageSwitcher';
+import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
@@ -51,6 +52,19 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
         };
     }, []);
 
+    const userMenuMotionProps: any = {
+        initial: { opacity: 0, y: 10, scale: 0.95 },
+        animate: { opacity: 1, y: 0, scale: 1 },
+        exit: { opacity: 0, y: 10, scale: 0.95 },
+        transition: { duration: 0.15 },
+    };
+
+    const mobileMenuMotionProps: any = {
+        initial: { opacity: 0, height: 0 },
+        animate: { opacity: 1, height: 'auto' },
+        exit: { opacity: 0, height: 0 },
+    };
+
     return (
         <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
             <header className="sticky top-0 z-30 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
@@ -62,19 +76,15 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                             </Link>
                              <nav className="hidden md:flex items-center gap-6">
                                 <HeaderNavLink to="/dashboard">{t('nav.portfolios')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard/templates">{t('nav.templates')}</HeaderNavLink>
                                 <HeaderNavLink to="/dashboard/projects">{t('nav.projects')}</HeaderNavLink>
                                 <HeaderNavLink to="/dashboard/resumes">{t('nav.resumes')}</HeaderNavLink>
-                                <div className="text-sm font-medium text-slate-400 dark:text-slate-600 cursor-not-allowed flex items-center relative" title="Coming Soon">
-                                    {t('nav.skills')}
-                                    <span className="ml-2 text-xs bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded">Soon</span>
-                                </div>
                             </nav>
                         </div>
 
                         <div className="flex items-center gap-2">
                             <div className="hidden md:flex items-center">
-                                <LanguageSwitcher />
-                                <ThemeSwitcher />
+                                
                             </div>
 
                             {/* User Menu */}
@@ -86,10 +96,7 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                     <AnimatePresence>
                                         {isUserMenuOpen && (
                                             <motion.div
-                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                transition={{ duration: 0.15 }}
+                                                {...userMenuMotionProps}
                                                 className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden"
                                             >
                                                 <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -131,23 +138,16 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                     {isMobileMenuOpen && (
                         <motion.div
                             ref={mobileMenuRef}
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
+                            {...mobileMenuMotionProps}
                             className="md:hidden border-t border-slate-200 dark:border-slate-800 overflow-hidden"
                         >
                             <nav className="p-4 space-y-3">
                                 <HeaderNavLink to="/dashboard" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.portfolios')}</HeaderNavLink>
+                                <HeaderNavLink to="/dashboard/templates" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.templates')}</HeaderNavLink>
                                 <HeaderNavLink to="/dashboard/projects" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.projects')}</HeaderNavLink>
                                 <HeaderNavLink to="/dashboard/resumes" onClick={() => setIsMobileMenuOpen(false)}>{t('nav.resumes')}</HeaderNavLink>
                             </nav>
-                             <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between">
-                                <span className="text-sm text-slate-600 dark:text-slate-400">Appearance</span>
-                                <div className="flex items-center -mr-2">
-                                    <LanguageSwitcher />
-                                    <ThemeSwitcher />
-                                </div>
-                            </div>
+                             
                         </motion.div>
                     )}
                 </AnimatePresence>

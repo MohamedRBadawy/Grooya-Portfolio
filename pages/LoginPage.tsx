@@ -1,7 +1,7 @@
 
+
 import React, { FormEvent } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useNavigate } = ReactRouterDOM;
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import { Github } from 'lucide-react';

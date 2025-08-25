@@ -1,11 +1,12 @@
 
+
 import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioBlock, Page } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
-import { GripVertical, MoreVertical, FilePenLine, Copy, ArrowRight, Trash2 } from 'lucide-react';
+import { Grip, MoreVertical, FilePenLine, Copy, ArrowRight, Trash2 } from 'lucide-react';
 
 interface BlockListItemProps {
     block: PortfolioBlock;
@@ -20,7 +21,12 @@ interface BlockListItemProps {
 const BlockListItem: React.FC<BlockListItemProps> = ({
     block, onFocus, onRemove, onDuplicate, onMoveBlockToPage, pages, activePageId
 }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: block.id });
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
+        id: block.id,
+        resizeObserverConfig: {
+            disabled: true,
+        },
+    });
     const { t } = useTranslation();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
@@ -42,18 +48,25 @@ const BlockListItem: React.FC<BlockListItemProps> = ({
 
     const otherPages = pages.filter(p => p.id !== activePageId);
 
+    const menuMotionProps: any = {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: 10 },
+    };
+
     return (
         <div
             ref={setNodeRef}
             style={style}
-            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg touch-none shadow-sm flex items-center"
+            className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg touch-none flex items-center justify-between"
         >
-            <button {...attributes} {...listeners} className="p-3 cursor-grab text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-s-lg">
-                <GripVertical size={16} />
-            </button>
-            <div className="flex-grow px-3">
-                <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">{t(`block.${block.type}`)}</span>
+            <div className="flex items-center">
+                <button {...attributes} {...listeners} className="p-4 cursor-grab text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-s-lg">
+                    <Grip size={16} />
+                </button>
+                <span className="font-medium capitalize text-slate-800 dark:text-slate-200">{t(`block.${block.type}`)}</span>
             </div>
+            
             <div className="flex items-center gap-1 p-2">
                 <button onClick={() => onFocus(block.id)} className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
                     <FilePenLine size={16} />
@@ -65,9 +78,7 @@ const BlockListItem: React.FC<BlockListItemProps> = ({
                     <AnimatePresence>
                         {isMenuOpen && (
                             <motion.div
-                                initial={{ opacity: 0, y: 10 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: 10 }}
+                                {...menuMotionProps}
                                 className="absolute top-full end-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 py-1"
                             >
                                 <div className="relative group">

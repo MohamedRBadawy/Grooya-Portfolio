@@ -1,10 +1,11 @@
 
+
+
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link } = ReactRouterDOM;
+import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
 import { Sparkles, FileText, Image as ImageIcon, PenSquare, ArrowRight, Check, ChevronDown } from 'lucide-react';
-import { motion, Variants } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { portfolioTemplates } from '../services/templates';
 import { defaultPalettes } from '../services/palettes';
 import { useTranslation } from '../hooks/useTranslation';
@@ -101,7 +102,7 @@ const faqs = [
 const LandingPage: React.FC = () => {
     const { t } = useTranslation();
 
-    const containerVariants: Variants = {
+    const containerVariants: any = {
       hidden: { opacity: 0 },
       visible: {
         opacity: 1,
@@ -109,9 +110,29 @@ const LandingPage: React.FC = () => {
       }
     };
 
-    const itemVariants: Variants = {
+    const itemVariants: any = {
         hidden: { y: 20, opacity: 0 },
         visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+    };
+    
+    const heroMotionProps: any = {
+        initial: "hidden",
+        animate: "visible",
+        variants: containerVariants,
+    };
+
+    const sectionMotionProps: any = {
+        initial: { opacity: 0, y: 20 },
+        whileInView: { opacity: 1, y: 0 },
+        viewport: { once: true, amount: 0.5 },
+        transition: { duration: 0.5 },
+    };
+
+    const gridMotionProps: any = {
+        initial: "hidden",
+        whileInView: "visible",
+        viewport: { once: true, amount: 0.2 },
+        variants: containerVariants,
     };
 
     return (
@@ -123,9 +144,7 @@ const LandingPage: React.FC = () => {
 
                 <motion.div 
                     className="relative max-w-4xl mx-auto px-4"
-                    initial="hidden"
-                    animate="visible"
-                    variants={containerVariants}
+                    {...heroMotionProps}
                 >
                     <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">
                         The AI-Powered <span className="text-cyan-500">Career Operating System</span>
@@ -149,10 +168,7 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.5 }}
+                        {...sectionMotionProps}
                     >
                         <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Everything you need to grow your career</h2>
                         <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
@@ -162,10 +178,7 @@ const LandingPage: React.FC = () => {
 
                     <motion.div 
                         className="mt-16 grid md:grid-cols-2 lg:grid-cols-4 gap-8"
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        variants={containerVariants}
+                        {...gridMotionProps}
                     >
                         <motion.div variants={itemVariants}>
                             <FeatureCard 
@@ -204,10 +217,7 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.5 }}
+                        {...sectionMotionProps}
                     >
                         <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Start with a World-Class Design</h2>
                         <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
@@ -216,10 +226,7 @@ const LandingPage: React.FC = () => {
                     </motion.div>
                     <motion.div 
                         className="mt-16 grid md:grid-cols-2 lg:grid-cols-3 gap-8"
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        variants={containerVariants}
+                        {...gridMotionProps}
                     >
                         {portfolioTemplates.slice(0, 6).map(template => (
                              <motion.div variants={itemVariants} key={template.id}>
@@ -246,10 +253,7 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.5 }}
+                        {...sectionMotionProps}
                     >
                         <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Simple, Transparent Pricing</h2>
                         <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
@@ -258,10 +262,7 @@ const LandingPage: React.FC = () => {
                     </motion.div>
                     <motion.div 
                         className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto"
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        variants={containerVariants}
+                        {...gridMotionProps}
                     >
                         <motion.div variants={itemVariants}>
                             <PricingCard
@@ -290,19 +291,13 @@ const LandingPage: React.FC = () => {
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"
-                        initial={{ opacity: 0, y: 20 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, amount: 0.5 }}
-                        transition={{ duration: 0.5 }}
+                        {...sectionMotionProps}
                     >
                         <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Frequently Asked Questions</h2>
                     </motion.div>
                     <motion.div 
                         className="mt-12 space-y-4"
-                        initial="hidden"
-                        whileInView="visible"
-                        viewport={{ once: true, amount: 0.2 }}
-                        variants={containerVariants}
+                        {...gridMotionProps}
                     >
                         {faqs.map((faq, i) => (
                              <motion.div variants={itemVariants} key={i}>
@@ -323,10 +318,7 @@ const LandingPage: React.FC = () => {
             <section className="py-24">
                  <motion.div 
                     className="max-w-4xl mx-auto px-4 text-center"
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, amount: 0.5 }}
-                    transition={{ duration: 0.5 }}
+                    {...sectionMotionProps}
                 >
                     <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Ready to build your future?</h2>
                     <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">

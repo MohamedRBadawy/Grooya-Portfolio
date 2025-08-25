@@ -1,3 +1,4 @@
+
 import React from 'react';
 import type { Portfolio, PortfolioBlock } from '../../types';
 import { useScrollSpy } from '../../hooks/useScrollSpy';
@@ -18,11 +19,10 @@ const getBlockTitle = (block: PortfolioBlock): string => {
 
 
 const FloatingDotsNav: React.FC<FloatingDotsNavProps> = ({ blocks, design, scrollContainerRef }) => {
-    const { direction } = useApp();
     const blockIds = React.useMemo(() => blocks.map(b => b.id), [blocks]);
     const activeId = useScrollSpy(blockIds, { rootMargin: '-50% 0px -50% 0px' }, scrollContainerRef);
     
-    const positionClass = direction === 'rtl' ? 'left-4' : 'right-4';
+    const positionClass = 'right-4';
 
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>, blockId: string) => {
         e.preventDefault();
@@ -63,7 +63,7 @@ const FloatingDotsNav: React.FC<FloatingDotsNavProps> = ({ blocks, design, scrol
                         >
                         </a>
                         <div
-                           className={`absolute top-1/2 -translate-y-1/2 ${direction === 'rtl' ? 'right-full mr-3' : 'left-full ml-3'} w-max bg-slate-900 text-slate-50 text-xs rounded-md py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap`}
+                           className={`absolute top-1/2 -translate-y-1/2 left-full ml-3 w-max bg-slate-900 text-slate-50 text-xs rounded-md py-1 px-2 opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap`}
                         >
                             {getBlockTitle(block)}
                         </div>

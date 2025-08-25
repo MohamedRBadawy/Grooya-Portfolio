@@ -1,10 +1,9 @@
 
+
+
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link, Outlet } = ReactRouterDOM;
-import Button from '../ui/Button';
-import ThemeSwitcher from '../ThemeSwitcher';
-import LanguageSwitcher from '../LanguageSwitcher';
+import { Link, Outlet } from 'react-router-dom';
+import Button from '../components/ui/Button';
 
 const PublicLayout: React.FC = () => {
     return (
@@ -16,8 +15,6 @@ const PublicLayout: React.FC = () => {
                             <h1 className="text-2xl font-bold text-cyan-500 font-sora">Grooya</h1>
                         </Link>
                         <div className="flex items-center gap-2">
-                             <LanguageSwitcher />
-                             <ThemeSwitcher />
                              <Link to="/dashboard">
                                 <Button variant="secondary" size="sm">
                                     Dashboard

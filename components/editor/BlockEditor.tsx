@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioBlock, Gradient, HeroBlock, ProjectsBlock, SkillsBlock, Project, Skill, GalleryBlock, GalleryImage, TestimonialsBlock, Testimonial, VideoBlock, CtaBlock, ResumeBlock, LinksBlock, ExternalLink, ExperienceBlock, ExperienceItem, ContactBlock, CodeBlock, ServicesBlock, PricingTier, BlogBlock, BlogPost, Page, ShapeDivider, AboutBlock } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -130,13 +131,13 @@ const BlockEditor: React.FC<{
 
     const handleMultiSelectChange = (field: 'projectIds' | 'skillIds', itemId: string) => {
         if (field === 'projectIds' && block.type === 'projects') {
-            const currentIds = block.projectIds;
+            const currentIds = (block as ProjectsBlock).projectIds;
             const newIds = currentIds.includes(itemId)
                 ? currentIds.filter(id => id !== itemId)
                 : [...currentIds, itemId];
             onUpdate(block.id, { projectIds: newIds });
         } else if (field === 'skillIds' && block.type === 'skills') {
-            const currentIds = block.skillIds;
+            const currentIds = (block as SkillsBlock).skillIds;
             const newIds = currentIds.includes(itemId)
                 ? currentIds.filter(id => id !== itemId)
                 : [...currentIds, itemId];
@@ -165,29 +166,40 @@ const BlockEditor: React.FC<{
                 )
             }
             case 'about': {
-                 const b = block as AboutBlock;
+                const b = block as AboutBlock;
                 return (
                     <>
                         <div>
-                            <EditorLabel htmlFor={`a-imageUrl-${b.id}`}>Image URL (optional)</EditorLabel>
-                            <EditorInput id={`a-imageUrl-${b.id}`} value={b.imageUrl || ''} onChange={e => handleFieldChange('imageUrl', e.target.value)} />
+                            <EditorLabel htmlFor={`a-mediaUrl-${b.id}`}>Image/Video URL (optional)</EditorLabel>
+                            <EditorInput id={`a-mediaUrl-${b.id}`} value={b.mediaUrl || ''} onChange={e => handleFieldChange('mediaUrl', e.target.value)} />
                         </div>
-                        {b.imageUrl && (
+                        {b.mediaUrl && (
                             <>
-                                <div className="space-y-2">
-                                    <EditorLabel>Image Position</EditorLabel>
-                                    <div className="flex gap-2">
-                                        <Button size="sm" variant={b.imagePosition === 'left' || !b.imagePosition ? 'primary' : 'secondary'} onClick={() => handleFieldChange('imagePosition', 'left')}>Left</Button>
-                                        <Button size="sm" variant={b.imagePosition === 'right' ? 'primary' : 'secondary'} onClick={() => handleFieldChange('imagePosition', 'right')}>Right</Button>
+                                <div className="space-y-4">
+                                    <div>
+                                        <EditorLabel>Media Type</EditorLabel>
+                                        <div className="flex gap-2">
+                                            <Button size="sm" variant={!b.mediaType || b.mediaType === 'image' ? 'primary' : 'secondary'} onClick={() => handleFieldChange('mediaType', 'image')}>Image</Button>
+                                            <Button size="sm" variant={b.mediaType === 'video' ? 'primary' : 'secondary'} onClick={() => handleFieldChange('mediaType', 'video')}>Video</Button>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <EditorLabel>Media Position</EditorLabel>
+                                        <div className="grid grid-cols-2 gap-2">
+                                            <Button size="sm" variant={b.mediaPosition === 'left' || !b.mediaPosition ? 'primary' : 'secondary'} onClick={() => handleFieldChange('mediaPosition', 'left')}>Left</Button>
+                                            <Button size="sm" variant={b.mediaPosition === 'right' ? 'primary' : 'secondary'} onClick={() => handleFieldChange('mediaPosition', 'right')}>Right</Button>
+                                            <Button size="sm" variant={b.mediaPosition === 'top' ? 'primary' : 'secondary'} onClick={() => handleFieldChange('mediaPosition', 'top')}>Top</Button>
+                                            <Button size="sm" variant={b.mediaPosition === 'bottom' ? 'primary' : 'secondary'} onClick={() => handleFieldChange('mediaPosition', 'bottom')}>Bottom</Button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div>
-                                    <label className="flex items-center justify-between cursor-pointer p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg">
-                                       <span className="text-sm text-slate-700 dark:text-slate-300">Sticky Image on Scroll</span>
+                                    <label className="flex items-center justify-between cursor-pointer p-3 bg-slate-100 dark:bg-slate-700/50 rounded-lg mt-4">
+                                       <span className="text-sm text-slate-700 dark:text-slate-300">Sticky Media on Scroll</span>
                                        <input 
                                            type="checkbox" 
-                                           checked={b.stickyImage || false} 
-                                           onChange={e => handleFieldChange('stickyImage', e.target.checked)}
+                                           checked={b.stickyMedia || false} 
+                                           onChange={e => handleFieldChange('stickyMedia', e.target.checked)}
                                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                                        />
                                    </label>
@@ -786,6 +798,29 @@ const BlockEditor: React.FC<{
                                 <option value="blurIn">Blur In</option>
                             </select>
                         </div>
+                        {block.designOverrides?.animationStyle && block.designOverrides.animationStyle !== 'none' && (
+                            <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                                <EditorLabel>Animation Timing</EditorLabel>
+                                <div className="grid grid-cols-2 gap-2">
+                                    <EditorInput
+                                        type="number"
+                                        placeholder="Duration (s)"
+                                        step="0.1"
+                                        min="0"
+                                        value={block.designOverrides.animationDuration ?? ''}
+                                        onChange={e => handleDesignOverrideChange('animationDuration', e.target.value ? parseFloat(e.target.value) : undefined)}
+                                    />
+                                    <EditorInput
+                                        type="number"
+                                        placeholder="Delay (s)"
+                                        step="0.1"
+                                        min="0"
+                                        value={block.designOverrides.animationDelay ?? ''}
+                                        onChange={e => handleDesignOverrideChange('animationDelay', e.target.value ? parseFloat(e.target.value) : undefined)}
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </details>
              </div>

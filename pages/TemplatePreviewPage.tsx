@@ -1,7 +1,7 @@
 
+
 import React, { useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useParams, Link } = ReactRouterDOM;
+import { useParams, Link } from 'react-router-dom';
 import { portfolioTemplates } from '../services/templates';
 import PublicPortfolioPage from './PublicPortfolioPage';
 import type { Portfolio } from '../types';

@@ -14,21 +14,29 @@ const PortfolioPreviewModal: React.FC<PortfolioPreviewModalProps> = ({ portfolio
   const { t } = useTranslation();
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
+  const backdropMotionProps: any = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+  };
+
+  const modalMotionProps: any = {
+      initial: { y: 20, scale: 0.95, opacity: 0 },
+      animate: { y: 0, scale: 1, opacity: 1 },
+      exit: { y: 20, scale: 0.95, opacity: 0 },
+      transition: { type: 'spring', stiffness: 300, damping: 30 },
+  };
+
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-0 sm:p-4"
       onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      {...backdropMotionProps}
     >
       <motion.div 
         className="bg-white dark:bg-slate-900 w-full h-full sm:max-w-5xl sm:h-full sm:max-h-[90vh] rounded-none sm:rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800"
         onClick={e => e.stopPropagation()}
-        initial={{ y: 20, scale: 0.95, opacity: 0 }}
-        animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 20, scale: 0.95, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        {...modalMotionProps}
       >
         <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <h3 className="font-bold text-slate-900 dark:text-slate-200 text-lg">{t('previewTitle', {title: portfolio.title})}</h3>

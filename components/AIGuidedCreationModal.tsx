@@ -1,4 +1,6 @@
+
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
@@ -124,7 +126,9 @@ const AIGuidedCreationModal: React.FC<AIGuidedCreationModalProps> = ({ onClose, 
         </div>
         
         <footer className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-slate-800 flex justify-center bg-slate-50 dark:bg-slate-800/50 rounded-b-lg">
-          <button className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">or, choose a template manually</button>
+          <Link to="/dashboard/templates" onClick={onClose} className="text-sm text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 hover:underline">
+            {t('chooseTemplateManually')}
+          </Link>
         </footer>
       </motion.div>
     </motion.div>

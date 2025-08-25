@@ -1,5 +1,4 @@
-
-import type { Portfolio } from '../../../types';
+import type { Portfolio, Spacing } from '../../../types';
 import React from 'react';
 
 export const cornerRadiusStyles = {
@@ -28,6 +27,15 @@ export const shadowStyles: { [key: string]: string } = {
     sm: 'shadow-sm',
     md: 'shadow-md',
     lg: 'shadow-lg',
+};
+
+export const getGridGapClass = (gap: Spacing | undefined): string => {
+    switch (gap) {
+        case 'compact': return 'gap-4'; // 1rem
+        case 'cozy': return 'gap-8'; // 2rem
+        case 'spacious': return 'gap-12'; // 3rem
+        default: return 'gap-8'; // Default to cozy
+    }
 };
 
 export const hexToRgba = (hex: string, alpha: number) => {
@@ -65,4 +73,26 @@ export const getButtonProps = (design: Portfolio['design'], variant?: 'solid' | 
         className: `${baseClasses} ${buttonCornerClass} ${fillClasses} ${hoverClasses}`,
         style: { '--accent-color': accentColor } as React.CSSProperties
     };
+};
+
+export const getCardStyles = (design: Portfolio['design'], theme: any): React.CSSProperties => {
+    const styles: React.CSSProperties = {
+        backgroundColor: theme.cardBackground,
+        borderColor: theme.cardBorder,
+    };
+
+    if (design.cardBorderStyle && design.cardBorderStyle.width >= 0) {
+        if (design.cardBorderStyle.width === 0) {
+             styles.borderWidth = '0px';
+        } else {
+            styles.borderWidth = `${design.cardBorderStyle.width}px`;
+            styles.borderStyle = design.cardBorderStyle.style;
+        }
+    } else {
+        // default
+        styles.borderWidth = '1px';
+        styles.borderStyle = 'solid';
+    }
+
+    return styles;
 };

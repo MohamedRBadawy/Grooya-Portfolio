@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Portfolio, BlogPost } from '../../../types';
 import EditableText from '../../ui/EditableText';
-import { cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles } from './utils';
+import { cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles, getCardStyles, getGridGapClass } from './utils';
 
 interface BlockViewProps {
     block: any;
@@ -20,6 +19,8 @@ export const BlogBlockView: React.FC<BlockViewProps> = ({ block, design, theme, 
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
+    const cardStyles = getCardStyles(design, theme);
+    const gridGapClass = getGridGapClass(design.gridGap);
     
     return (
         <div id={block.id}>
@@ -34,15 +35,15 @@ export const BlogBlockView: React.FC<BlockViewProps> = ({ block, design, theme, 
                         style={{ color: headingColor }}
                     />
                 </motion.div>
-                <motion.div variants={itemVariant} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <motion.div variants={itemVariant} className={`grid md:grid-cols-2 lg:grid-cols-3 ${gridGapClass}`}>
                     {block.posts.map((post: BlogPost) => (
                         <a 
                             key={post.id} 
                             href={post.link} 
                             target="_blank" 
                             rel="noopener noreferrer" 
-                            className={`block group overflow-hidden border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass} transition-all duration-300 hover:-translate-y-1`}
-                            style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}
+                            className={`block group overflow-hidden ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass} transition-all duration-300 hover:-translate-y-1`}
+                            style={cardStyles}
                         >
                             <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
                             <div className="p-6">

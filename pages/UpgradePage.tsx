@@ -23,10 +23,13 @@ const PlanCard: React.FC<{
     onSelect: () => void;
 }> = ({ tier, title, price, description, features, isCurrent, onSelect }) => {
     const isPro = tier === 'pro';
+    const motionProps: any = {
+        whileHover: { y: -5, scale: 1.02 },
+    };
     return (
         <motion.div 
             className={`p-8 rounded-2xl border-2 flex flex-col ${isPro ? 'bg-slate-50 dark:bg-slate-900 border-teal-500' : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}
-            whileHover={{ y: -5, scale: 1.02 }}
+            {...motionProps}
         >
             <h3 className={`text-2xl font-bold font-sora ${isPro ? 'text-teal-600 dark:text-teal-400' : 'text-slate-900 dark:text-slate-50'}`}>{title}</h3>
             <p className="text-slate-600 dark:text-slate-400 mt-2">{description}</p>

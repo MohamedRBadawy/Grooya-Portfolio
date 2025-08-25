@@ -1,4 +1,3 @@
-
 # Product Requirements Document: Grooya Portfolio Hub
 
 **Author:** World-Class Senior Frontend Engineer
@@ -79,7 +78,7 @@ There is a clear market need for a tool that is **simple, powerful, highly custo
 *   **Light/Dark Mode:** User-selectable light and dark themes for the application interface.
 *   **Command Palette:** `Cmd/Ctrl+K` interface for quick actions within the editor.
 *   **Undo/Redo:** Full history state management within the editor.
-*   **Auto-Saving & Toast Notifications:** A modern, non-blocking user experience.
+*   **Toast Notifications:** A modern, non-blocking user experience for user feedback.
 
 ### 5.2. Planned Features (Roadmap)
 

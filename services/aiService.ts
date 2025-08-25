@@ -628,7 +628,7 @@ export const generatePortfolioReview = async (portfolio: Portfolio, user: User):
         1.  **Overall Impression:** Write a brief, encouraging summary (2-3 sentences) of the portfolio's strengths and key areas for improvement.
         2.  **Content Suggestions:** Provide specific, actionable advice for the 'Hero' and 'About' sections. Focus on making the language more impactful and value-driven.
         3.  **Project Showcase Feedback:** Comment on the presentation of projects. If there are no projects, strongly recommend adding some.
-        4.  **Missing Sections:** Identify up to 3 crucial sections that are missing from the portfolio that would significantly improve it. Common valuable sections include 'testimonials', 'experience', 'skills', and 'contact'. Choose from this list: 'hero', 'about', 'projects', 'skills', 'gallery', 'testimonials', 'video', 'cta', 'resume', 'links', 'experience', 'contact', 'code', 'services', 'blog'.
+        4.  **Missing Sections:** Identify up to 3 crucial sections that are missing from the portfolio that would significantly improve it. Common valuable sections include 'testimonials', 'experience', 'skills', and 'contact'. Choose from this list: 'hero', 'about', 'projects', 'skills', 'gallery', 'testimonials', 'cta', 'resume', 'links', 'experience', 'contact', 'code', 'services', 'blog', 'video'.
 
         Return the result as a single JSON object. Do not include any text outside of the JSON object.`;
 

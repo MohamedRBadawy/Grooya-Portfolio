@@ -23,12 +23,15 @@ const ToolbarButton: React.FC<{ onClick: (e: React.MouseEvent) => void, children
 );
 
 const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMoveUp, onMoveDown, onDelete, onAIAssist, isAIAssistLoading }) => {
+  const motionProps: any = {
+      initial: { opacity: 0, y: 10, x: '-50%' },
+      animate: { opacity: 1, y: 0, x: '-50%' },
+      exit: { opacity: 0, y: 10, x: '-50%' },
+      transition: { duration: 0.2 },
+  };
   return (
     <motion.div
-      initial={{ opacity: 0, y: 10, x: '-50%' }}
-      animate={{ opacity: 1, y: 0, x: '-50%' }}
-      exit={{ opacity: 0, y: 10, x: '-50%' }}
-      transition={{ duration: 0.2 }}
+      {...motionProps}
       className="absolute top-[-44px] left-1/2 z-30 flex items-center gap-1 bg-teal-600/95 backdrop-blur-sm rounded-lg shadow-lg p-1"
       onClick={e => e.stopPropagation()}
     >

@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
 
-// Define the types for language, direction, and theme
+// Define the types for language, direction and theme
 type Language = 'en' | 'ar';
 type Direction = 'ltr' | 'rtl';
 type Theme = 'light' | 'dark';
@@ -9,8 +9,8 @@ type Theme = 'light' | 'dark';
 // Define the shape of the context
 interface AppContextType {
   language: Language;
+  setLanguage: (language: Language) => void;
   direction: Direction;
-  setLanguage: (lang: Language) => void;
   theme: Theme;
   setTheme: (theme: Theme) => void;
 }
@@ -19,24 +19,27 @@ interface AppContextType {
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 // Define keys for local storage
-const LANG_STORAGE_KEY = 'grooya_language';
 const THEME_STORAGE_KEY = 'grooya_theme';
+const LANGUAGE_STORAGE_KEY = 'grooya_language';
 
 /**
- * Provides application-level state for localization (language, direction) and theming.
+ * Provides application-level state for language and theming.
  * It persists these settings to localStorage.
  */
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // Initialize language state from localStorage or default to 'en'
   const [language, setLanguageState] = useState<Language>(() => {
     try {
-      const storedLang = window.localStorage.getItem(LANG_STORAGE_KEY);
-      return (storedLang === 'ar' || storedLang === 'en') ? storedLang : 'en';
+      const storedLang = window.localStorage.getItem(LANGUAGE_STORAGE_KEY);
+      if (storedLang === 'en' || storedLang === 'ar') {
+        return storedLang;
+      }
     } catch {
-      return 'en';
+      // fallback
     }
+    return 'en';
   });
-  
+
   // Initialize theme state from localStorage, system preference, or default to 'light'
   const [theme, setThemeState] = useState<Theme>(() => {
     try {
@@ -57,13 +60,17 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Determine text direction based on the current language
   const direction = language === 'ar' ? 'rtl' : 'ltr';
 
-  // Effect to update the DOM when language or direction changes
+  // Effect to update the DOM for language and direction.
   useEffect(() => {
     document.documentElement.lang = language;
     document.documentElement.dir = direction;
-    // Apply specific font class for Arabic for better readability
-    document.body.classList.toggle('font-arabic', language === 'ar');
-    document.body.classList.toggle('font-sans', language !== 'ar');
+    if (language === 'ar') {
+        document.body.classList.add('font-arabic');
+        document.body.classList.remove('font-sans');
+    } else {
+        document.body.classList.remove('font-arabic');
+        document.body.classList.add('font-sans');
+    }
   }, [language, direction]);
   
   // Effect to update the DOM and localStorage when the theme changes
@@ -77,14 +84,14 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         console.error("Error writing theme to local storage", error);
     }
   }, [theme]);
-
-  // Public function to update the language and persist it
-  const setLanguage = (lang: Language) => {
-    setLanguageState(lang);
+  
+  // Public function to update the language
+  const setLanguage = (newLanguage: Language) => {
+    setLanguageState(newLanguage);
     try {
-      window.localStorage.setItem(LANG_STORAGE_KEY, lang);
+        window.localStorage.setItem(LANGUAGE_STORAGE_KEY, newLanguage);
     } catch (error) {
-      console.error("Error writing language to local storage", error);
+        console.error("Error writing language to local storage", error);
     }
   };
   
@@ -95,7 +102,7 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
   // Provide the context value to children
   return (
-    <AppContext.Provider value={{ language, direction, setLanguage, theme, setTheme }}>
+    <AppContext.Provider value={{ language, setLanguage, direction, theme, setTheme }}>
       {children}
     </AppContext.Provider>
   );

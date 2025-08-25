@@ -32,6 +32,12 @@ export const MultiItemSelector: React.FC<MultiItemSelectorProps> = ({
     );
   }, [items, searchTerm]);
 
+  const checkMotionProps: any = {
+      initial: { scale: 0 },
+      animate: { scale: 1 },
+      exit: { scale: 0 },
+  };
+
   return (
     <div className="bg-slate-100 dark:bg-slate-800/50 border border-slate-300 dark:border-slate-700 rounded-lg shadow-sm">
       <div className="relative p-2 border-b border-slate-300 dark:border-slate-700">
@@ -60,9 +66,7 @@ export const MultiItemSelector: React.FC<MultiItemSelectorProps> = ({
                       <AnimatePresence>
                         {isSelected && (
                           <motion.div
-                            initial={{ scale: 0 }}
-                            animate={{ scale: 1 }}
-                            exit={{ scale: 0 }}
+                            {...checkMotionProps}
                           >
                             <Check size={12} className="text-white" />
                           </motion.div>

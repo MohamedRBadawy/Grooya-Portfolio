@@ -61,6 +61,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, setIsOpe
     return () => document.removeEventListener('keydown', down)
   }, [isOpen, setIsOpen])
 
+  const motionProps: any = {
+      initial: { y: -20, opacity: 0, scale: 0.98 },
+      animate: { y: 0, opacity: 1, scale: 1 },
+      exit: { y: -20, opacity: 0, scale: 0.98 },
+      transition: { duration: 0.2 },
+  };
+
   return (
     <AnimatePresence>
         {isOpen && (
@@ -72,10 +79,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, setIsOpe
              >
                 <div className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm" />
                 <motion.div
-                    initial={{ y: -20, opacity: 0, scale: 0.98 }}
-                    animate={{ y: 0, opacity: 1, scale: 1 }}
-                    exit={{ y: -20, opacity: 0, scale: 0.98 }}
-                    transition={{ duration: 0.2 }}
+                    {...motionProps}
                     className="fixed top-1/4 left-1/2 -translate-x-1/2 w-full max-w-2xl"
                 >
                     <Command

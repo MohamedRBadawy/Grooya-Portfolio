@@ -1,7 +1,7 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link, useNavigate } = ReactRouterDOM;
+import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Card from '../components/ui/Card';
@@ -23,7 +23,6 @@ const PortfolioCard: React.FC<{
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
-  const { direction } = useApp();
   
   const statusColor = portfolio.isPublished ? '#14b8a6' : '#f59e0b'; // teal-500 and amber-500
   const totalBlocks = useMemo(() => portfolio.pages.reduce((sum, page) => sum + page.blocks.length, 0), [portfolio.pages]);
@@ -39,6 +38,12 @@ const PortfolioCard: React.FC<{
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
+
+  const menuMotionProps: any = {
+      initial: { opacity: 0, y: 10 },
+      animate: { opacity: 1, y: 0 },
+      exit: { opacity: 0, y: 10 },
+  };
 
   return (
     <Card 
@@ -78,10 +83,8 @@ const PortfolioCard: React.FC<{
                 <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 10 }}
-                        className={`absolute bottom-full mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 ${direction === 'rtl' ? 'start-0' : 'end-0'}`}
+                        {...menuMotionProps}
+                        className={`absolute bottom-full mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 end-0`}
                     >
                         <Link to={`/portfolio/${portfolio.slug}`} target="_blank" rel="noopener noreferrer" className="w-full text-start flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
                             <ExternalLink size={16} /> {t('viewPublic')}
@@ -189,6 +192,17 @@ const PortfolioListPage: React.FC = () => {
       }
   }
 
+  const bannerMotionProps: any = {
+      initial: { opacity: 0, y: -10 },
+      animate: { opacity: 1, y: 0 },
+  };
+
+  const gridMotionProps: any = {
+      variants: containerVariants,
+      initial: "hidden",
+      animate: "visible",
+  };
+
   return (
     <>
       <div className="h-full">
@@ -206,8 +220,7 @@ const PortfolioListPage: React.FC = () => {
 
           {!canCreate && (
              <motion.div 
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
+                {...bannerMotionProps}
                 className="p-4 mb-8 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-center"
              >
                 <p className="text-amber-800 dark:text-amber-200 text-sm">You've reached your portfolio limit on the Starter plan. <Link to="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-100">Upgrade to Pro</Link> to create more.</p>
@@ -239,9 +252,7 @@ const PortfolioListPage: React.FC = () => {
           {displayedPortfolios.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
+              {...gridMotionProps}
             >
               {displayedPortfolios.map(p => (
                 <motion.div key={p.id} variants={itemVariants}>

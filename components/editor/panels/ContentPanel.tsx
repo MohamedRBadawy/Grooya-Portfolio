@@ -1,8 +1,5 @@
 
 
-
-
-
 import React from 'react';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
@@ -63,7 +60,6 @@ const ContentPanel: React.FC<ContentPanelProps> = ({
     setCreationType
 }) => {
     const { t } = useTranslation();
-    const { direction } = useApp();
     const sensors = useSensors(
         useSensor(PointerSensor),
         useSensor(KeyboardSensor, {
@@ -72,7 +68,7 @@ const ContentPanel: React.FC<ContentPanelProps> = ({
     );
 
     const focusedBlock = activePage.blocks.find(b => b.id === focusedBlockId);
-    const BackIcon = direction === 'rtl' ? ArrowRight : ArrowLeft;
+    const BackIcon = ArrowLeft;
 
     if (focusedBlock) {
         return (
@@ -105,7 +101,7 @@ const ContentPanel: React.FC<ContentPanelProps> = ({
         <div className="p-4">
             <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
                 <SortableContext items={activePage.blocks.map(b => b.id)} strategy={verticalListSortingStrategy}>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                         {activePage.blocks.map((block, index) => (
                             <React.Fragment key={block.id}>
                                 <BlockInserter onAdd={() => setAddingBlockIndex(index)} />

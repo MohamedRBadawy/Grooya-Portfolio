@@ -1,7 +1,7 @@
 
+
 import React, { useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link } = ReactRouterDOM;
+import { Link } from 'react-router-dom';
 import { initialPortfolios, mockAllUsers, initialResumes, initialProjects } from '../../services/mockData';
 import { Users, FolderKanban, FileText, CheckCircle, Gem, Package } from 'lucide-react';
 

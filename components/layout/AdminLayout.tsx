@@ -1,9 +1,10 @@
 
 
 
+
+
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { NavLink, Link } = ReactRouterDOM;
+import { NavLink, Link } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { LayoutDashboard, Users, FolderKanban, Settings, Newspaper, ChevronLeft } from 'lucide-react';
 import ThemeSwitcher from '../ThemeSwitcher';

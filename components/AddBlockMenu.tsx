@@ -30,21 +30,29 @@ const blockTypes: { type: PortfolioBlock['type']; icon: React.ElementType }[] = 
 const AddBlockMenu: React.FC<AddBlockMenuProps> = ({ onAddBlock, onClose }) => {
   const { t } = useTranslation();
 
+  const backdropMotionProps: any = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+  };
+
+  const modalMotionProps: any = {
+      initial: { y: 20, scale: 0.95, opacity: 0 },
+      animate: { y: 0, scale: 1, opacity: 1 },
+      exit: { y: 20, scale: 0.95, opacity: 0 },
+      transition: { type: 'spring', stiffness: 300, damping: 30 },
+  };
+
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      {...backdropMotionProps}
     >
       <motion.div 
         className="bg-slate-100 dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl relative border border-slate-200 dark:border-slate-700 p-6"
         onClick={e => e.stopPropagation()}
-        initial={{ y: 20, scale: 0.95, opacity: 0 }}
-        animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 20, scale: 0.95, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        {...modalMotionProps}
       >
         <button 
             onClick={onClose}

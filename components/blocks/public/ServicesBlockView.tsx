@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Portfolio, PricingTier } from '../../../types';
 import EditableText from '../../ui/EditableText';
 import { CheckCircle2 } from 'lucide-react';
-import { getButtonProps, cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles } from './utils';
+import { getButtonProps, cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles, getCardStyles, getGridGapClass } from './utils';
 
 interface BlockViewProps {
     block: any;
@@ -21,19 +20,25 @@ export const ServicesBlockView: React.FC<BlockViewProps> = ({ block, design, the
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
+    const cardStyles = getCardStyles(design, theme);
+    const gridGapClass = getGridGapClass(design.gridGap);
 
     return (
         <div id={block.id}>
             <div className={`mx-auto px-4 ${design.pageWidth === 'full' ? 'w-full' : 'container'}`}>
                 <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-12 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
-                <motion.div variants={itemVariant} className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-center">
+                <motion.div variants={itemVariant} className={`grid grid-cols-1 lg:grid-cols-3 ${gridGapClass} items-center`}>
                     {block.tiers.map((tier: PricingTier) => {
                         const buttonProps = tier.isFeatured ? getButtonProps(design, 'solid') : getButtonProps(design, 'outline');
+                        const tierCardStyles = { ...cardStyles };
+                        if (tier.isFeatured) {
+                            tierCardStyles.borderColor = design.accentColor;
+                        }
                         return (
                             <div 
                                 key={tier.id}
-                                className={`p-8 border flex flex-col h-full transition-all duration-300 ${tier.isFeatured ? 'transform lg:scale-105' : ''} ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`}
-                                style={{ backgroundColor: theme.cardBackground, borderColor: tier.isFeatured ? design.accentColor : theme.cardBorder }}
+                                className={`p-8 flex flex-col h-full transition-all duration-300 ${tier.isFeatured ? 'transform lg:scale-105' : ''} ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`}
+                                style={tierCardStyles}
                             >
                                 <h3 className={`text-2xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: theme.heading }}>{tier.title}</h3>
                                 <p className={`mt-2`} style={{ color: theme.subtle }}>{tier.description}</p>

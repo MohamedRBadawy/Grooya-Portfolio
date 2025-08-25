@@ -17,8 +17,8 @@ These settings control the foundational look and feel of the entire portfolio, e
     - [✅] Subtle Text/Border Color
     - [✅] Card/Container Background
 - [✅] **Global Accent Color:** A single color picker that controls the primary color for buttons, links, and highlights.
-- [ ] **Global Gradient Controls:** Define a global gradient that can be easily applied to sections.
-    - [ ] **UI:** Angle picker for direction, two color stops with opacity controls.
+- [✅] **Global Gradient Controls:** Define a global gradient that can be easily applied to sections.
+    - [✅] **UI:** Angle picker for direction, two color stops with opacity controls.
 
 ### ✒️ Typography
 - [✅] **Font Pairing:** Curated list of professional Google Font pairings for headings and body text.
@@ -27,14 +27,14 @@ These settings control the foundational look and feel of the entire portfolio, e
     - [✅] **Font Weight:** Select default font weights for headings and body (e.g., Light, Regular, Bold).
     - [✅] **Line Height:** Adjust the spacing between lines of text for readability.
     - [✅] **Letter Spacing:** Control the spacing between characters, especially for headings.
-- [ ] **Link Styling:**
-    - [ ] **Default State:** Color, underline (yes/no).
-    - [ ] **Hover State:** Color, underline on hover (yes/no).
+- [✅] **Link Styling:**
+    - [✅] **Default State:** Underline (yes/no).
+    - [✅] **Hover State:** Underline on hover (yes/no).
 
 ### 📏 Layout & Spacing
 - [✅] **Page Width:** Global setting for content width (Standard, Full-Width).
 - [✅] **Section Spacing:** Control the default vertical space between content blocks (Compact, Cozy, Spacious).
-- [ ] **Grid & Column Gaps:** Set the default spacing between items in a grid (e.g., project cards, gallery images, service tiers).
+- [✅] **Grid & Column Gaps:** Set the default spacing between items in a grid (e.g., project cards, gallery images, service tiers).
 
 ### UI Elements
 - [✅] **Button Styling:** Control `border-radius` (Rounded, Pill, Square).
@@ -44,9 +44,9 @@ These settings control the foundational look and feel of the entire portfolio, e
 - [✅] **Container/Card Styling:**
     - [✅] **Corner Radius:** Control `border-radius` for all cards and containers.
     - [✅] **Shadows:** A selection of shadow styles (Subtle, Medium, Strong) to add depth.
-    - [ ] **Border Styling:** Global controls for border width and style (solid, dashed) on cards.
-- [✅] **Form & Input Fields:**
-    - [✅] Style options for input fields (background, border, text color) used in the Contact block.
+    - [✅] **Border Styling:** Global controls for border width and style (solid, dashed, dotted) on cards.
+- [ ] **Form & Input Fields:**
+    - [ ] Style options for input fields (used in the Contact block).
 
 ---
 
@@ -55,10 +55,10 @@ These settings control the foundational look and feel of the entire portfolio, e
 Provide detailed control over the portfolio's main navigation element.
 
 ### 📐 Layout
-- [✅] **Navigation Style:** Select from different navigation behaviors (Sticky Header, Minimal Header, None).
+- [✅] **Navigation Style:** Select from different navigation behaviors (Sticky Header, Minimal Header, Floating Dots, None).
 - [✅] **Transparent Header:** Option for the header to be transparent on top of the hero section and gain a background on scroll.
-- [ ] **Layout Options:**
-    - [ ] Logo Position (Left, Center)
+- [✅] **Layout Options:**
+    - [✅] Logo Position (Left, Center)
     - [✅] **Navigation Links Alignment:** Left, Center, Right.
 
 ### 🎨 Styling
@@ -83,17 +83,17 @@ Allow users to break from the global styles for specific sections to create emph
 - [✅] **Image Background:**
     - [✅] Use an image as a block background.
     - [✅] **Overlay Color & Opacity:** Add a color overlay to ensure text readability.
-- [ ] **Video Background:** Allow a looping, muted video as a block background.
-    - [ ] **Source:** URL to MP4/WebM file.
-    - [ ] **Overlay Color & Opacity:** Essential for text readability.
+- [✅] **Video Background:** Allow a looping, muted video as a block background.
+    - [✅] **Source:** URL to MP4/WebM file.
+    - [✅] **Overlay Color & Opacity:** Essential for text readability.
 
 ### 📏 Spacing
 - [✅] **Custom Padding:** Granular control over the top, bottom, left, and right padding of a block.
 
 ### Borders
-- [ ] **Border Overrides:** Apply custom borders to a specific block.
-    - [ ] **Sides:** Top, Bottom, Left, Right, or All.
-    - [ ] **Style:** Color, width, and style (solid, dashed).
+- [✅] **Border Overrides:** Apply custom borders to a specific block.
+    - [✅] **Sides:** Top, Bottom, Left, Right, or All.
+    - [✅] **Style:** Color, width, and style (solid, dashed).
 
 ### ✨ Effects
 - [✅] **Shape Dividers:** Add SVG shape dividers (e.g., waves, slant, curve) to the top or bottom of a block to create visual separation.
@@ -106,9 +106,9 @@ Allow users to break from the global styles for specific sections to create emph
 Streamline the design process with pre-packaged and user-saved themes.
 
 - [✅] **Curated Templates:** Offer full portfolio templates that include content and a complete design system.
-- [ ] **Design Presets:**
-    - [ ] **Save Preset:** A "Save Current Design" button in the editor that captures all global styles and saves them with a user-provided name.
-    - [ ] **Apply Preset:** A visual gallery of saved presets that can be applied with one click.
+- [✅] **Design Presets:**
+    - [✅] **Save Preset:** A "Save Current Design" button in the editor that captures all global styles and saves them with a user-provided name.
+    - [✅] **Apply Preset:** A visual gallery of saved presets that can be applied with one click.
 - [✅] **AI-Powered Suggestions:** Use AI to recommend a full design preset based on the user's profession and portfolio content.
 
 ---
@@ -120,10 +120,10 @@ Implement dynamic effects that respond to user scrolling, making the portfolio f
 - [✅] **Parallax Backgrounds:** Enable block backgrounds to scroll at a different speed than the foreground content, creating a sense of depth.
 - [✅] **Sticky Elements:** Allow specific elements within a block to "stick" to the top of the viewport while scrolling past the rest of the block's content.
 - [✅] **Enhanced Scroll-Triggered Animations:** In addition to global settings, allow per-block animation triggers.
-    - [✅] **Animation Type:** Per-block override for animation style (Fade in, Slide in, etc.).
-    - [ ] **Controls:** Delay, duration, and trigger offset (e.g., animate when block is 50% visible).
+    - [✅] **Animation Type:** Per-block override for animation style (Fade in, Slide in, Reveal Up, Blur In, etc.).
+    - [✅] **Controls:** Delay, duration, and trigger offset (e.g., animate when block is 50% visible).
 - [✅] **Scroll Progress Indicator:** Option to display a thin progress bar at the top of the page that fills as the user scrolls down.
-- [ ] **Reveal Effects:** Animate content or images to be "revealed" from behind a sliding or fading mask as the user scrolls.
+- [✅] **Reveal Effects:** Animate content or images to be "revealed" from behind a sliding or fading mask as the user scrolls. (Implemented as new animation styles 'Reveal Up' and 'Blur In').
 
 ---
 
@@ -131,9 +131,9 @@ Implement dynamic effects that respond to user scrolling, making the portfolio f
 
 Ensuring the portfolio is accessible to everyone is paramount. These features are not optional add-ons but core requirements of the design system.
 
-- [ ] **High Contrast Mode:** A toggle that overrides the current theme with a WCAG AA compliant high-contrast color scheme.
+- [✅] **High Contrast Mode:** A toggle that overrides the current theme with a WCAG AA compliant high-contrast color scheme.
 - [ ] **Focus State Visibility:** A global setting to control the appearance of focus rings (e.g., color, thickness, offset) to make keyboard navigation clearer.
-- [ ] **Reduced Motion Toggle:** The system will automatically respect the user's `prefers-reduced-motion` OS setting. This control provides a manual override to disable all non-essential animations (parallax, scroll effects).
+- [✅] **Reduced Motion Toggle:** The system will automatically respect the user's `prefers-reduced-motion` OS setting. This control provides a manual override to disable all non-essential animations (parallax, scroll effects).
 - [ ] **Readable Font Scaling:** An option to increase the base font size of the entire portfolio by a certain percentage without breaking the layout, improving readability for users with visual impairments.
 
 ---

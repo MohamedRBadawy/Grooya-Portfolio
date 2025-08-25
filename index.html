@@ -133,6 +133,49 @@
       details[open] summary .details-arrow {
         transform: rotate(90deg);
       }
+      .link-style-none .prose a, .link-style-none .prose a:hover { text-decoration: none; }
+      .link-style-underline .prose a { text-decoration: underline; }
+      .link-style-underline-hover .prose a { text-decoration: none; }
+      .link-style-underline-hover .prose a:hover { text-decoration: underline; }
+      @media print {
+        body {
+          background-color: #fff !important;
+        }
+        
+        /* Hide everything we don't want to print */
+        .noprint {
+          display: none !important;
+        }
+        
+        /* Reset the layout of the main container so the preview can expand */
+        main, main > div {
+          overflow: visible !important;
+          padding: 0 !important;
+          margin: 0 !important;
+          background-color: transparent !important;
+        }
+        
+        /* Ensure the print area is styled correctly */
+        #resume-print-area {
+          width: 100% !important;
+          max-width: 100% !important;
+          margin: 0 !important;
+          padding: 0 !important;
+          box-shadow: none !important;
+          border: none !important;
+        }
+
+        @page {
+          size: A4;
+          margin: 20mm;
+        }
+        
+        /* Ensure color adjustments for browsers that need it */
+        * {
+          -webkit-print-color-adjust: exact !important;
+          color-adjust: exact !important;
+        }
+      }
     </style>
     <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
   <script type="importmap">

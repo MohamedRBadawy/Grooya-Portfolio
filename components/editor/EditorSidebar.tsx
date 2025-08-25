@@ -1,7 +1,11 @@
 
+
+
+
+
+
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useNavigate } = ReactRouterDOM;
+import { useNavigate } from 'react-router-dom';
 import type { Portfolio, Page, Project, Skill, Palette, PortfolioAsset } from '../../types';
 import Button from '../ui/Button';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -125,12 +129,6 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                         <Button variant="ghost" size="sm" onClick={() => { if (props.canUndo) props.undo() }} disabled={!props.canUndo}><Undo2 className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="sm" onClick={() => { if (props.canRedo) props.redo() }} disabled={!props.canRedo}><Redo2 className="w-4 h-4" /></Button>
 
-                        <Button variant="ghost" size="sm" onClick={() => props.setIsCommandPaletteOpen(true)} className="hidden md:flex items-center gap-2 text-slate-500 dark:text-slate-400" aria-label="Open command palette">
-                            <Command size={16} />
-                            <span className="text-xs text-slate-600 dark:text-slate-400" aria-hidden="true">
-                                <kbd className="font-sans">{props.isMac ? '⌘' : 'Ctrl+'}K</kbd>
-                            </span>
-                        </Button>
                         <Button onClick={props.setIsReviewModalOpen} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
                             <Award size={14} className="me-1.5" />
                             <span className="hidden sm:inline">{t('aiMentor')}</span>
@@ -148,7 +146,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                     placeholder={t('untitledPortfolio')}
                 />
             </header>
-
+            
             <div className="flex-grow overflow-y-auto">
                 <div className="sticky top-0 bg-white dark:bg-slate-900 z-10 px-4 py-2 border-b border-slate-200 dark:border-slate-800">
                     <nav className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">

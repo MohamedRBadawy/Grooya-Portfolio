@@ -34,11 +34,15 @@ const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg'
   };
 
+  const motionProps: any = {
+      whileTap: { scale: 0.97, y: 0 },
+      transition: { type: "spring", stiffness: 400, damping: 17 }
+  };
+
   return (
     <motion.button
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
-      whileTap={{ scale: 0.97, y: 0 }}
-      transition={{ type: "spring", stiffness: 400, damping: 17 }}
+      {...motionProps}
       {...props}
     >
       {children}

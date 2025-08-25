@@ -1,7 +1,7 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useNavigate } = ReactRouterDOM;
+import { useNavigate } from 'react-router-dom';
 import { useHistoryState } from './useHistoryState';
 import { useDebouncedCallback } from './useDebouncedCallback';
 import { useData } from '../contexts/DataContext';
@@ -55,25 +55,6 @@ export const usePortfolioManager = (portfolioId?: string) => {
         return portfolio?.pages.find(p => p.id === activePageId) || null;
     }, [portfolio, activePageId]);
     
-    // --- Auto-saving logic ---
-    const debouncedSave = useDebouncedCallback((p: Portfolio) => {
-        updatePortfolio(p);
-        setSaveStatus('saved');
-        setTimeout(() => setSaveStatus('idle'), 2000);
-    }, 1000);
-
-    const isFirstRender = React.useRef(true);
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        if (portfolio) {
-            setSaveStatus('saving');
-            debouncedSave(portfolio);
-        }
-    }, [portfolio, debouncedSave]);
-
 
     // --- State Update Handlers ---
     const updatePortfolioImmediate = useCallback((updater: (p: Portfolio) => Portfolio) => {
@@ -97,7 +78,6 @@ export const usePortfolioManager = (portfolioId?: string) => {
     const savePortfolio = useCallback(() => {
         if (portfolio) {
             setSaveStatus('saving');
-            debouncedSave.cancel(); // Cancel any pending auto-save
             updatePortfolio(portfolio);
             setTimeout(() => {
                 setSaveStatus('saved');
@@ -105,7 +85,7 @@ export const usePortfolioManager = (portfolioId?: string) => {
                 setTimeout(() => setSaveStatus('idle'), 2000);
             }, 500);
         }
-    }, [portfolio, updatePortfolio, debouncedSave]);
+    }, [portfolio, updatePortfolio]);
 
     const updateField = useCallback(<K extends keyof Portfolio>(field: K, value: Portfolio[K]) => {
         updatePortfolioDebounced(p => ({ ...p, [field]: value }));
@@ -293,10 +273,23 @@ export const usePortfolioManager = (portfolioId?: string) => {
             path: `/${slugify(newPageName)}-${Math.random().toString(36).substring(2, 7)}`,
             blocks: [],
         };
-        updatePortfolioImmediate(p => ({ ...p, pages: [...p.pages, newPage] }));
+        updatePortfolioImmediate(p => {
+            // Defensive check for null or non-object portfolio state.
+            if (!p || typeof p !== 'object') {
+                console.error("Cannot add page to an invalid portfolio state:", p);
+                // Return the invalid state to prevent a crash, though this indicates a deeper issue.
+                return p;
+            }
+            const updatedPortfolio = {
+                ...p,
+                // Safely add to the pages array, initializing it if it's missing.
+                pages: [...(p.pages || []), newPage],
+            };
+            return updatedPortfolio;
+        });
         setActivePageId(newPage.id);
         setEditingPageId(newPage.id);
-    }, [updatePortfolioImmediate]);
+    }, [updatePortfolioImmediate, setActivePageId, setEditingPageId]);
 
     const removePage = useCallback((pageId: string) => {
         if (!portfolio) return;

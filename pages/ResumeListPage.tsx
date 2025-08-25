@@ -1,7 +1,8 @@
 
+
+
 import React, { useState, useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link, useNavigate } = ReactRouterDOM;
+import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Card from '../components/ui/Card';
@@ -76,6 +77,12 @@ const ResumeListPage: React.FC = () => {
     ), { duration: 6000 });
   };
 
+  const gridMotionProps: any = {
+      variants: containerVariants,
+      initial: "hidden",
+      animate: "visible",
+  };
+
   return (
     <>
       <div className="h-full">
@@ -107,9 +114,7 @@ const ResumeListPage: React.FC = () => {
           {displayedResumes.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
+              {...gridMotionProps}
             >
               {displayedResumes.map(r => (
                 <motion.div key={r.id} variants={itemVariants}>

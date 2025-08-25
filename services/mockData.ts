@@ -186,7 +186,11 @@ export const initialPortfolios: Portfolio[] = [
       transparentHeader: true,
       scrollIndicator: 'none',
       parallax: false,
+      gridGap: 'cozy',
+      logoPosition: 'left',
       customCss: '',
+      mobileMenuStyle: 'overlay',
+      mobileMenuAnimation: 'fadeIn',
     },
     pages: [
         {
@@ -225,6 +229,7 @@ export const initialPortfolios: Portfolio[] = [
         }
     ],
     assets: [],
+    designPresets: [],
     createdAt: now - (oneDay * 10),
     updatedAt: now - (oneDay * 2),
   },
@@ -257,7 +262,11 @@ export const initialPortfolios: Portfolio[] = [
       transparentHeader: false,
       scrollIndicator: 'none',
       parallax: false,
+      gridGap: 'cozy',
+      logoPosition: 'left',
       customCss: '',
+      mobileMenuStyle: 'overlay',
+      mobileMenuAnimation: 'fadeIn',
     },
     pages: [
         {
@@ -284,6 +293,7 @@ export const initialPortfolios: Portfolio[] = [
         }
     ],
     assets: [],
+    designPresets: [],
     createdAt: now - (oneDay * 5),
     updatedAt: now - (oneDay * 5),
   },
@@ -316,7 +326,11 @@ export const initialPortfolios: Portfolio[] = [
       transparentHeader: true,
       scrollIndicator: 'progressBar',
       parallax: true,
+      gridGap: 'cozy',
+      logoPosition: 'left',
       customCss: '',
+      mobileMenuStyle: 'overlay',
+      mobileMenuAnimation: 'fadeIn',
     },
     pages: [
         {
@@ -342,9 +356,10 @@ export const initialPortfolios: Portfolio[] = [
                 type: 'about',
                 title: 'My Philosophy',
                 content: 'I believe in the power of technology to solve real-world problems. My approach combines clean code, user-centric design, and scalable architecture to create impactful digital experiences. I am constantly learning and adapting to new technologies, always striving to push the boundaries of what is possible on the web. My goal is to not just build websites, but to create lasting digital assets that provide real value to users and businesses alike. I thrive in collaborative environments where I can work with talented teams to bring ambitious ideas to life.',
-                imageUrl: 'https://picsum.photos/seed/about-sticky/600/800',
-                imagePosition: 'left',
-                stickyImage: true,
+                mediaUrl: 'https://picsum.photos/seed/about-sticky/600/800',
+                mediaType: 'image',
+                mediaPosition: 'left',
+                stickyMedia: true,
               },
               {
                 id: 'block-3-11',
@@ -477,6 +492,30 @@ export const initialPortfolios: Portfolio[] = [
         }
     ],
     assets: [],
+    designPresets: [
+        {
+            id: 'preset-1',
+            name: 'Vibrant Tech',
+            design: {
+                paletteId: 'default-dark',
+                headingFont: 'Sora',
+                bodyFont: 'Inter',
+                fontSize: 'md',
+                fontWeightHeading: 'bold',
+                fontWeightBody: 'normal',
+                lineHeight: 'normal',
+                letterSpacing: 'normal',
+                shadowStyle: 'lg',
+                pageWidth: 'standard',
+                buttonStyle: 'pill',
+                accentColor: '#2dd4bf', // teal-400
+                spacing: 'cozy',
+                cornerRadius: 'lg',
+                animationStyle: 'fadeIn',
+                navigationStyle: 'stickyHeader',
+            }
+        }
+    ],
     createdAt: now - oneDay,
     updatedAt: now,
   },

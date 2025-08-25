@@ -1,7 +1,7 @@
 
+
 import React, { useState, useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { Link } = ReactRouterDOM;
+import { Link } from 'react-router-dom';
 import { initialPortfolios, mockAllUsers } from '../../services/mockData';
 import type { Portfolio, User } from '../../types';
 import { Search, ArrowUpDown, Eye, FilePenLine } from 'lucide-react';

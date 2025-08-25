@@ -1,6 +1,6 @@
 
-import { useApp } from '../contexts/LocalizationContext';
 import { translations } from '../localization';
+import { useApp } from '../contexts/LocalizationContext';
 
 /**
  * A custom hook for handling internationalization (i18n).
@@ -18,7 +18,7 @@ export const useTranslation = () => {
      */
     const t = (key: string, replacements?: { [key: string]: string | number }): string => {
         // Find the translation string for the current language, or fallback to the key.
-        let translation = translations[language][key] || key;
+        let translation = translations[language]?.[key] || translations['en']?.[key] || key;
         
         // If replacements are provided, substitute placeholders like {{name}}.
         if (replacements) {

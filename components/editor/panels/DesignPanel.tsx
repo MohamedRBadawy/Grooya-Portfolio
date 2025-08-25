@@ -1,12 +1,15 @@
 
-
-import React from 'react';
-import type { Portfolio, Palette, ColorTheme, FontWeight, LineHeight, LetterSpacing, FontSize, PageWidth, Spacing, CornerRadius, ShadowStyle, ButtonStyle, AnimationStyle, NavigationStyle } from '../../../types';
+import React, { useState } from 'react';
+import type { Portfolio, Palette, ColorTheme, FontWeight, LineHeight, LetterSpacing, FontSize, PageWidth, Spacing, CornerRadius, ShadowStyle, ButtonStyle, AnimationStyle, NavigationStyle, DesignPreset, NavLinkItem, Page, BorderStyle } from '../../../types';
 import Button from '../../ui/Button';
-import { EditorLabel, EditorTextarea } from '../../ui/editor/EditorControls';
+import { EditorLabel, EditorTextarea, EditorInput } from '../../ui/editor/EditorControls';
 import { useTranslation } from '../../../hooks/useTranslation';
 import { defaultPalettes } from '../../../services/palettes';
-import { Sparkles, Edit, Trash2, Plus, Pipette, ChevronRight } from 'lucide-react';
+import { Sparkles, Edit, Trash2, Plus, Pipette, ChevronRight, GripVertical, CornerDownRight } from 'lucide-react';
+import toast from 'react-hot-toast';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
+import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 // A reusable button component for design settings.
 const DesignSettingButton: React.FC<{onClick: () => void, isActive: boolean, children: React.ReactNode}> = ({ onClick, isActive, children }) => (
@@ -40,6 +43,56 @@ const DetailsSection: React.FC<{ title: string; children: React.ReactNode; defau
     </details>
 );
 
+const SortableNavLinkItem: React.FC<{
+    item: NavLinkItem,
+    pages: Page[],
+    onUpdate: (id: string, updates: Partial<NavLinkItem>) => void,
+    onRemove: (id: string) => void,
+}> = ({ item, pages, onUpdate, onRemove }) => {
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+    };
+    const targetPage = pages.find(p => p.id === item.targetPageId);
+    const isSectionLink = !!item.targetBlockId;
+
+    return (
+         <div ref={setNodeRef} style={style} className={`relative touch-none ${isSectionLink ? 'pl-6' : ''}`}>
+            {isSectionLink && <CornerDownRight size={16} className="absolute left-0 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" />}
+            <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg flex gap-2">
+                 <button {...attributes} {...listeners} className="p-2 cursor-grab text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-md self-center">
+                    <GripVertical size={16} />
+                </button>
+                <div className="flex-grow space-y-2">
+                    <EditorInput placeholder="Link Label" value={item.label} onChange={e => onUpdate(item.id, { label: e.target.value })}/>
+                    <div className="grid grid-cols-2 gap-2">
+                        <select 
+                            value={item.targetPageId} 
+                            onChange={e => onUpdate(item.id, { targetPageId: e.target.value, targetBlockId: undefined })} 
+                            className="block w-full text-sm bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500"
+                            aria-label="Target Page"
+                        >
+                            {pages.map(page => <option key={page.id} value={page.id}>{page.name}</option>)}
+                        </select>
+                         <select 
+                            value={item.targetBlockId || ''} 
+                            onChange={e => onUpdate(item.id, { targetBlockId: e.target.value || undefined })} 
+                            className="block w-full text-sm bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-lg shadow-sm focus:ring-teal-500 focus:border-teal-500" 
+                            disabled={!targetPage}
+                            aria-label="Target Section"
+                         >
+                            <option value="">Page Link (No Section)</option>
+                            {targetPage?.blocks.map(block => <option key={block.id} value={block.id}>{ (block as any).title || block.type}</option>)}
+                        </select>
+                    </div>
+                </div>
+                 <Button variant="ghost" size="sm" className="p-2 h-auto text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50 self-center" onClick={() => onRemove(item.id)} aria-label="Remove link"><Trash2 size={16} /></Button>
+            </div>
+        </div>
+    )
+}
+
 
 interface DesignPanelProps {
     portfolio: Portfolio;
@@ -64,12 +117,133 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
     handleDeletePalette
 }) => {
     const { t } = useTranslation();
+    const [isSavingPreset, setIsSavingPreset] = useState(false);
+    const [newPresetName, setNewPresetName] = useState('');
 
     // Define the available options for fonts and colors.
     const headingFonts = ['Sora', 'Poppins', 'Montserrat', 'Playfair Display', 'Lora', 'Raleway', 'EB Garamond'];
     const bodyFonts = ['Inter', 'Lato', 'Open Sans', 'Lora', 'Merriweather', 'Roboto', 'Noto Sans'];
     const accentColorPresets = ['#14b8a6', '#2dd4bf', '#e11d48', '#f59e0b', '#fbbf24', '#d97706'];
     const allPalettes = [...defaultPalettes, ...(portfolio.customPalettes || [])];
+
+    const handleSavePreset = () => {
+        if (!newPresetName.trim()) {
+            toast.error("Please enter a name for the preset.");
+            return;
+        }
+
+        const newPreset: DesignPreset = {
+            id: `preset-${Date.now()}`,
+            name: newPresetName,
+            design: { ...portfolio.design } // Copy the current design
+        };
+
+        updatePortfolioImmediate(p => ({
+            ...p,
+            designPresets: [...(p.designPresets || []), newPreset]
+        }));
+
+        setNewPresetName('');
+        setIsSavingPreset(false);
+        toast.success("Design preset saved!");
+    };
+
+    const handleApplyPreset = (preset: DesignPreset) => {
+        updatePortfolioImmediate(p => ({
+            ...p,
+            design: { ...preset.design }
+        }));
+        toast.success(`'${preset.name}' preset applied!`);
+    };
+
+    const handleDeletePreset = (presetId: string) => {
+        toast((toastInstance) => (
+            <div className="flex flex-col items-start gap-3">
+                <span className="font-medium">{t('deletePresetConfirm')}</span>
+                <div className="flex gap-2 self-stretch">
+                    <Button variant="danger" size="sm" className="flex-grow" onClick={() => {
+                        updatePortfolioImmediate(p => ({
+                            ...p,
+                            designPresets: (p.designPresets || []).filter(preset => preset.id !== presetId)
+                        }));
+                        toast.dismiss(toastInstance.id);
+                    }}>
+                        Confirm
+                    </Button>
+                    <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), { duration: 6000 });
+    };
+
+    // --- Navigation Link Handlers ---
+    const navLinks = portfolio.design.customNavigation || [];
+
+    const handleAddNavLink = () => {
+        const newLink: NavLinkItem = {
+            id: `nav-${Date.now()}`,
+            label: 'New Link',
+            targetPageId: portfolio.pages[0]?.id,
+        };
+        updatePortfolioImmediate(p => ({
+            ...p,
+            design: {
+                ...p.design,
+                customNavigation: [...(p.design.customNavigation || []), newLink]
+            }
+        }));
+    };
+
+    const handleUpdateNavLink = (id: string, updates: Partial<NavLinkItem>) => {
+        updatePortfolioDebounced(p => ({
+            ...p,
+            design: {
+                ...p.design,
+                customNavigation: (p.design.customNavigation || []).map(link => link.id === id ? { ...link, ...updates } : link)
+            }
+        }));
+    };
+
+    const handleRemoveNavLink = (id: string) => {
+         updatePortfolioImmediate(p => ({
+            ...p,
+            design: {
+                ...p.design,
+                customNavigation: (p.design.customNavigation || []).filter(link => link.id !== id)
+            }
+        }));
+    };
+    
+    const handleDesignChange = (field: keyof Portfolio['design'], value: any) => {
+        updatePortfolioDebounced(p => ({ ...p, design: { ...p.design, [field]: value } }));
+    };
+
+    const handleImmediateDesignChange = (field: keyof Portfolio['design'], value: any) => {
+        updatePortfolioImmediate(p => ({ ...p, design: { ...p.design, [field]: value } }));
+    };
+    
+    const handleHeaderBorderChange = (field: keyof BorderStyle, value: any) => {
+        const currentBorder = portfolio.design.headerBorderStyle || { width: 0, style: 'solid', color: '#e2e8f0' };
+        const newBorder = { ...currentBorder, [field]: value };
+        handleDesignChange('headerBorderStyle', newBorder);
+    };
+
+    const sensors = useSensors(useSensor(PointerSensor));
+    const handleDragEnd = (event: DragEndEvent) => {
+        const { active, over } = event;
+        if (over && active.id !== over.id) {
+            updatePortfolioImmediate(p => {
+                const oldNav = p.design.customNavigation || [];
+                const oldIndex = oldNav.findIndex(item => item.id === active.id);
+                const newIndex = oldNav.findIndex(item => item.id === over.id);
+                const newNav = arrayMove(oldNav, oldIndex, newIndex);
+                return { ...p, design: { ...p.design, customNavigation: newNav }};
+            });
+        }
+    };
+
 
     return (
         <div className="p-4 space-y-4">
@@ -135,7 +309,152 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                 </div>
             </DetailsSection>
             
-            <DetailsSection title="Typography" defaultOpen>
+            <DetailsSection title="Navigation">
+                <div className="space-y-3">
+                    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                        <SortableContext items={navLinks.map(i => i.id)} strategy={verticalListSortingStrategy}>
+                            {navLinks.map(item => (
+                                <SortableNavLinkItem 
+                                    key={item.id}
+                                    item={item}
+                                    pages={portfolio.pages}
+                                    onUpdate={handleUpdateNavLink}
+                                    onRemove={handleRemoveNavLink}
+                                />
+                            ))}
+                        </SortableContext>
+                    </DndContext>
+                </div>
+                <Button variant="secondary" size="sm" className="w-full mt-3" onClick={handleAddNavLink}>
+                    <Plus size={14} className="me-2"/> Add Navigation Link
+                </Button>
+            </DetailsSection>
+
+            <DetailsSection title="Header & Navigation Styling">
+                <div>
+                    <EditorLabel>Background Color</EditorLabel>
+                    <EditorInput value={portfolio.design.headerBackgroundColor || ''} onChange={e => handleDesignChange('headerBackgroundColor', e.target.value)} placeholder="e.g., #FFFFFF or rgba(255,255,255,0.5)"/>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                    <div>
+                        <EditorLabel>Link Color</EditorLabel>
+                        <input type="color" value={portfolio.design.headerLinkColor || '#334155'} onChange={e => handleDesignChange('headerLinkColor', e.target.value)} className="w-full h-10" />
+                    </div>
+                     <div>
+                        <EditorLabel>Link Hover Color</EditorLabel>
+                        <input type="color" value={portfolio.design.headerLinkHoverColor || '#14b8a6'} onChange={e => handleDesignChange('headerLinkHoverColor', e.target.value)} className="w-full h-10" />
+                    </div>
+                     <div>
+                        <EditorLabel>Active Link Color</EditorLabel>
+                        <input type="color" value={portfolio.design.headerActiveLinkColor || '#0d9488'} onChange={e => handleDesignChange('headerActiveLinkColor', e.target.value)} className="w-full h-10" />
+                    </div>
+                </div>
+                <div>
+                    <EditorLabel>Bottom Border</EditorLabel>
+                    <div className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                        <input 
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={portfolio.design.headerBorderStyle?.width ?? 0}
+                            onChange={(e) => handleHeaderBorderChange('width', parseInt(e.target.value) || 0)}
+                            className="w-16 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-md p-1.5 text-sm"
+                        />
+                         <select value={portfolio.design.headerBorderStyle?.style || 'solid'} onChange={e => handleHeaderBorderChange('style', e.target.value)} className="flex-grow bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-md p-1.5 text-sm">
+                            <option value="solid">Solid</option>
+                            <option value="dashed">Dashed</option>
+                            <option value="dotted">Dotted</option>
+                        </select>
+                        <input type="color" value={portfolio.design.headerBorderStyle?.color || '#e2e8f0'} onChange={e => handleHeaderBorderChange('color', e.target.value)} className="h-8 rounded-md" />
+                    </div>
+                </div>
+            </DetailsSection>
+
+            <DetailsSection title="Global Background">
+                <div>
+                    <label className="flex items-center justify-between cursor-pointer">
+                        <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Enable Global Gradient</span>
+                        <input 
+                            type="checkbox" 
+                            checked={!!portfolio.design.globalGradient}
+                            onChange={e => {
+                                const isEnabled = e.target.checked;
+                                updatePortfolioImmediate(p => ({
+                                    ...p,
+                                    design: {
+                                        ...p.design,
+                                        globalGradient: isEnabled 
+                                            ? { direction: 90, color1: '#f0fdfa', color2: '#fefce8' } 
+                                            : undefined
+                                    }
+                                }));
+                            }}
+                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                        />
+                    </label>
+                    {portfolio.design.globalGradient && (
+                        <div className="mt-4 space-y-4 p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                            <div>
+                                <EditorLabel>Direction ({portfolio.design.globalGradient.direction}°)</EditorLabel>
+                                <input 
+                                    type="range" min="0" max="360" 
+                                    value={portfolio.design.globalGradient.direction} 
+                                    onChange={e => updatePortfolioDebounced(p => ({ ...p, design: { ...p.design, globalGradient: { ...p.design.globalGradient!, direction: parseInt(e.target.value) }}}))} 
+                                    className="w-full"
+                                />
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <EditorLabel>Color 1</EditorLabel>
+                                    <input type="color" value={portfolio.design.globalGradient.color1} onChange={e => updatePortfolioDebounced(p => ({ ...p, design: { ...p.design, globalGradient: { ...p.design.globalGradient!, color1: e.target.value }}}))} className="w-full h-10 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent" />
+                                </div>
+                                <div>
+                                    <EditorLabel>Color 2</EditorLabel>
+                                    <input type="color" value={portfolio.design.globalGradient.color2} onChange={e => updatePortfolioDebounced(p => ({ ...p, design: { ...p.design, globalGradient: { ...p.design.globalGradient!, color2: e.target.value }}}))} className="w-full h-10 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent" />
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            </DetailsSection>
+            
+            <DetailsSection title={t('designPresets')}>
+                <div className="space-y-3">
+                    {(portfolio.designPresets || []).map(preset => (
+                        <div key={preset.id} className="flex items-center justify-between p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                            <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{preset.name}</span>
+                            <div className="flex items-center gap-2">
+                                <Button size="sm" variant="secondary" onClick={() => handleApplyPreset(preset)}>{t('applyPreset')}</Button>
+                                <Button size="sm" variant="ghost" className="text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50 !p-2" onClick={() => handleDeletePreset(preset.id)}>
+                                    <Trash2 size={14} />
+                                </Button>
+                            </div>
+                        </div>
+                    ))}
+                    {isSavingPreset ? (
+                        <div className="p-3 bg-slate-200 dark:bg-slate-700/50 rounded-lg space-y-2">
+                            <EditorLabel htmlFor="presetName">{t('presetName')}</EditorLabel>
+                            <EditorInput 
+                                id="presetName" 
+                                value={newPresetName} 
+                                onChange={e => setNewPresetName(e.target.value)}
+                                placeholder="e.g., Minimal Dark"
+                                autoFocus
+                            />
+                            <div className="flex gap-2 justify-end">
+                                <Button size="sm" variant="secondary" onClick={() => { setIsSavingPreset(false); setNewPresetName(''); }}>{t('cancel')}</Button>
+                                <Button size="sm" variant="primary" onClick={handleSavePreset}>{t('savePreset')}</Button>
+                            </div>
+                        </div>
+                    ) : (
+                        <Button variant="secondary" size="sm" className="w-full" onClick={() => setIsSavingPreset(true)}>
+                            <Plus size={14} className="me-2" /> {t('saveCurrentDesign')}
+                        </Button>
+                    )}
+                </div>
+            </DetailsSection>
+            
+            <DetailsSection title="Typography">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <EditorLabel>{t('headingFont')}</EditorLabel>
@@ -189,6 +508,20 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                         </DesignSelect>
                     </div>
                 </div>
+                 <div className="pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
+                    <EditorLabel>Link Style</EditorLabel>
+                    <div className="flex items-center gap-2">
+                        {(['none', 'underline', 'underlineOnHover'] as const).map(style => (
+                            <DesignSettingButton 
+                                key={style} 
+                                onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, linkStyle: style}}))} 
+                                isActive={(portfolio.design.linkStyle || 'underlineOnHover') === style}
+                            >
+                                <span className="capitalize">{style === 'underlineOnHover' ? 'Underline on Hover' : style}</span>
+                            </DesignSettingButton>
+                        ))}
+                    </div>
+                </div>
             </DetailsSection>
             
             <DetailsSection title="Layout & Spacing">
@@ -207,6 +540,16 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                    <div className="flex items-center gap-2">
                         {(['compact', 'cozy', 'spacious'] as Spacing[]).map(spacing => (
                             <DesignSettingButton key={spacing} onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, spacing}}))} isActive={portfolio.design.spacing === spacing}>
+                                <span className="capitalize">{spacing}</span>
+                            </DesignSettingButton>
+                        ))}
+                   </div>
+                </div>
+                 <div>
+                   <EditorLabel>{t('gridGap')}</EditorLabel>
+                   <div className="flex items-center gap-2">
+                        {(['compact', 'cozy', 'spacious'] as Spacing[]).map(spacing => (
+                            <DesignSettingButton key={spacing} onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, gridGap: spacing}}))} isActive={(portfolio.design.gridGap || 'cozy') === spacing}>
                                 <span className="capitalize">{spacing}</span>
                             </DesignSettingButton>
                         ))}
@@ -265,13 +608,33 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                         ))}
                    </div>
                 </div>
+                <div>
+                    <EditorLabel>Card Border Style</EditorLabel>
+                    <div className="flex items-center gap-2 p-2 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                        <input 
+                            type="number"
+                            min="0"
+                            max="10"
+                            value={portfolio.design.cardBorderStyle?.width ?? 1}
+                            onChange={(e) => updatePortfolioImmediate(p => ({...p, design: {...p.design, cardBorderStyle: {...p.design.cardBorderStyle, width: parseInt(e.target.value) || 0, style: p.design.cardBorderStyle?.style || 'solid' }}}))}
+                            className="w-16 bg-white dark:bg-slate-700 border-slate-300 dark:border-slate-600 rounded-md p-1.5 text-sm"
+                        />
+                        <div className="flex-grow flex gap-1">
+                            {(['solid', 'dashed', 'dotted'] as const).map(style => (
+                                <button key={style} onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, cardBorderStyle: {...p.design.cardBorderStyle, width: p.design.cardBorderStyle?.width ?? 1, style: style}}}))} className={`flex-1 text-xs py-1.5 rounded-md capitalize ${ (portfolio.design.cardBorderStyle?.style || 'solid') === style ? 'bg-teal-100 dark:bg-teal-900/50 text-teal-700 dark:text-teal-300 font-semibold' : 'bg-slate-200 dark:bg-slate-700/50 hover:bg-slate-300 dark:hover:bg-slate-600' }`}>
+                                    {style}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </DetailsSection>
             
             <DetailsSection title="Navigation & Effects">
                 <div>
                    <EditorLabel>{t('navigationStyle')}</EditorLabel>
                    <div className="flex items-center flex-wrap gap-2">
-                        {(['none', 'stickyHeader', 'minimalHeader'] as NavigationStyle[]).map(style => (
+                        {(['none', 'stickyHeader', 'minimalHeader', 'floatingDots'] as NavigationStyle[]).map(style => (
                             <DesignSettingButton key={style} onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, navigationStyle: style}}))} isActive={portfolio.design.navigationStyle === style}>
                                 {t(`navigation.${style}`)}
                             </DesignSettingButton>
@@ -284,6 +647,16 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                         {(['left', 'center', 'right'] as const).map(align => (
                             <DesignSettingButton key={align} onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, navAlignment: align}}))} isActive={(portfolio.design.navAlignment || 'right') === align}>
                                 <span className="capitalize">{align}</span>
+                            </DesignSettingButton>
+                        ))}
+                   </div>
+                </div>
+                 <div>
+                   <EditorLabel>{t('logoPosition')}</EditorLabel>
+                   <div className="flex items-center flex-wrap gap-2">
+                        {(['left', 'center'] as const).map(align => (
+                            <DesignSettingButton key={align} onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, logoPosition: align}}))} isActive={(portfolio.design.logoPosition || 'left') === align}>
+                                <span className="capitalize">{t(`position.${align}`)}</span>
                             </DesignSettingButton>
                         ))}
                    </div>
@@ -302,6 +675,48 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                             />
                         </label>
                         <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Makes the header background transparent when at the top of the page. Only works with Sticky or Minimal navigation.</p>
+                    </div>
+                </div>
+                <div>
+                    <EditorLabel>{t('mobileMenuStyle')}</EditorLabel>
+                    <div className="flex items-center gap-2">
+                        {(['overlay', 'drawer'] as const).map(style => (
+                            <DesignSettingButton 
+                                key={style} 
+                                onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, mobileMenuStyle: style}}))} 
+                                isActive={(portfolio.design.mobileMenuStyle || 'overlay') === style}
+                            >
+                                <span className="capitalize">{t(`style.${style}`)}</span>
+                            </DesignSettingButton>
+                        ))}
+                    </div>
+                </div>
+                <div>
+                    <EditorLabel>{t('mobileMenuAnimation')}</EditorLabel>
+                    <div className="flex items-center gap-2">
+                        {(['fadeIn', 'slideIn'] as const).map(style => (
+                            <DesignSettingButton 
+                                key={style} 
+                                onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, mobileMenuAnimation: style}}))} 
+                                isActive={(portfolio.design.mobileMenuAnimation || 'fadeIn') === style}
+                            >
+                                {t(style === 'fadeIn' ? 'animation.fadeIn' : 'animation.slideIn')}
+                            </DesignSettingButton>
+                        ))}
+                    </div>
+                </div>
+                 <div>
+                    <EditorLabel>Mobile Menu Icon</EditorLabel>
+                    <div className="flex items-center gap-2">
+                        {(['bars', 'plus', 'dots'] as const).map(style => (
+                            <DesignSettingButton 
+                                key={style} 
+                                onClick={() => updatePortfolioImmediate(p => ({...p, design: {...p.design, mobileMenuIconStyle: style}}))} 
+                                isActive={(portfolio.design.mobileMenuIconStyle || 'bars') === style}
+                            >
+                                <span className="capitalize">{style}</span>
+                            </DesignSettingButton>
+                        ))}
                     </div>
                 </div>
                 <div>
@@ -335,6 +750,33 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                        />
                    </label>
                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Applies a depth effect to block background images on scroll.</p>
+               </div>
+            </DetailsSection>
+
+            <DetailsSection title="Accessibility">
+                 <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                    <label className="flex items-center justify-between cursor-pointer">
+                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">High Contrast Mode</span>
+                       <input 
+                           type="checkbox" 
+                           checked={portfolio.design.highContrastMode || false}
+                           onChange={e => updatePortfolioImmediate(p => ({...p, design: {...p.design, highContrastMode: e.target.checked}}))}
+                           className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                       />
+                   </label>
+                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Overrides colors to a high-contrast theme for better readability. Disables gradients and shadows.</p>
+               </div>
+                <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg mt-4">
+                    <label className="flex items-center justify-between cursor-pointer">
+                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Respect Reduced Motion</span>
+                       <input 
+                           type="checkbox" 
+                           checked={portfolio.design.respectReducedMotion !== false} // default to true
+                           onChange={e => updatePortfolioImmediate(p => ({...p, design: {...p.design, respectReducedMotion: e.target.checked}}))}
+                           className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                       />
+                   </label>
+                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Disables animations for users who have requested reduced motion in their OS settings. It's recommended to keep this on.</p>
                </div>
             </DetailsSection>
             

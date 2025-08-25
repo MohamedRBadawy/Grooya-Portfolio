@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Portfolio } from '../../../types';
 import EditableText from '../../ui/EditableText';
-import { cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles } from './utils';
+import { cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles, getCardStyles } from './utils';
 
 interface BlockViewProps {
     block: any;
@@ -20,6 +19,7 @@ export const TestimonialsBlockView: React.FC<BlockViewProps> = ({ block, design,
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
+    const cardStyles = getCardStyles(design, theme);
     
     return (
         <div id={block.id}>
@@ -27,7 +27,7 @@ export const TestimonialsBlockView: React.FC<BlockViewProps> = ({ block, design,
                 <motion.div variants={itemVariant} className="overflow-hidden"><EditableText as="h2" value={block.title} onSave={(value) => onUpdateBlock?.(block.id, 'title', value)} isEditable={isEditable} className={`text-3xl mb-12 text-center font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: headingColor }} /></motion.div>
                 <motion.div variants={itemVariant} className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {block.testimonials.map((testimonial: any) => (
-                        <div key={testimonial.id} className={`p-6 border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`} style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}>
+                        <div key={testimonial.id} className={`p-6 ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`} style={cardStyles}>
                             <p className={`italic`} style={{ color: theme.text }}>"{testimonial.quote}"</p>
                             <div className="flex items-center mt-4">
                                 {testimonial.authorAvatarUrl && <img src={testimonial.authorAvatarUrl} alt={testimonial.author} className="w-12 h-12 rounded-full mr-4" />}

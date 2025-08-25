@@ -1,3 +1,4 @@
+
 /**
  * Represents a user of the application.
  */
@@ -62,7 +63,7 @@ export type FontPairing = 'sans' | 'serif' | 'mixed';
 export type Spacing = 'compact' | 'cozy' | 'spacious';
 export type CornerRadius = 'none' | 'sm' | 'md' | 'lg';
 export type AnimationStyle = 'none' | 'fadeIn' | 'slideInUp' | 'scaleIn' | 'slideInFromLeft' | 'revealUp' | 'blurIn';
-export type NavigationStyle = 'none' | 'stickyHeader' | 'minimalHeader';
+export type NavigationStyle = 'none' | 'stickyHeader' | 'minimalHeader' | 'floatingDots';
 export type FontSize = 'sm' | 'md' | 'lg';
 export type PageWidth = 'standard' | 'full';
 export type ButtonStyle = 'rounded' | 'pill' | 'square';
@@ -102,6 +103,26 @@ export interface Palette {
 }
 
 /**
+ * Represents a single link in the navigation bar.
+ * A link can target either a page or a specific block.
+ */
+export interface NavLinkItem {
+    id: string;
+    label: string;
+    targetPageId: string;
+    targetBlockId?: string; // Optional: for scrolling to a block
+}
+
+/**
+ * Represents a single border side's style.
+ */
+export interface BorderStyle {
+    width: number;
+    style: 'solid' | 'dashed' | 'dotted';
+    color: string;
+}
+
+/**
  * Defines the global design system settings for a portfolio.
  */
 export interface Design {
@@ -127,7 +148,35 @@ export interface Design {
   transparentHeader?: boolean;
   scrollIndicator?: 'none' | 'progressBar';
   parallax?: boolean;
+  linkStyle?: 'underline' | 'underlineOnHover' | 'none';
+  cardBorderStyle?: {
+    width: number; // in pixels
+    style: 'solid' | 'dashed' | 'dotted';
+  };
+  gridGap?: Spacing;
+  logoPosition?: 'left' | 'center';
   customCss?: string;
+  mobileMenuStyle?: 'overlay' | 'drawer';
+  mobileMenuAnimation?: 'slideIn' | 'fadeIn';
+  mobileMenuIconStyle?: 'bars' | 'plus' | 'dots';
+  globalGradient?: Gradient;
+  respectReducedMotion?: boolean;
+  customNavigation?: NavLinkItem[];
+  headerBackgroundColor?: string;
+  headerLinkColor?: string;
+  headerLinkHoverColor?: string;
+  headerActiveLinkColor?: string;
+  headerBorderStyle?: BorderStyle;
+  highContrastMode?: boolean;
+}
+
+/**
+ * Represents a saved design system configuration.
+ */
+export interface DesignPreset {
+  id: string;
+  name: string;
+  design: Design;
 }
 
 /**
@@ -155,7 +204,7 @@ export interface ShapeDivider {
  */
 interface BlockBase {
   id: string;
-  type: 'hero' | 'about' | 'projects' | 'skills' | 'gallery' | 'testimonials' | 'video' | 'cta' | 'resume' | 'links' | 'experience' | 'contact' | 'code' | 'services' | 'blog';
+  type: 'hero' | 'about' | 'projects' | 'skills' | 'gallery' | 'testimonials' | 'cta' | 'resume' | 'links' | 'experience' | 'contact' | 'code' | 'services' | 'blog' | 'video';
   /** Per-block style overrides that deviate from the global Design settings. */
   designOverrides?: {
     background?: string | Gradient;
@@ -173,6 +222,14 @@ interface BlockBase {
         bottom?: ShapeDivider;
     }
     animationStyle?: AnimationStyle;
+    animationDuration?: number; // in seconds
+    animationDelay?: number; // in seconds
+    border?: {
+        top?: BorderStyle;
+        bottom?: BorderStyle;
+        left?: BorderStyle;
+        right?: BorderStyle;
+    }
   }
 }
 
@@ -189,9 +246,10 @@ export interface AboutBlock extends BlockBase {
   type: 'about';
   title: string;
   content: string; // Can contain HTML
-  imageUrl?: string;
-  imagePosition?: 'left' | 'right';
-  stickyImage?: boolean;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
+  mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
+  stickyMedia?: boolean;
 }
 
 export interface ProjectsBlock extends BlockBase {
@@ -268,6 +326,8 @@ export interface ExperienceItem {
   company: string;
   dateRange: string;
   description: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
 }
 
 export interface ExperienceBlock extends BlockBase {
@@ -300,6 +360,8 @@ export interface PricingTier {
   buttonText: string;
   isFeatured: boolean;
   link?: string;
+  mediaUrl?: string;
+  mediaType?: 'image' | 'video';
 }
 
 export interface ServicesBlock extends BlockBase {
@@ -323,7 +385,7 @@ export interface BlogBlock extends BlockBase {
 }
 
 /** A union type representing any possible portfolio block. */
-export type PortfolioBlock = HeroBlock | AboutBlock | ProjectsBlock | SkillsBlock | GalleryBlock | TestimonialsBlock | VideoBlock | CtaBlock | ResumeBlock | LinksBlock | ExperienceBlock | ContactBlock | CodeBlock | ServicesBlock | BlogBlock;
+export type PortfolioBlock = HeroBlock | AboutBlock | ProjectsBlock | SkillsBlock | GalleryBlock | TestimonialsBlock | CtaBlock | ResumeBlock | LinksBlock | ExperienceBlock | ContactBlock | CodeBlock | ServicesBlock | BlogBlock | VideoBlock;
 
 /**
  * Represents an asset (e.g., an AI-generated image) associated with a portfolio.
@@ -360,6 +422,7 @@ export interface Portfolio {
   updatedAt: number;
   customPalettes?: Palette[];
   assets?: PortfolioAsset[];
+  designPresets?: DesignPreset[];
   isGuided?: boolean; // Is the user in the AI-guided creation flow?
   goal?: 'job' | 'freelance' | 'personal';
   role?: string;

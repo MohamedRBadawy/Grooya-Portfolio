@@ -1,7 +1,6 @@
 
 import React from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { HashRouter, Routes, Route, Outlet, Navigate } = ReactRouterDOM;
+import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { DataProvider, useData } from './contexts/DataContext';
 import { AppProvider, useApp } from './contexts/LocalizationContext';
 import { AuthProvider } from './contexts/AuthContext';
@@ -22,6 +21,7 @@ import AdminUserDetailPage from './pages/admin/AdminUserDetailPage';
 import AdminPortfolioManagementPage from './pages/admin/AdminPortfolioManagementPage';
 import AdminTemplateManagementPage from './pages/admin/AdminTemplateManagementPage';
 import AdminTemplateEditorPage from './pages/admin/AdminTemplateEditorPage';
+import TemplateShowcasePage from './pages/TemplateShowcasePage';
 
 /**
  * A wrapper component for routes that require authentication.
@@ -103,6 +103,7 @@ const App: React.FC = () => {
                    <Route path="resumes" element={<ResumeListPage />} />
                    <Route path="resumes/edit/:resumeId" element={<ResumeEditorPage />} />
                    <Route path="upgrade" element={<UpgradePage />} />
+                   <Route path="templates" element={<TemplateShowcasePage />} />
                 </Route>
 
                 {/* Admin-only routes */}

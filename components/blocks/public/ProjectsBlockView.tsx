@@ -1,9 +1,8 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Portfolio, Project } from '../../../types';
 import EditableText from '../../ui/EditableText';
-import { cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles, hexToRgba } from './utils';
+import { cornerRadiusStyles, fontWeightStyles, letterSpacingStyles, shadowStyles, hexToRgba, getCardStyles, getGridGapClass } from './utils';
 
 interface BlockViewProps {
     block: any;
@@ -22,6 +21,8 @@ export const ProjectsBlockView: React.FC<BlockViewProps> = ({ block, design, the
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';
+    const cardStyles = getCardStyles(design, theme);
+    const gridGapClass = getGridGapClass(design.gridGap);
     
     return (
         <div id={block.id}>
@@ -36,11 +37,11 @@ export const ProjectsBlockView: React.FC<BlockViewProps> = ({ block, design, the
                         style={{ color: headingColor }}
                     />
                 </motion.div>
-                <motion.div variants={itemVariant} className="grid md:grid-cols-2 gap-8">
+                <motion.div variants={itemVariant} className={`grid md:grid-cols-2 ${gridGapClass}`}>
                     {projects.map(project => {
                         const Wrapper = project.link ? 'a' : 'div';
                         const props = project.link ? { href: project.link, target: '_blank', rel: 'noopener noreferrer' } : {};
-                        const commonClasses = `block overflow-hidden border ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`;
+                        const commonClasses = `block overflow-hidden ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`;
                         const hoverClasses = project.link ? 'transition-all duration-300 hover:shadow-xl hover:-translate-y-1' : '';
 
                         return (
@@ -48,7 +49,7 @@ export const ProjectsBlockView: React.FC<BlockViewProps> = ({ block, design, the
                                 key={project.id} 
                                 {...props} 
                                 className={`${commonClasses} ${hoverClasses}`}
-                                style={{ backgroundColor: theme.cardBackground, borderColor: theme.cardBorder }}
+                                style={cardStyles}
                             >
                                 <img src={project.imageUrl} alt={project.title} className="w-full h-56 object-cover" />
                                 <div className="p-6">

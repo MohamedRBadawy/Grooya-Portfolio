@@ -16,6 +16,7 @@ This phase established the foundational elements of the application, focusing on
     -   `[x]` **Portfolio Editor Page:** The central workspace with a live preview and sidebar controls.
     -   `[x]` **Project Management Page:** A global library for managing projects.
     -   `[x]` **Resume Builder (List & full-featured Editor for all sections):** Dedicated pages for creating and editing resumes.
+    -   `[x]` **Template Showcase Page:** A full-page gallery to browse and select portfolio templates.
 -   **[x] Settings & Account Pages**
     -   `[x]` **User Profile Page:** Form to update user details.
     -   `[x]` **Upgrade / Billing Page:** A page to display subscription tiers and simulate upgrades.

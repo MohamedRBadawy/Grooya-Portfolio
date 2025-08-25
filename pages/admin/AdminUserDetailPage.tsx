@@ -1,8 +1,9 @@
 
 
+
+
 import React, { useMemo } from 'react';
-import * as ReactRouterDOM from 'react-router-dom';
-const { useParams, Link } = ReactRouterDOM;
+import { useParams, Link } from 'react-router-dom';
 import { mockAllUsers, initialPortfolios, initialProjects } from '../../services/mockData';
 import { ChevronLeft, Gem, User as UserIcon, Briefcase, FolderKanban } from 'lucide-react';
 import Button from '../../components/ui/Button';

@@ -1,4 +1,3 @@
-
 # Grooya - Product Roadmap
 
 This document outlines the strategic plan for evolving the Grooya Portfolio Hub from an MVP into a world-class, AI-powered Career Operating System.
@@ -67,6 +66,6 @@ This is the long-term vision to make Grooya an indispensable career tool using t
 - [ ] **(OUT OF SCOPE)** ~~AI Interview Prep~~
 
 ### 🚀 Phase 4: The Complete Career Companion
-- [ ] **Proactive Skill Development:** Create personalized learning plans based on career goals and analysis of target job descriptions.
-- [ ] **Personal Branding Assistant:** Repurpose portfolio content into drafts for LinkedIn posts or blog articles.
+- [ ] **Proactive Skill Development (On Hold):** Create personalized learning plans based on career goals and analysis of target job descriptions.
+- [ ] **Personal Branding Assistant (On Hold):** Repurpose portfolio content into drafts for LinkedIn posts or blog articles.
 - [ ] **(OUT OF SCOPE)** ~~Network & Opportunity Finder~~
