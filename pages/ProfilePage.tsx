@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from '../components/ui/Button';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import BillingCard from '../components/BillingCard';
 
 const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string }> = ({ children, htmlFor }) => (
     <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">{children}</label>
@@ -45,34 +45,18 @@ const ProfilePage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-      <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-sora mb-8">{t('myProfile')}</h1>
+      <div className="flex items-center gap-4 mb-8">
+        <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-sora">{t('myProfile')}</h1>
+        {user?.isEarlyAdopter && (
+            <span className="text-sm font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 px-3 py-1 rounded-full">
+                Early Adopter 🎖️
+            </span>
+        )}
+      </div>
       <form onSubmit={handleSubmit}>
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Avatar */}
-          <div className="lg:col-span-1">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex flex-col items-center">
-                <img
-                  src={formData.avatarUrl}
-                  alt="User avatar"
-                  className="w-40 h-40 rounded-full object-cover mb-4 border-4 border-slate-200 dark:border-slate-700"
-                />
-                <div className="w-full mt-2">
-                  <EditorLabel htmlFor="avatarUrl">{t('avatarUrl')}</EditorLabel>
-                  <EditorInput
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    type="url"
-                    value={formData.avatarUrl}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Details */}
-          <div className="lg:col-span-2">
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+          {/* Main Content: Profile Form */}
+          <div className="xl:col-span-3">
             <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6">
               <div>
                 <EditorLabel htmlFor="name">{t('fullName')}</EditorLabel>
@@ -118,15 +102,38 @@ const ProfilePage: React.FC = () => {
                   required
                 />
               </div>
+              <div className="pt-4 flex justify-end">
+                  <Button type="submit" variant="primary">
+                      <Save className="w-4 h-4 me-2" />
+                      {t('updateProfile')}
+                  </Button>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-8 flex justify-end">
-          <Button type="submit" variant="primary">
-            <Save className="w-4 h-4 me-2" />
-            {t('updateProfile')}
-          </Button>
+          {/* Right Sidebar: Avatar & Billing */}
+          <div className="xl:col-span-2 space-y-8">
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+              <div className="flex flex-col items-center">
+                <img
+                  src={formData.avatarUrl}
+                  alt="User avatar"
+                  className="w-40 h-40 rounded-full object-cover mb-4 border-4 border-slate-200 dark:border-slate-700"
+                />
+                <div className="w-full mt-2">
+                  <EditorLabel htmlFor="avatarUrl">{t('avatarUrl')}</EditorLabel>
+                  <EditorInput
+                    id="avatarUrl"
+                    name="avatarUrl"
+                    type="url"
+                    value={formData.avatarUrl}
+                    onChange={handleChange}
+                  />
+                </div>
+              </div>
+            </div>
+            <BillingCard />
+          </div>
         </div>
       </form>
     </div>

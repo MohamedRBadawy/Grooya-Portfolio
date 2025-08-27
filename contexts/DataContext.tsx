@@ -1,20 +1,84 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+
+
+import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo } from 'react';
 import type { User, Project, Skill, Portfolio, PortfolioBlock, Resume, Page, AIFeature, PortfolioTemplate } from '../types';
 import { mockUser, initialProjects, masterSkillsList, initialPortfolios, initialResumes } from '../services/mockData';
 import { portfolioTemplates as initialTemplates } from '../services/templates';
+import toast from 'react-hot-toast';
 
-const PRO_PLAN_CREDITS = { text: 100, image: 20 };
+const STARTER_PLAN_CREDITS = { text: 50, image: 10 };
+const PRO_PLAN_CREDITS = { text: 150, image: 30 };
+const PREMIUM_PLAN_CREDITS = { text: 500, image: 100 };
 
 const FREE_PLAN = { 
     tier: 'free' as const, 
+    status: 'active' as const,
     freeFeaturesUsed: {},
-    monthlyCredits: { text: 0, image: 0 }
+    credits: { text: 0, image: 0 }
+};
+const STARTER_PLAN = { 
+    tier: 'starter' as const, 
+    status: 'active' as const,
+    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    freeFeaturesUsed: {},
+    credits: STARTER_PLAN_CREDITS
 };
 const PRO_PLAN = { 
     tier: 'pro' as const, 
-    freeFeaturesUsed: {}, // Pro users don't use this, but it keeps the type consistent
-    monthlyCredits: PRO_PLAN_CREDITS
+    status: 'active' as const,
+    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    freeFeaturesUsed: {},
+    credits: PRO_PLAN_CREDITS
 };
+const PREMIUM_PLAN = { 
+    tier: 'premium' as const, 
+    status: 'active' as const,
+    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
+    freeFeaturesUsed: {},
+    credits: PREMIUM_PLAN_CREDITS
+};
+
+
+const ENTITLEMENTS = {
+    free: {
+        maxPortfolios: 1,
+        maxResumes: 1,
+        canRemoveBranding: false,
+        canUseCustomDomains: false,
+        atsOptimization: false,
+        advancedAnalytics: false,
+        bilingualSites: false,
+    },
+    starter: {
+        maxPortfolios: 3,
+        maxResumes: 3,
+        canRemoveBranding: true,
+        canUseCustomDomains: false,
+        atsOptimization: false,
+        advancedAnalytics: false,
+        bilingualSites: false,
+    },
+    pro: {
+        maxPortfolios: 10,
+        maxResumes: 999, // Unlimited
+        canRemoveBranding: true,
+        canUseCustomDomains: true,
+        atsOptimization: true,
+        advancedAnalytics: true,
+        bilingualSites: false,
+    },
+    premium: {
+        maxPortfolios: 999, // Unlimited
+        maxResumes: 999, // Unlimited
+        canRemoveBranding: true,
+        canUseCustomDomains: true,
+        atsOptimization: true,
+        advancedAnalytics: true,
+        bilingualSites: true,
+    }
+};
+
+type Entitlements = typeof ENTITLEMENTS.free;
 
 // Define the shape of the data context
 interface DataContextType {
@@ -24,6 +88,7 @@ interface DataContextType {
   portfolios: Portfolio[];
   resumes: Resume[];
   templates: PortfolioTemplate[];
+  entitlements: Entitlements;
   getPortfolioById: (id: string) => Portfolio | undefined;
   updatePortfolio: (updatedPortfolio: Portfolio) => void;
   createPortfolio: (newPortfolio: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) => Portfolio;
@@ -42,9 +107,15 @@ interface DataContextType {
   updateTemplate: (updatedTemplate: PortfolioTemplate) => void;
   createTemplate: (newTemplateData: Omit<PortfolioTemplate, 'id'>) => PortfolioTemplate;
   deleteTemplate: (templateId: string) => void;
+  upgradeToStarter: () => void;
   upgradeToPro: () => void;
+  upgradeToPremium: () => void;
   switchToFree: () => void;
   consumeAiFeature: (feature: AIFeature) => boolean;
+  applyPromoCode: (code: string) => void;
+  cancelSubscription: () => void;
+  renewSubscription: () => void;
+  makeOneTimePurchase: (purchaseId: 'proLifetime' | 'creditsTextTier1' | 'creditsImageTier1') => void;
 }
 
 // Create the context
@@ -127,244 +198,103 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Initialize templates state
   const [templates, setTemplates] = useState<PortfolioTemplate[]>(() => {
     try {
-      const stored = window.localStorage.getItem(TEMPLATES_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : initialTemplates;
+        const stored = window.localStorage.getItem(TEMPLATES_STORAGE_KEY);
+        return stored ? JSON.parse(stored) : initialTemplates;
     } catch (error) {
-      console.error("Error reading templates from local storage", error);
-      return initialTemplates;
+        console.error("Error reading templates from local storage", error);
+        return initialTemplates;
     }
   });
 
-  // useEffect hooks to persist state changes to local storage
-  useEffect(() => {
-    if (user) {
-        try {
-            window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
-        } catch (error) {
-            console.error("Error writing user to local storage", error);
-        }
-    }
+  // --- Effects to persist data to local storage ---
+  useEffect(() => { window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user)); }, [user]);
+  useEffect(() => { window.localStorage.setItem(PORTFOLIOS_STORAGE_KEY, JSON.stringify(portfolios)); }, [portfolios]);
+  useEffect(() => { window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects)); }, [projects]);
+  useEffect(() => { window.localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(skills)); }, [skills]);
+  useEffect(() => { window.localStorage.setItem(RESUMES_STORAGE_KEY, JSON.stringify(resumes)); }, [resumes]);
+  useEffect(() => { window.localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates)); }, [templates]);
+  
+  // --- Entitlements Calculation ---
+  const entitlements = useMemo(() => {
+    if (!user) return ENTITLEMENTS.free;
+
+    const hasProLifetime = user.oneTimePurchases?.includes('proLifetime');
+    const tier = user.subscription?.tier || 'free';
+    
+    // User gets Pro entitlements if they have a Pro subscription OR a lifetime license.
+    if (hasProLifetime) return ENTITLEMENTS.pro;
+    
+    return ENTITLEMENTS[tier];
   }, [user]);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(PORTFOLIOS_STORAGE_KEY, JSON.stringify(portfolios));
-    } catch (error) {
-      console.error("Error writing portfolios to local storage", error);
-    }
-  }, [portfolios]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
-    } catch (error) {
-      console.error("Error writing projects to local storage", error);
-    }
-  }, [projects]);
-  
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(skills));
-    } catch (error) {
-      console.error("Error writing skills to local storage", error);
-    }
-  }, [skills]);
-  
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(RESUMES_STORAGE_KEY, JSON.stringify(resumes));
-    } catch (error) {
-      console.error("Error writing resumes to local storage", error);
-    }
-  }, [resumes]);
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates));
-    } catch (error) {
-      console.error("Error writing templates to local storage", error);
-    }
-  }, [templates]);
-
-  // --- Subscription & Credit Management ---
-
-  const upgradeToPro = () => {
-    setUser(prev => prev ? { ...prev, subscription: PRO_PLAN } : null);
-  };
-
-  const switchToFree = () => {
-    setUser(prev => prev ? { ...prev, subscription: FREE_PLAN } : null);
-  };
-
-  const consumeAiFeature = (feature: AIFeature): boolean => {
-    if (!user || !user.subscription) return false;
-
-    const type = feature === 'imageGeneration' ? 'image' : 'text';
-
-    // Pro User Logic
-    if (user.subscription.tier === 'pro') {
-      const currentCredits = user.subscription.monthlyCredits[type];
-      if (currentCredits > 0) {
-        setUser(prev => {
-          if (!prev || !prev.subscription) return prev;
-          return {
-            ...prev,
-            subscription: {
-              ...prev.subscription,
-              monthlyCredits: {
-                ...prev.subscription.monthlyCredits,
-                [type]: currentCredits - 1,
-              }
-            }
-          };
-        });
-        return true;
-      }
-      return false; // Out of pro credits
-    }
-
-    // Free User Logic
-    if (user.subscription.tier === 'free') {
-      // Image generation is a Pro-only feature
-      if (type === 'image') return false;
-
-      if (user.subscription.freeFeaturesUsed[feature]) {
-        return false; // Already used this one-time free feature
-      } else {
-        setUser(prev => {
-          if (!prev || !prev.subscription) return prev;
-          return {
-            ...prev,
-            subscription: {
-              ...prev.subscription,
-              freeFeaturesUsed: {
-                ...prev.subscription.freeFeaturesUsed,
-                [feature]: true,
-              }
-            }
-          };
-        });
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  // --- Data Manipulation Methods ---
-
-  const updateUser = (updatedUser: User) => {
-    setUser(updatedUser);
-  };
-
+  // --- Portfolio CRUD ---
   const getPortfolioById = (id: string) => portfolios.find(p => p.id === id);
-
   const updatePortfolio = (updatedPortfolio: Portfolio) => {
     const portfolioWithTimestamp = { ...updatedPortfolio, updatedAt: Date.now() };
-    setPortfolios(prev => 
-      prev.map(p => p.id === portfolioWithTimestamp.id ? portfolioWithTimestamp : p)
-    );
+    setPortfolios(prev => prev.map(p => p.id === portfolioWithTimestamp.id ? portfolioWithTimestamp : p));
   };
-
-  const createPortfolio = (newPortfolioData: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>): Portfolio => {
-      const now = Date.now();
-      const newId = `port-${now}`;
-      const newSlug = `${newPortfolioData.title.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`;
-      
-      // Ensure pages and blocks have unique IDs when created from a template
-      const newPages = newPortfolioData.pages.map(page => ({
-        ...JSON.parse(JSON.stringify(page)), // Deep copy for safety
-        id: `page-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
-        blocks: page.blocks.map(block => ({
-            ...JSON.parse(JSON.stringify(block)),
-            id: `block-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`
-        }))
-      }));
-
-      const newPortfolio: Portfolio = {
-          ...newPortfolioData,
-          id: newId,
-          slug: newSlug,
-          pages: newPages,
-          createdAt: now,
-          updatedAt: now,
-      };
-      setPortfolios(prev => [...prev, newPortfolio]);
-      return newPortfolio;
-  }
-
-  const deletePortfolio = (portfolioId: string) => {
-      setPortfolios(prev => prev.filter(p => p.id !== portfolioId));
-  }
-  
-  const duplicatePortfolio = (portfolioId: string) => {
-    const portfolioToDuplicate = portfolios.find(p => p.id === portfolioId);
-    if (!portfolioToDuplicate) return;
-
+   const createPortfolio = (newPortfolioData: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) => {
+    const slug = newPortfolioData.title.toLowerCase().replace(/\s+/g, '-') + `-${Math.random().toString(36).substring(2, 8)}`;
     const now = Date.now();
-    const newTitle = `${portfolioToDuplicate.title} (Copy)`;
-    
-    // Deep copy to avoid reference issues
-    const duplicatedPortfolioData = JSON.parse(JSON.stringify(portfolioToDuplicate));
-
-    // Generate new unique IDs for pages and blocks
-    const newPages: Page[] = duplicatedPortfolioData.pages.map((page: Page) => ({
-        ...page,
-        id: `page-${now}-${Math.random().toString(36).substring(2, 9)}`,
-        blocks: page.blocks.map((block: PortfolioBlock) => ({
-            ...block,
-            id: `block-${now}-${Math.random().toString(36).substring(2, 9)}`
-        }))
-    }));
-
     const newPortfolio: Portfolio = {
-        ...duplicatedPortfolioData,
+        ...newPortfolioData,
         id: `port-${now}`,
-        title: newTitle,
-        slug: `${newTitle.toLowerCase().replace(/\s+/g, '-')}-${Math.random().toString(36).substring(2, 7)}`,
-        pages: newPages,
+        slug,
         createdAt: now,
         updatedAt: now,
-        isPublished: false, // Duplicates are drafts by default
     };
-
     setPortfolios(prev => [...prev, newPortfolio]);
-  }
-
-  const createProject = (projectData: Omit<Project, 'id'>): Project => {
-      const newProject: Project = {
-          ...projectData,
-          id: `proj-${Date.now()}`
-      };
-      setProjects(prev => [...prev, newProject]);
-      return newProject;
+    return newPortfolio;
+  };
+  const deletePortfolio = (portfolioId: string) => {
+    setPortfolios(prev => prev.filter(p => p.id !== portfolioId));
+  };
+  const duplicatePortfolio = (portfolioId: string) => {
+      const portfolioToDuplicate = portfolios.find(p => p.id === portfolioId);
+      if (portfolioToDuplicate) {
+          const now = Date.now();
+          const newPortfolio = {
+              ...JSON.parse(JSON.stringify(portfolioToDuplicate)), // Deep copy
+              id: `port-${now}`,
+              title: `${portfolioToDuplicate.title} (Copy)`,
+              slug: `${portfolioToDuplicate.slug}-copy`,
+              createdAt: now,
+              updatedAt: now,
+              isPublished: false,
+          };
+          setPortfolios(prev => [...prev, newPortfolio]);
+          toast.success('Portfolio duplicated!');
+      }
   };
 
+
+  // --- Project CRUD ---
+  const createProject = (newProjectData: Omit<Project, 'id'>) => {
+    const newProject: Project = { ...newProjectData, id: `proj-${Date.now()}` };
+    setProjects(prev => [...prev, newProject]);
+    return newProject;
+  };
   const updateProject = (updatedProject: Project) => {
-      setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
+    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
   };
-  
   const deleteProject = (projectId: string) => {
-      setProjects(prev => prev.filter(p => p.id !== projectId));
+    setProjects(prev => prev.filter(p => p.id !== projectId));
   };
 
-  const createSkill = (skillData: Omit<Skill, 'id'>): Skill => {
-    const newSkill: Skill = {
-        ...skillData,
-        id: `skill-${Date.now()}`
-    };
+  // --- Skill CRUD ---
+  const createSkill = (newSkillData: Omit<Skill, 'id'>) => {
+    const newSkill: Skill = { ...newSkillData, id: `skill-${Date.now()}` };
     setSkills(prev => [...prev, newSkill]);
     return newSkill;
   };
   
+  // --- Resume CRUD ---
   const getResumeById = (id: string) => resumes.find(r => r.id === id);
-
   const updateResume = (updatedResume: Resume) => {
-      const resumeWithTimestamp = { ...updatedResume, updatedAt: Date.now() };
-      setResumes(prev => prev.map(r => r.id === resumeWithTimestamp.id ? resumeWithTimestamp : r));
+    const resumeWithTimestamp = { ...updatedResume, updatedAt: Date.now() };
+    setResumes(prev => prev.map(r => r.id === resumeWithTimestamp.id ? resumeWithTimestamp : r));
   };
-
-  const createResume = (newResumeData: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>): Resume => {
+  const createResume = (newResumeData: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
       const now = Date.now();
       const newResume: Resume = {
           ...newResumeData,
@@ -375,71 +305,147 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setResumes(prev => [...prev, newResume]);
       return newResume;
   };
-
   const deleteResume = (resumeId: string) => {
       setResumes(prev => prev.filter(r => r.id !== resumeId));
   };
   
-  // --- Template Management Methods ---
-
+  // --- Template CRUD (Admin) ---
   const getTemplateById = (id: string) => templates.find(t => t.id === id);
-
   const updateTemplate = (updatedTemplate: PortfolioTemplate) => {
-    setTemplates(prev => prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
+      setTemplates(prev => prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
   };
-
-  const createTemplate = (newTemplateData: Omit<PortfolioTemplate, 'id'>): PortfolioTemplate => {
-    const newTemplate: PortfolioTemplate = {
-        ...newTemplateData,
-        id: `template-${Date.now()}`,
-    };
-    setTemplates(prev => [...prev, newTemplate]);
-    return newTemplate;
+  const createTemplate = (newTemplateData: Omit<PortfolioTemplate, 'id'>) => {
+      const newTemplate: PortfolioTemplate = { ...newTemplateData, id: `template-${Date.now()}` };
+      setTemplates(prev => [...prev, newTemplate]);
+      return newTemplate;
   };
-
   const deleteTemplate = (templateId: string) => {
-    setTemplates(prev => prev.filter(t => t.id !== templateId));
+      setTemplates(prev => prev.filter(t => t.id !== templateId));
+  };
+
+  // --- User Profile ---
+  const updateUser = (updatedUser: User) => {
+    setUser(updatedUser);
+  };
+  
+  // --- Subscription Management ---
+  const upgradeToStarter = () => setUser(prev => prev ? { ...prev, subscription: STARTER_PLAN } : null);
+  const upgradeToPro = () => setUser(prev => prev ? { ...prev, subscription: PRO_PLAN } : null);
+  const upgradeToPremium = () => setUser(prev => prev ? { ...prev, subscription: PREMIUM_PLAN } : null);
+  const switchToFree = () => setUser(prev => prev ? { ...prev, subscription: FREE_PLAN } : null);
+  
+  const cancelSubscription = () => {
+    setUser(prev => {
+        if (!prev || prev.subscription.tier === 'free') return prev;
+        return {
+            ...prev,
+            subscription: {
+                ...prev.subscription,
+                status: 'canceled'
+            }
+        };
+    });
+    toast.success('Your subscription has been canceled and will expire at the end of the current period.');
+  };
+
+  const renewSubscription = () => {
+        setUser(prev => {
+        if (!prev || prev.subscription.tier === 'free') return prev;
+        return {
+            ...prev,
+            subscription: {
+                ...prev.subscription,
+                status: 'active'
+            }
+        };
+    });
+    toast.success('Your subscription has been renewed!');
+  };
+
+  const applyPromoCode = (code: string) => {
+      if (code.toUpperCase() === 'GROOYA-ALPHA') {
+           setUser(prev => prev ? { ...prev, subscription: PREMIUM_PLAN, isEarlyAdopter: true } : null);
+           toast.success('Promo code applied! Welcome, Early Adopter! You now have the Premium plan.');
+      } else {
+          toast.error('Invalid promo code.');
+      }
+  };
+
+    const makeOneTimePurchase = (purchaseId: 'proLifetime' | 'creditsTextTier1' | 'creditsImageTier1') => {
+        setUser(prev => {
+            if (!prev) return null;
+            let updatedUser = { ...prev };
+            
+            if (purchaseId === 'proLifetime') {
+                updatedUser.oneTimePurchases = [...(updatedUser.oneTimePurchases || []), 'proLifetime'];
+                toast.success('Pro Lifetime Access Unlocked!');
+            }
+            if (purchaseId === 'creditsTextTier1') {
+                updatedUser.subscription.credits.text += 50;
+                toast.success('50 AI Text Credits added!');
+            }
+             if (purchaseId === 'creditsImageTier1') {
+                updatedUser.subscription.credits.image += 10;
+                toast.success('10 AI Image Credits added!');
+            }
+            return updatedUser;
+        });
+    };
+
+  // --- AI Credit Consumption ---
+  const consumeAiFeature = (feature: AIFeature) => {
+      if (!user) return false;
+      const { tier, credits, freeFeaturesUsed } = user.subscription;
+
+      const isTextFeature = feature !== 'imageGeneration';
+
+      if (tier === 'free') {
+          if (freeFeaturesUsed[feature]) {
+              return false; // Free feature already used
+          }
+          setUser(prev => prev ? { ...prev, subscription: { ...prev.subscription, freeFeaturesUsed: { ...prev.subscription.freeFeaturesUsed, [feature]: true }}} : null);
+          return true;
+      }
+      
+      // Paid Tiers
+      if (isTextFeature) {
+          if (credits.text > 0) {
+              setUser(prev => prev ? { ...prev, subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, text: prev.subscription.credits.text - 1 }}} : null);
+              return true;
+          }
+      } else {
+          if (credits.image > 0) {
+              setUser(prev => prev ? { ...prev, subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, image: prev.subscription.credits.image - 1 }}} : null);
+              return true;
+          }
+      }
+      return false; // No credits left
   };
 
 
-  // Expose state and methods to children components
-  const value = {
-    user,
-    projects,
-    skills,
-    portfolios,
-    resumes,
-    templates,
-    getPortfolioById,
-    updatePortfolio,
-    createPortfolio,
-    deletePortfolio,
-    duplicatePortfolio,
-    createProject,
-    updateProject,
-    deleteProject,
-    createSkill,
-    updateUser,
-    getResumeById,
-    updateResume,
-    createResume,
-    deleteResume,
-    getTemplateById,
-    updateTemplate,
-    createTemplate,
-    deleteTemplate,
-    upgradeToPro,
-    switchToFree,
-    consumeAiFeature,
-  };
-
-  return <DataContext.Provider value={value}>{children}</DataContext.Provider>;
+  return (
+    <DataContext.Provider value={{
+      user, projects, skills, portfolios, resumes, templates,
+      entitlements,
+      getPortfolioById, updatePortfolio, createPortfolio, deletePortfolio, duplicatePortfolio,
+      createProject, updateProject, deleteProject,
+      createSkill,
+      getResumeById, updateResume, createResume, deleteResume,
+      getTemplateById, updateTemplate, createTemplate, deleteTemplate,
+      updateUser,
+      upgradeToStarter, upgradeToPro, upgradeToPremium, switchToFree,
+      consumeAiFeature,
+      applyPromoCode,
+      cancelSubscription,
+      renewSubscription,
+      makeOneTimePurchase,
+    }}>
+      {children}
+    </DataContext.Provider>
+  );
 };
 
-/**
- * Custom hook to easily access the data context.
- * Throws an error if used outside of a DataProvider.
- */
+// Custom hook to use the data context
 export const useData = (): DataContextType => {
   const context = useContext(DataContext);
   if (context === undefined) {

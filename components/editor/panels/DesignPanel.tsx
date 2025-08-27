@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import type { Portfolio, Palette, ColorTheme, FontWeight, LineHeight, LetterSpacing, FontSize, PageWidth, Spacing, CornerRadius, ShadowStyle, ButtonStyle, AnimationStyle, NavigationStyle, DesignPreset, NavLinkItem, Page, BorderStyle } from '../../../types';
 import Button from '../../ui/Button';
@@ -10,6 +11,9 @@ import toast from 'react-hot-toast';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { AnimatePresence } from 'framer-motion';
+import { useData } from '../../../contexts/DataContext';
+import UpgradeModal from '../../UpgradeModal';
 
 // A reusable button component for design settings.
 const DesignSettingButton: React.FC<{onClick: () => void, isActive: boolean, children: React.ReactNode}> = ({ onClick, isActive, children }) => (
@@ -117,8 +121,10 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
     handleDeletePalette
 }) => {
     const { t } = useTranslation();
+    const { entitlements } = useData();
     const [isSavingPreset, setIsSavingPreset] = useState(false);
     const [newPresetName, setNewPresetName] = useState('');
+    const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
 
     // Define the available options for fonts and colors.
     const headingFonts = ['Sora', 'Poppins', 'Montserrat', 'Playfair Display', 'Lora', 'Raleway', 'EB Garamond'];
@@ -241,6 +247,16 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                 const newNav = arrayMove(oldNav, oldIndex, newIndex);
                 return { ...p, design: { ...p.design, customNavigation: newNav }};
             });
+        }
+    };
+    
+    const handleBrandingToggle = (e: React.MouseEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (entitlements.canRemoveBranding) {
+            handleImmediateDesignChange('hideBranding', !(portfolio.design.hideBranding || false));
+        } else {
+            setIsUpgradeModalOpen(true);
         }
     };
 
@@ -791,7 +807,29 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                         className="font-mono text-xs"
                     />
                 </div>
+                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg" onClick={handleBrandingToggle}>
+                        <div className={`flex items-center justify-between ${!entitlements.canRemoveBranding ? 'cursor-pointer' : ''}`}>
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Remove Grooya Branding</span>
+                            <div className="relative">
+                                <div className={`block w-10 h-6 rounded-full transition-colors ${(portfolio.design.hideBranding && entitlements.canRemoveBranding) ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
+                                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${(portfolio.design.hideBranding && entitlements.canRemoveBranding) ? 'translate-x-4' : ''}`}></div>
+                            </div>
+                        </div>
+                        {!entitlements.canRemoveBranding && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">✨ Pro Feature</p>}
+                    </div>
+                </div>
             </DetailsSection>
+            <AnimatePresence>
+            {isUpgradeModalOpen && (
+                <UpgradeModal 
+                    isOpen={isUpgradeModalOpen}
+                    onClose={() => setIsUpgradeModalOpen(false)}
+                    featureName="Remove Grooya Branding"
+                    featureDescription="Upgrade to a Pro plan to remove the 'Made with Grooya' branding from your portfolio footer for a fully professional look."
+                />
+            )}
+            </AnimatePresence>
         </div>
     );
 };

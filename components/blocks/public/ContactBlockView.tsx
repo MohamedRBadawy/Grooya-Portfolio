@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../../../hooks/useTranslation';
@@ -33,7 +34,7 @@ export const ContactBlockView: React.FC<BlockViewProps> = ({ block, design, them
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     
-    const inputStyle = `w-full border p-3 transition-colors duration-200 focus:outline-none ${cornerRadiusStyles[design.cornerRadius]}`;
+    const inputStyle = `w-full border p-3 transition-colors duration-200 focus:outline-none focus:ring-2 ${cornerRadiusStyles[design.cornerRadius]}`;
 
     return (
         <div id={block.id}>

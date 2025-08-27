@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Portfolio, Page, Project, Skill, Palette, PortfolioAsset } from '../../types';
@@ -121,7 +116,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
         <div className="bg-white dark:bg-slate-900 flex flex-col h-full">
             <header className="p-4 border-b border-slate-200 dark:border-slate-800 flex-shrink-0 bg-white dark:bg-slate-900 z-20">
                 <div className="flex justify-between items-center flex-wrap gap-2">
-                    <Button variant="ghost" onClick={() => props.navigate('/')}>
+                    <Button variant="ghost" onClick={() => props.navigate('/dashboard')}>
                         <BackIcon className="w-4 h-4 me-2" />
                         <span className="hidden sm:inline">{t('backToList')}</span>
                     </Button>
@@ -135,7 +130,6 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                         </Button>
                         <Button onClick={props.handleDelete} variant="danger" size="sm"><Trash2 className="w-4 h-4" /></Button>
                         <SaveButton onSave={props.handleSave} status={props.saveStatus} />
-                        <Button onClick={() => props.setMobileView('preview')} variant="secondary" size="sm" className="md:hidden"><Eye className="w-4 h-4 me-2" /> Preview</Button>
                     </div>
                 </div>
                 <input
@@ -147,7 +141,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                 />
             </header>
             
-            <div className="flex-grow overflow-y-auto">
+            <div className="flex-grow overflow-y-auto pb-24 md:pb-0">
                 <div className="sticky top-0 bg-white dark:bg-slate-900 z-10 px-4 py-2 border-b border-slate-200 dark:border-slate-800">
                     <nav className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
                         {['pages', 'content', 'design', 'assets'].map(tab => (

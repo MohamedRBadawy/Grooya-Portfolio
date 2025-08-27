@@ -7,7 +7,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage } from '../types';
 import Button from '../components/ui/Button';
 import AddBlockMenu from '../components/AddBlockMenu';
-import { FilePenLine } from 'lucide-react';
+import { FilePenLine, Eye } from 'lucide-react';
 import { useApp } from '../contexts/LocalizationContext';
 import ProjectEditorModal from '../components/ProjectEditorModal';
 import { CommandPalette } from '../components/CommandPalette';
@@ -15,10 +15,10 @@ import { generateHeroContent, generateAboutContent, generateDesignSuggestions, A
 import PaletteEditorModal from '../components/PaletteEditorModal';
 import AIImageGenerationModal from '../components/AIImageGenerationModal';
 import AIPortfolioReviewModal from '../components/AIPortfolioReviewModal';
-import AIAssistantPanel from '../components/AIAssistantPanel';
+import AIMentorPanel from '../components/AIMentorPanel';
 import EditorSidebar from '../components/editor/EditorSidebar';
 import PortfolioPreview from '../components/editor/PortfolioPreview';
-import { AnimatePresence } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 // Import the new hooks
@@ -450,7 +450,7 @@ const PortfolioEditorPage: React.FC = () => {
         <div className="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
              {/* Desktop Layout */}
             <div className="hidden md:flex h-full">
-                {portfolio.isGuided && <AIAssistantPanel 
+                {portfolio.isGuided && <AIMentorPanel 
                     portfolio={portfolio} 
                     onUpdate={updatePortfolioImmediate}
                     setActiveBlockId={setActiveBlockId}
@@ -642,17 +642,47 @@ const PortfolioEditorPage: React.FC = () => {
                                 scrollContainerRef={scrollContainerRef}
                             />
                         </div>
-                        <Button 
-                            onClick={() => setMobileView('editor')} 
-                            variant="primary" 
-                            className="fixed bottom-4 end-4 z-50 !rounded-full !p-3 shadow-lg"
-                        >
-                            <FilePenLine size={20} className="me-1"/> Edit
-                        </Button>
                     </main>
                 )}
             </div>
         </div>
+        
+        {/* New Mobile Toggle Bar */}
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800 p-2">
+            <div className="flex items-center justify-center gap-1 p-1 bg-slate-200 dark:bg-slate-800 rounded-full max-w-sm mx-auto">
+                <button
+                    onClick={() => setMobileView('editor')}
+                    className={`w-1/2 py-2 text-sm font-semibold rounded-full relative transition-colors flex items-center justify-center gap-2 ${
+                        mobileView === 'editor' ? 'text-slate-900 dark:text-slate-50' : 'text-slate-600 dark:text-slate-400'
+                    }`}
+                >
+                    {mobileView === 'editor' && (
+                        <motion.div
+                            layoutId="mobile-toggle-highlight"
+                            className="absolute inset-0 bg-white dark:bg-slate-700 rounded-full shadow-sm"
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                    )}
+                    <span className="relative z-10 flex items-center justify-center gap-2"><FilePenLine size={16}/> Editor</span>
+                </button>
+                <button
+                    onClick={() => setMobileView('preview')}
+                    className={`w-1/2 py-2 text-sm font-semibold rounded-full relative transition-colors flex items-center justify-center gap-2 ${
+                        mobileView === 'preview' ? 'text-slate-900 dark:text-slate-50' : 'text-slate-600 dark:text-slate-400'
+                    }`}
+                >
+                     {mobileView === 'preview' && (
+                        <motion.div
+                            layoutId="mobile-toggle-highlight"
+                            className="absolute inset-0 bg-white dark:bg-slate-700 rounded-full shadow-sm"
+                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+                        />
+                    )}
+                    <span className="relative z-10 flex items-center justify-center gap-2"><Eye size={16}/> Preview</span>
+                </button>
+            </div>
+        </div>
+        
         <AnimatePresence>
             {addingBlockIndex !== null && (
                 <AddBlockMenu 

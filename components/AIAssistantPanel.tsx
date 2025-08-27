@@ -178,6 +178,13 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ portfolio, onUpdate
       }
   };
 
+  const cardMotionProps = {
+    initial: { opacity: 0, y: 10 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -10 },
+    transition: { duration: 0.2 },
+  };
+
   return (
     <div className="w-80 bg-slate-50 dark:bg-slate-950 border-e border-slate-200 dark:border-slate-800 flex flex-col h-full flex-shrink-0">
       <div className="p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -226,11 +233,11 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ portfolio, onUpdate
         <AnimatePresence mode="wait">
         <motion.div
             key={currentTask?.key || 'complete'}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.2 }}
             className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
+            initial={cardMotionProps.initial}
+            animate={cardMotionProps.animate}
+            exit={cardMotionProps.exit}
+            transition={cardMotionProps.transition}
         >
             {isComplete ? (
                  <div>

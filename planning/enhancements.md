@@ -37,7 +37,7 @@ This document outlines the strategic roadmap for evolving the Grooya Portfolio H
 - [✅] **Introduce Toast Notifications:**
     - [✅] Replace all `window.alert()` and `window.confirm()` calls with a non-blocking toast notification system (e.g., `react-hot-toast`) for a more modern and less intrusive user experience.
 - [✅] **Improve Editing Flow (Inline Forms):**
-    - [✅] Refactor modal-based creation flows (like creating a new Project) to use an inline form that appears within the editor's sidebar. This keeps the user in their primary context and makes the experience feel faster.
+    - [✅] Refactor modal-based creation flows (like creating a new Project or Skill) to use an inline form that appears directly within the editor's sidebar. This keeps the user in their primary context and makes the experience feel faster.
 
 ---
 

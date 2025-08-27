@@ -2,16 +2,17 @@
 
 
 
+
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import type { Resume, AITailoringSuggestions, ExperienceItem, EducationItem, Skill, ResumeProjectItem } from '../types';
+import type { Resume, ExperienceItem, EducationItem, Skill, ResumeProjectItem } from '../types';
 import Button from '../components/ui/Button';
 import { Save, ChevronLeft, Download, Sparkles, Plus, Trash2, GripVertical, Palette, Check } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ResumePreview from '../components/ResumePreview';
-import AITailorModal from '../components/AITailorModal';
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
@@ -65,7 +66,6 @@ const ResumeEditorPage: React.FC = () => {
     const { t } = useTranslation();
 
     const [resume, setResume] = useState<Resume | null>(null);
-    const [isTailorModalOpen, setIsTailorModalOpen] = useState(false);
     const [skillSearch, setSkillSearch] = useState('');
 
     useEffect(() => {
@@ -142,23 +142,6 @@ const ResumeEditorPage: React.FC = () => {
             const newArray = (prev[arrayName] as any[]).filter(item => item.id !== itemId);
             return { ...prev, [arrayName]: newArray };
         });
-    };
-
-    const handleApplySuggestions = (suggestions: AITailoringSuggestions) => {
-        setResume(prev => {
-            if (!prev) return null;
-            const newSkills = [...prev.skills];
-            suggestions.suggestedKeywords.forEach(keyword => {
-                const existingMasterSkill = masterSkillsList.find(ms => ms.name.toLowerCase() === keyword.toLowerCase());
-                const alreadyOnResume = newSkills.some(s => s.name.toLowerCase() === keyword.toLowerCase());
-                if (!alreadyOnResume) {
-                     newSkills.push(existingMasterSkill || { id: `skill-${Date.now()}`, name: keyword, category: 'Tool' });
-                }
-            });
-            return { ...prev, summary: suggestions.newSummary, skills: newSkills };
-        });
-        setIsTailorModalOpen(false);
-        toast.success("AI suggestions applied!");
     };
     
     const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
@@ -282,7 +265,6 @@ const ResumeEditorPage: React.FC = () => {
                 {/* Main Content */}
                 <main className="flex-grow h-full flex flex-col">
                     <div className="noprint flex-shrink-0 p-2 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex justify-end items-center gap-2">
-                        <Button variant="secondary" onClick={() => setIsTailorModalOpen(true)}><Sparkles size={16} className="me-2 text-amber-500"/>{t('aiTailor')}</Button>
                         <Button variant="secondary" onClick={handleDownload}><Download size={16} className="me-2"/> Download</Button>
                         <Button variant="primary" onClick={handleSave}><Save size={16} className="me-2"/>{t('save')}</Button>
                     </div>
@@ -293,8 +275,6 @@ const ResumeEditorPage: React.FC = () => {
                     </div>
                 </main>
             </div>
-            
-            {isTailorModalOpen && <AITailorModal resume={resume} onClose={() => setIsTailorModalOpen(false)} onApplySuggestions={handleApplySuggestions} />}
         </>
     );
 };

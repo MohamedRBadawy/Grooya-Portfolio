@@ -61,7 +61,7 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
       }
   }
 
-  const remainingCredits = user?.subscription?.tier === 'pro' ? `(${user.subscription.monthlyCredits.image} credits left)` : '';
+  const remainingCredits = user?.subscription?.tier === 'pro' ? `(${user.subscription.credits.image} credits left)` : '';
 
   return (
     <motion.div
@@ -121,7 +121,7 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
             </div>
         </div>
         
-        <footer className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-b-lg">
+        <footer className="flex-shrink-0 p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 rounded-b-lg">
             <Button variant="secondary" onClick={onClose}>{t('cancel')}</Button>
             <div className="flex gap-3">
                  <Button variant="secondary" onClick={handleGenerate} disabled={!prompt.trim() || isGenerating}>

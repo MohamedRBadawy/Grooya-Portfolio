@@ -1,9 +1,4 @@
 
-
-
-
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
@@ -101,8 +96,17 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                 className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden"
                                             >
                                                 <div className="p-4 border-b border-slate-200 dark:border-slate-700">
-                                                    <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{user.name}</p>
-                                                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.title}</p>
+                                                    <div className="flex justify-between items-start">
+                                                        <div>
+                                                            <p className="font-semibold text-sm text-slate-900 dark:text-slate-100 truncate">{user.name}</p>
+                                                            <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{user.title}</p>
+                                                        </div>
+                                                        {user.isEarlyAdopter && (
+                                                            <span className="text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 px-2 py-0.5 rounded-full">
+                                                                Early Adopter 🎖️
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                                 <div className="p-2">
                                                     {user.role === 'admin' && (

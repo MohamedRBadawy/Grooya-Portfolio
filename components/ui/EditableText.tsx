@@ -33,7 +33,7 @@ const EditableText: React.FC<EditableTextProps> = ({
   const [currentValue, setCurrentValue] = useState(value);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // The primary fix: links should not be editable on-click, to allow navigation to work.
+  // Links should not be editable on-click, to allow navigation to work.
   const isLink = Tag === 'a';
 
   // Sync local state if the external value prop changes.

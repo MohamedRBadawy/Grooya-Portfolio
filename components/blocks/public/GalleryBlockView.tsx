@@ -36,4 +36,4 @@ export const GalleryBlockView: React.FC<BlockViewProps> = ({ block, design, them
             </div>
         </div>
     );
-}
+};

@@ -1,5 +1,4 @@
 
-
 import React, { useState } from 'react';
 import type { Skill } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';

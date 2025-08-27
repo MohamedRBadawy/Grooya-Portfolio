@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -107,7 +108,7 @@ const PortfolioCard: React.FC<{
 };
 
 const PortfolioListPage: React.FC = () => {
-  const { portfolios, user, deletePortfolio, duplicatePortfolio } = useData();
+  const { portfolios, user, deletePortfolio, duplicatePortfolio, entitlements } = useData();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [previewingPortfolio, setPreviewingPortfolio] = useState<Portfolio | null>(null);
@@ -115,9 +116,8 @@ const PortfolioListPage: React.FC = () => {
   const [sortBy, setSortBy] = useState<'updatedAt' | 'createdAt' | 'title'>('updatedAt');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  const isPro = user?.subscription?.tier === 'pro';
-  const maxPortfolios = isPro ? 5 : 1;
-  const canCreate = portfolios.length < maxPortfolios;
+  const canCreate = portfolios.length < entitlements.maxPortfolios;
+  const tierName = user?.subscription.tier || 'free';
 
   const containerVariants = {
       hidden: { opacity: 0 },
@@ -197,12 +197,6 @@ const PortfolioListPage: React.FC = () => {
       animate: { opacity: 1, y: 0 },
   };
 
-  const gridMotionProps: any = {
-      variants: containerVariants,
-      initial: "hidden",
-      animate: "visible",
-  };
-
   return (
     <>
       <div className="h-full">
@@ -223,7 +217,7 @@ const PortfolioListPage: React.FC = () => {
                 {...bannerMotionProps}
                 className="p-4 mb-8 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-center"
              >
-                <p className="text-amber-800 dark:text-amber-200 text-sm">You've reached your portfolio limit on the Starter plan. <Link to="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-100">Upgrade to Pro</Link> to create more.</p>
+                <p className="text-amber-800 dark:text-amber-200 text-sm">You've reached your portfolio limit for the <span className="capitalize font-semibold">{tierName}</span> plan. <Link to="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-100">Upgrade your plan</Link> to create more.</p>
             </motion.div>
           )}
 
@@ -252,7 +246,9 @@ const PortfolioListPage: React.FC = () => {
           {displayedPortfolios.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              {...gridMotionProps}
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
             >
               {displayedPortfolios.map(p => (
                 <motion.div key={p.id} variants={itemVariants}>

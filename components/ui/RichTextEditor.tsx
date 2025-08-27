@@ -1,8 +1,12 @@
+
+
 import React, { useCallback } from 'react';
+// FIX: Removed BubbleMenu from this import to resolve the error "Module '\"@tiptap/react\"' has no exported member 'BubbleMenu'".
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import BubbleMenuExtension, { BubbleMenu } from '@tiptap/extension-bubble-menu';
+// FIX: Imported both the BubbleMenu component (as default) and the BubbleMenu extension (as a named export with an alias) from '@tiptap/extension-bubble-menu'. This resolves the import error and the name collision between the component and the extension.
+import BubbleMenu, { BubbleMenu as BubbleMenuExtension } from '@tiptap/extension-bubble-menu';
 import { Bold, Italic, Link as LinkIcon } from 'lucide-react';
 
 interface RichTextEditorProps extends React.HTMLAttributes<HTMLElement> {
@@ -73,8 +77,8 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onUpdate, onBl
   return (
     <>
       {editor && <BubbleMenu editor={editor} tippyOptions={{ duration: 100 }} className="bg-slate-800 text-slate-50 rounded-lg shadow-lg p-1 flex gap-1">
-        <MenuButton onClick={() => editor.chain().focus().toggleBold().run()} isActive={editor.isActive('bold')}><Bold size={16} /></MenuButton>
-        <MenuButton onClick={() => editor.chain().focus().toggleItalic().run()} isActive={editor.isActive('italic')}><Italic size={16} /></MenuButton>
+        <MenuButton onClick={() => editor.chain().focus().toggleMark('bold').run()} isActive={editor.isActive('bold')}><Bold size={16} /></MenuButton>
+        <MenuButton onClick={() => editor.chain().focus().toggleMark('italic').run()} isActive={editor.isActive('italic')}><Italic size={16} /></MenuButton>
         <MenuButton onClick={setLink} isActive={editor.isActive('link')}><LinkIcon size={16} /></MenuButton>
       </BubbleMenu>}
       <EditorContent editor={editor} />

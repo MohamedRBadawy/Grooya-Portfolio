@@ -1,4 +1,5 @@
 
+
 /**
  * Represents a user of the application.
  */
@@ -10,17 +11,21 @@ export interface User {
   bio: string;
   avatarUrl: string;
   role: 'user' | 'admin';
-  subscription?: {
-    tier: 'free' | 'pro';
+  isEarlyAdopter?: boolean;
+  subscription: {
+    tier: 'free' | 'starter' | 'pro' | 'premium';
+    status: 'active' | 'trial' | 'past_due' | 'canceled';
+    renewsAt?: number; // timestamp
     // Tracks which free features have been used up.
     // A feature key will be present and true if used.
     freeFeaturesUsed: Partial<Record<AIFeature, boolean>>;
     // Monthly credits for Pro users.
-    monthlyCredits: {
+    credits: {
         text: number;
         image: number;
     };
   };
+  oneTimePurchases?: ('proLifetime' | 'creditsTextTier1' | 'creditsImageTier1')[];
 }
 
 /**
@@ -168,6 +173,7 @@ export interface Design {
   headerActiveLinkColor?: string;
   headerBorderStyle?: BorderStyle;
   highContrastMode?: boolean;
+  hideBranding?: boolean;
 }
 
 /**

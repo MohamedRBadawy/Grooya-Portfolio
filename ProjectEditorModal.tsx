@@ -136,7 +136,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
                 <div className="flex justify-between items-center">
                     <EditorLabel htmlFor="description">{t('projectDescription')}</EditorLabel>
                      <div className="flex items-center gap-2">
-                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription?.monthlyCredits.text} credits left</span>}
+                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription?.credits.text} credits left</span>}
                         <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
                     </div>
                 </div>

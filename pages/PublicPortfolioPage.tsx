@@ -134,7 +134,7 @@ const ScrollProgressBar: React.FC<{ accentColor: string }> = ({ accentColor }) =
             style={{ 
                 backgroundColor: accentColor,
                 scaleX 
-            }}
+            } as any}
         />
     );
 };
@@ -151,7 +151,7 @@ const ParallaxBlock: React.FC<{
     });
     const y = useTransform(scrollYProgress, [0, 1], ["-20%", "20%"]);
     const { backgroundImage, backgroundOpacity } = block.designOverrides || {};
-    const motionProps: any = {
+    const motionProps = {
         ref:ref,
         variants:animationVariants,
         initial:"hidden",
@@ -170,7 +170,7 @@ const ParallaxBlock: React.FC<{
                 style={{
                     backgroundImage: `url("${backgroundImage}")`,
                     y,
-                }}
+                } as any}
              />}
              <div className="absolute inset-0 bg-black z-10" style={{ opacity: backgroundOpacity ?? 0.5 }} />
              {children}
@@ -238,7 +238,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
         return null;
     }, [portfolio, loggedInUser, isEditable]);
 
-    const canRemoveBranding = portfolioOwner?.subscription?.tier === 'pro';
+    const canRemoveBranding = ['starter', 'pro', 'premium'].includes(portfolioOwner?.subscription?.tier ?? 'free');
     
     const prefersReducedMotion = useMemo(() => {
         if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
@@ -555,7 +555,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                         );
                     }
                      
-                    const sectionMotionProps: any = {
+                    const sectionMotionProps = {
                         variants: containerVariant,
                         initial: "hidden",
                         whileInView: "visible",
@@ -585,7 +585,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                     </div>
                  )}
             </main>
-            {!canRemoveBranding && (
+            {!(design.hideBranding && canRemoveBranding) && (
                 <footer className="text-center py-6 text-sm text-slate-500 dark:text-slate-400 border-t" style={{ borderColor: theme.cardBorder }}>
                     Made with <a href="https://github.com/google/generative-ai-docs/tree/main/demos/palm/web/palm-career-app" target="_blank" rel="noopener noreferrer" className="font-semibold text-teal-600 dark:text-teal-400 hover:underline">Grooya</a>
                 </footer>

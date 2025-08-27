@@ -2,6 +2,8 @@
 
 
 
+
+
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { mockAllUsers, initialPortfolios, initialProjects } from '../../services/mockData';
@@ -80,11 +82,11 @@ const AdminUserDetailPage: React.FC = () => {
                                 <>
                                  <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Text Credits</span>
-                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{user.subscription.monthlyCredits.text} / 100</span>
+                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{user.subscription.credits.text} / 100</span>
                                 </div>
                                  <div className="flex justify-between items-center">
                                     <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Image Credits</span>
-                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{user.subscription.monthlyCredits.image} / 20</span>
+                                    <span className="text-sm font-semibold text-slate-800 dark:text-slate-200">{user.subscription.credits.image} / 20</span>
                                 </div>
                                 </>
                             )}

@@ -8,10 +8,13 @@ export const mockUser: User = {
   bio: 'Creative frontend developer with a passion for building beautiful, responsive, and intuitive user interfaces. I turn complex problems into elegant solutions.',
   avatarUrl: 'https://picsum.photos/seed/alexdoe/200/200',
   role: 'admin',
+  isEarlyAdopter: true,
   subscription: {
     tier: 'pro',
+    status: 'active',
+    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days from now
     freeFeaturesUsed: {},
-    monthlyCredits: {
+    credits: {
       text: 100,
       image: 20,
     },
@@ -28,10 +31,12 @@ export const mockAllUsers: User[] = [
       bio: 'Designing user-centric digital experiences that are both beautiful and functional.',
       avatarUrl: 'https://picsum.photos/seed/janesmith/200/200',
       role: 'user',
+      isEarlyAdopter: false,
       subscription: {
         tier: 'free',
+        status: 'active',
         freeFeaturesUsed: { heroContent: true },
-        monthlyCredits: { text: 0, image: 0 },
+        credits: { text: 0, image: 0 },
       },
     },
     {
@@ -42,10 +47,13 @@ export const mockAllUsers: User[] = [
       bio: 'Building scalable and efficient server-side applications.',
       avatarUrl: 'https://picsum.photos/seed/samwilson/200/200',
       role: 'user',
+      isEarlyAdopter: false,
       subscription: {
         tier: 'pro',
+        status: 'active',
+        renewsAt: Date.now() + 15 * 24 * 60 * 60 * 1000,
         freeFeaturesUsed: {},
-        monthlyCredits: { text: 85, image: 12 },
+        credits: { text: 85, image: 12 },
       },
     },
     {
@@ -56,10 +64,12 @@ export const mockAllUsers: User[] = [
       bio: 'Leading product strategy from concept to launch.',
       avatarUrl: 'https://picsum.photos/seed/mariagarcia/200/200',
       role: 'user',
+      isEarlyAdopter: false,
       subscription: {
         tier: 'free',
+        status: 'active',
         freeFeaturesUsed: {},
-        monthlyCredits: { text: 0, image: 0 },
+        credits: { text: 0, image: 0 },
       },
     }
 ];

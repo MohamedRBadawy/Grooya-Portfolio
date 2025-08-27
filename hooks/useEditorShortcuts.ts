@@ -16,7 +16,7 @@ export const useEditorShortcuts = ({
     redo,
     setIsCommandPaletteOpen,
 }: UseEditorShortcutsProps) => {
-    const isMac = useMemo(() => navigator.platform.toUpperCase().indexOf('MAC') >= 0, []);
+    const isMac = useMemo(() => typeof navigator !== 'undefined' && navigator.platform.toUpperCase().indexOf('MAC') >= 0, []);
         
     // Undo shortcut
     useKeyPress(() => { if (canUndo) undo() }, ['z']);

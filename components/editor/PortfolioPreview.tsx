@@ -1,6 +1,6 @@
 
 
-import React, { useRef } from 'react';
+import React from 'react';
 import PublicPortfolioPage from '../../pages/PublicPortfolioPage';
 import type { Portfolio, Page } from '../../types';
 
@@ -45,7 +45,7 @@ export const PortfolioPreview: React.FC<{
 
     return (
         <div className="w-full h-full bg-white dark:bg-slate-950 rounded-lg shadow-inner overflow-hidden border border-slate-200 dark:border-slate-800">
-            <div ref={scrollContainerRef} className="w-full h-full overflow-y-auto">
+            <div ref={scrollContainerRef} className="w-full h-full overflow-y-auto pb-24 md:pb-0">
                 <MockPublicPage />
             </div>
         </div>

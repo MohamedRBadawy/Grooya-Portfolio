@@ -81,7 +81,6 @@ export const usePortfolioManager = (portfolioId?: string) => {
             updatePortfolio(portfolio);
             setTimeout(() => {
                 setSaveStatus('saved');
-                toast.success('Portfolio saved!');
                 setTimeout(() => setSaveStatus('idle'), 2000);
             }, 500);
         }

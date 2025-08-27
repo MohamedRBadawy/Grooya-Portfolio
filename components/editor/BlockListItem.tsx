@@ -1,5 +1,4 @@
 
-
 import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioBlock, Page } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -68,7 +67,7 @@ const BlockListItem: React.FC<BlockListItemProps> = ({
             </div>
             
             <div className="flex items-center gap-1 p-2">
-                <button onClick={() => onFocus(block.id)} className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700">
+                <button onClick={() => onFocus(block.id)} className="p-2 rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700" aria-label={`Edit ${block.type} block`}>
                     <FilePenLine size={16} />
                 </button>
                 <div className="relative" ref={menuRef}>

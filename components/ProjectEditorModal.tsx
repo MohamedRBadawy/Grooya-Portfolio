@@ -102,22 +102,28 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
   };
 
   const isPro = user?.subscription?.tier === 'pro';
+  const backdropMotionProps: any = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+  };
+  const modalMotionProps: any = {
+      initial: { y: 20, scale: 0.95, opacity: 0 },
+      animate: { y: 0, scale: 1, opacity: 1 },
+      exit: { y: 20, scale: 0.95, opacity: 0 },
+      transition: { type: 'spring', stiffness: 300, damping: 30 },
+  };
 
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      {...backdropMotionProps}
     >
       <motion.div 
         className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800"
         onClick={e => e.stopPropagation()}
-        initial={{ y: 20, scale: 0.95, opacity: 0 }}
-        animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 20, scale: 0.95, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        {...modalMotionProps}
       >
         <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 rounded-t-2xl">
             <h3 className="font-bold text-slate-900 dark:text-slate-200 text-lg font-sora">
@@ -140,7 +146,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
                 <div className="flex justify-between items-center">
                     <EditorLabel htmlFor="description">{t('projectDescription')}</EditorLabel>
                      <div className="flex items-center gap-2">
-                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription?.monthlyCredits.text} credits left</span>}
+                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription.credits.text} credits left</span>}
                         <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
                     </div>
                 </div>

@@ -30,6 +30,12 @@ const ProjectCard: React.FC<{
         };
     }, []);
 
+    const menuAnimationProps: any = {
+        initial: { opacity: 0, y: 10 },
+        animate: { opacity: 1, y: 0 },
+        exit: { opacity: 0, y: 10 },
+    };
+
     return (
         <Card className="flex flex-col group">
             <img src={project.imageUrl} alt={project.title} className="w-full h-48 object-cover" />
@@ -55,9 +61,7 @@ const ProjectCard: React.FC<{
                     <AnimatePresence>
                     {isMenuOpen && (
                         <motion.div
-                            initial={{ opacity: 0, y: 10 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: 10 }}
+                            {...menuAnimationProps}
                             className="absolute bottom-full mb-2 end-0 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20"
                         >
                             <button onClick={() => { onDelete(project.id); setIsMenuOpen(false); }} className="w-full text-start flex items-center gap-2 px-4 py-2 text-sm text-rose-600 dark:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-500/10">

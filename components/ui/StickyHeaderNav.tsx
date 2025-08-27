@@ -1,5 +1,6 @@
 
 
+
 import React, { useMemo, useState, useEffect, useRef } from 'react';
 import type { Portfolio, Page, NavLinkItem } from '../../types';
 import { Menu, X, Plus, MoreHorizontal } from 'lucide-react';
@@ -169,6 +170,10 @@ const StickyHeaderNav: React.FC<StickyHeaderNavProps> = ({
     const backdropVariants: any = { open: { opacity: 1 }, closed: { opacity: 0 } };
     const overlayContentVariants: any = { open: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring', stiffness: 300, damping: 30 } }, closed: { opacity: 0, y: menuAnimation === 'slideIn' ? '-20%' : 0, scale: 0.95 } };
     const drawerContentVariants: any = { open: { x: 0, transition: { type: 'spring', stiffness: 400, damping: 40 } }, closed: { x: '100%' } };
+    const backdropMotionProps: any = { variants: backdropVariants, initial: "closed", animate: "open", exit: "closed" };
+    const overlayMotionProps: any = { variants: overlayContentVariants, initial: "closed", animate: "open", exit: "closed" };
+    const drawerMotionProps: any = { variants: drawerContentVariants, initial: "closed", animate: "open", exit: "closed" };
+
 
     const MobileMenuIcon = useMemo(() => {
         switch (design.mobileMenuIconStyle) {
@@ -201,15 +206,15 @@ const StickyHeaderNav: React.FC<StickyHeaderNavProps> = ({
             <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div className="fixed inset-0 z-50 md:hidden" onClick={() => setIsMenuOpen(false)} aria-modal="true">
-                        <motion.div className="absolute inset-0 bg-black/60" variants={backdropVariants} initial="closed" animate="open" exit="closed" />
+                        <motion.div className="absolute inset-0 bg-black/60" {...backdropMotionProps} />
                         {menuStyle === 'overlay' && (
-                            <motion.div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm p-6 rounded-2xl" style={{ backgroundColor: theme.background }} variants={overlayContentVariants} initial="closed" animate="open" exit="closed" onClick={e => e.stopPropagation()}>
+                            <motion.div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[90%] max-w-sm p-6 rounded-2xl" style={{ backgroundColor: theme.background }} {...overlayMotionProps} onClick={e => e.stopPropagation()}>
                                 <div className="flex justify-end mb-4"><button onClick={() => setIsMenuOpen(false)} style={{ color: theme.text }} aria-label="Close menu"><X size={24} /></button></div>
                                 <NavLinks isMobile />
                             </motion.div>
                         )}
                         {menuStyle === 'drawer' && (
-                            <motion.div className={`absolute top-0 h-full w-[80%] max-w-xs shadow-2xl ${direction === 'ltr' ? 'right-0' : 'left-0'}`} style={{ backgroundColor: theme.background }} variants={drawerContentVariants} initial="closed" animate="open" exit="closed" onClick={e => e.stopPropagation()}>
+                            <motion.div className={`absolute top-0 h-full w-[80%] max-w-xs shadow-2xl ${direction === 'ltr' ? 'right-0' : 'left-0'}`} style={{ backgroundColor: theme.background }} {...drawerMotionProps} onClick={e => e.stopPropagation()}>
                                  <div className="flex justify-end p-4"><button onClick={() => setIsMenuOpen(false)} style={{ color: theme.text }} aria-label="Close menu"><X size={24} /></button></div>
                                 <div className="p-4"><NavLinks isMobile /></div>
                             </motion.div>
