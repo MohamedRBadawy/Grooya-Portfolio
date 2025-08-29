@@ -1,3 +1,4 @@
+
 import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioBlock, Page } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -19,7 +20,6 @@ interface BlockListItemProps {
 const BlockListItem: React.FC<BlockListItemProps> = ({
     block, onFocus, onRemove, onDuplicate, onMoveBlockToPage, pages, activePageId
 }) => {
-    // FIX: Add resizeObserverConfig to useSortable to fix dnd-kit error.
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({
         id: block.id,
         resizeObserverConfig: {

@@ -43,7 +43,7 @@ This document outlines the strategic roadmap for transitioning the Grooya Portfo
 | **AI Image Credits** | — | 10 / month | 30 / month | 100 / month |
 | **Customization** | Standard Blocks & Design | Standard Blocks & Design | Pro Blocks & Pro Design | Pro Blocks & Pro Design |
 | **Remove Branding** | — | ✅ | ✅ | ✅ |
-| **Custom Domain** | — | — | ✅ | ✅ |
+| **Custom Domain (On Hold)** | — | — | ✅ | ✅ |
 | **ATS Optimization** | — | — | ✅ | ✅ |
 | **Bilingual Sites** | — | — | — | ✅ |
 | **Advanced Analytics** | — | — | — | ✅ |
@@ -60,15 +60,16 @@ This document outlines the strategic roadmap for transitioning the Grooya Portfo
 -   [ ] **Webhooks:** Implement a webhook handler to listen for payment events from gateways (e.g., `payment.success`, `subscription.canceled`).
 
 #### Frontend Development
--   [x] **Data Context:** Refactor `DataContext.tsx` to manage the new, more complex `user.subscription` and `user.entitlements` objects.
--   [x] **Entitlements Logic:** Create a robust service (within DataContext) to check a user's permissions based on their active plan (e.g., `can_remove_branding`, `max_portfolios`).
--   [x] **New Pricing Page:** Build a dynamic pricing page that displays all four tiers, allows for annual/monthly toggling (with discount), and shows the correct currency based on user region.
--   [ ] **Billing Management:** Create a "Billing & Subscription" section in the `ProfilePage` where users can view their current plan, usage, renewal date, and manage their subscription.
--   [ ] **Contextual Upgrade Prompts:** Implement UI modals/banners that appear when a user hits a feature limit (e.g., trying to remove branding on the Free plan).
+-   [✅] **Data Context:** Refactor `DataContext.tsx` to manage the new, more complex `user.subscription` and `user.entitlements` objects.
+-   [✅] **Entitlements Logic:** Create a robust service (within DataContext) to check a user's permissions based on their active plan (e.g., `can_remove_branding`, `max_portfolios`).
+-   [✅] **New Pricing Page:** Build a dynamic pricing page that displays all four tiers, allows for annual/monthly toggling (with discount), and shows the correct currency based on user region.
+-   [✅] **Billing Management:** Create a "Billing & Subscription" section in the `ProfilePage` where users can view their current plan, usage, renewal date, and manage their subscription.
+-   [✅] **Contextual Upgrade Prompts:** Implement UI modals/banners that appear when a user hits a feature limit (e.g., trying to remove branding on the Free plan).
+-   [✅] **Analytics Dashboard:** Build the UI for the analytics page and gate it for Premium users.
 
 ---
 
-## 3. Phase 2: Early Adopter Program Launch
+## 2. Phase 2: Early Adopter Program Launch
 
 **Goal:** Drive initial user acquisition and word-of-mouth marketing through a limited-time promotional offer.
 
@@ -102,12 +103,12 @@ This document outlines the strategic roadmap for transitioning the Grooya Portfo
 
 ---
 
-## 4. Phase 3: Deep Localization & Feature Differentiation
+## 3. Phase 3: Deep Localization & Feature Differentiation
 
 **Goal:** Achieve product-market fit in Egypt and the wider MENA region by offering a truly native experience and career-specific tools.
 
 ### Localization Add-ons:
--   **Bilingual Portfolios (Arabic & English):** A huge edge in Gulf & Egypt.
+-   **Bilingual Portfolios (Arabic & English) (On Hold):** A huge edge in Gulf & Egypt.
 -   **Local Template Norms:** Templates that include common MENA CV features (e.g., photo + personal info).
 -   **Local Payment Bundles:** Starter tier purchasable via Fawry, Vodafone Cash, etc.
 
@@ -121,7 +122,7 @@ This document outlines the strategic roadmap for transitioning the Grooya Portfo
 ### Action Plan:
 -   [ ] **AI Content Generation:** Update prompts in `aiService.ts` to instruct the Gemini API to generate Arabic-first or bilingual content for users who require it (a Premium feature).
 -   [ ] **Payment Integration:** Complete the integration of local Egyptian payment methods.
--   [ ] **Bilingual Portfolios (Premium Feature):**
+-   [ ] **Bilingual Portfolios (Premium Feature) (On Hold):**
     -   [ ] **Data Structure:** Update the `Portfolio`'s `JSONField` structure to support content in multiple languages (e.g., `headline: { en: 'Hello', ar: 'مرحباً' }`).
     -   [ ] **UI:** Add a language switcher to the *public* portfolio view. Add language toggles within the editor for Premium users.
 -   [ ] **ATS-Friendly PDF Generation:** Implement a robust, server-side PDF generation service that correctly handles RTL text and layout for resumes.
@@ -129,7 +130,7 @@ This document outlines the strategic roadmap for transitioning the Grooya Portfo
 
 ---
 
-## 5. Phase 4: Engagement, Retention & Growth
+## 4. Phase 4: Engagement, Retention & Growth
 
 **Goal:** Keep users active on the platform even when not job-hunting and execute a phased go-to-market strategy.
 

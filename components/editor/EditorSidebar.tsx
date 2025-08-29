@@ -1,7 +1,4 @@
 
-
-
-
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { Portfolio, Page, Project, Skill, Palette, PortfolioAsset } from '../../types';
@@ -10,7 +7,6 @@ import { useTranslation } from '../../hooks/useTranslation';
 import { ArrowLeft, ArrowRight, Trash2, Palette as PaletteIcon, FileText, X, Eye, Command, Undo2, Redo2, Award, File, MoreVertical, Home, FilePenLine, Save } from 'lucide-react';
 import PagesPanel from './panels/PagesPanel';
 import ContentPanel from './panels/ContentPanel';
-// FIX: Change to default import.
 import DesignPanel from './panels/DesignPanel';
 import AssetsPanel from './panels/AssetsPanel';
 import { Check, ImageIcon } from 'lucide-react';
@@ -100,7 +96,6 @@ interface EditorSidebarProps {
     updatePortfolioDebounced: (updater: (p: Portfolio) => Portfolio) => void;
     setEditingPalette: (palette: Palette | 'new' | null) => void;
     handleDeletePalette: (paletteId: string) => void;
-    // FIX: Add prop to open AI Palette Generator
     setAIPaletteModalOpen: (isOpen: boolean) => void;
 
     // AssetsPanel Props

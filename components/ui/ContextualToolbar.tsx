@@ -13,12 +13,13 @@ interface ContextualToolbarProps {
   isTuning?: boolean;
 }
 
-const ToolbarButton: React.FC<{ onClick: (e: React.MouseEvent) => void, children: React.ReactNode, 'aria-label': string, disabled?: boolean }> = ({ onClick, children, 'aria-label': ariaLabel, disabled = false }) => (
+const ToolbarButton: React.FC<{ onClick: (e: React.MouseEvent) => void, children: React.ReactNode, 'aria-label': string, disabled?: boolean, title?: string }> = ({ onClick, children, 'aria-label': ariaLabel, disabled = false, title }) => (
     <button
         onClick={(e) => { e.stopPropagation(); onClick(e); }}
         className="p-2 rounded-md text-white hover:bg-teal-700 transition-colors disabled:opacity-50 disabled:cursor-wait"
         aria-label={ariaLabel}
         disabled={disabled}
+        title={title}
     >
         {children}
     </button>
@@ -54,7 +55,12 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
     >
       {onAIAssist && (
           <>
-            <ToolbarButton onClick={onAIAssist} aria-label="Generate with AI" disabled={isAIAssistLoading}>
+            <ToolbarButton 
+              onClick={onAIAssist} 
+              aria-label="Generate with AI" 
+              disabled={isAIAssistLoading}
+              title="Generate with AI (1 Text Credit)"
+            >
               {isAIAssistLoading ? (
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -68,7 +74,12 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
       )}
       {onTune && (
            <div className="relative" ref={tuneMenuRef}>
-            <ToolbarButton onClick={(e) => { e.stopPropagation(); setIsTuneMenuOpen(p => !p); }} aria-label="Tune for Audience" disabled={isTuning}>
+            <ToolbarButton 
+              onClick={(e) => { e.stopPropagation(); setIsTuneMenuOpen(p => !p); }} 
+              aria-label="Tune for Audience" 
+              disabled={isTuning}
+              title="Tune for Audience (1 Text Credit)"
+            >
               {isTuning ? (
                   <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                       <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
 import { DataProvider } from './contexts/DataContext';
@@ -28,6 +29,8 @@ import LoginPage from './pages/LoginPage';
 import PublicLayout from './components/layout/PublicLayout';
 import TemplatePreviewPage from './pages/TemplatePreviewPage';
 import PrintResumePage from './pages/PrintResumePage';
+import { useData } from './contexts/DataContext';
+import AnalyticsPage from './pages/AnalyticsPage';
 
 /**
  * A wrapper component for routes that require authentication.
@@ -58,14 +61,17 @@ const PrivateSimpleLayout = () => {
 
 /**
  * A wrapper component to protect admin-only routes.
+ * It checks for both authentication and the 'admin' role.
  */
 const AdminRoutes = () => {
     const { isAuthenticated } = useAuth();
-    // This component is always nested within PrivateRoutes, so we assume a user exists.
-    // However, a direct check is good practice.
-    if (!isAuthenticated) {
-        return <Navigate to="/login" replace />;
+    const { user } = useData();
+    
+    // Redirect if not authenticated or if the user is not an admin.
+    if (!isAuthenticated || user?.role !== 'admin') {
+        return <Navigate to="/dashboard" replace />;
     }
+
     return (
         <AdminLayout>
             <Outlet />
@@ -135,6 +141,7 @@ const App: React.FC = () => {
                    <Route path="resumes/edit/:resumeId" element={<ResumeEditorPage />} />
                    <Route path="upgrade" element={<UpgradePage />} />
                    <Route path="templates" element={<TemplateShowcasePage />} />
+                   <Route path="analytics" element={<AnalyticsPage />} />
                 </Route>
 
                 {/* Admin-only routes */}

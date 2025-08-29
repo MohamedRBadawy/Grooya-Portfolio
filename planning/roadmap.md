@@ -65,7 +65,19 @@ This is the long-term vision to make Grooya an indispensable career tool using t
 - [ ] **(OUT OF SCOPE)** ~~Job Application Tracker & Analyzer~~
 - [ ] **(OUT OF SCOPE)** ~~AI Interview Prep~~
 
-### 🚀 Phase 4: The Complete Career Companion
+### 🚀 Phase 4: Advanced Professional Features (Pro/Premium)
+- [✅] **Implement Pro-Tier Blocks & Design Tools:**
+    - [✅] Introduce exclusive content blocks. (Existing advanced blocks like Testimonials, Services, Experience, Code, Blog, and Video are now gated as Pro features).
+    - [✅] Gate specific design features (e.g., Custom Palettes, Parallax Backgrounds, Custom CSS) for Pro and Premium users.
+- [ ] **Custom Domain Support (Pro) (On Hold):**
+    - [ ] Build the UI for users to connect their own domain names.
+    - [ ] Implement backend functionality.
+- [✅] **Advanced Analytics Dashboard (Premium):**
+    - [✅] Develop a dashboard to display portfolio visitor analytics (views, traffic sources, geographic location).
+- [ ] **Bilingual Portfolio Support (Premium) (On Hold):**
+    - [ ] Architect the data models and UI to support creating and viewing portfolios in multiple languages.
+
+### 🚀 Phase 5: The Complete Career Companion
 - [ ] **Proactive Skill Development (On Hold):** Create personalized learning plans based on career goals and analysis of target job descriptions.
 - [ ] **Personal Branding Assistant (On Hold):** Repurpose portfolio content into drafts for LinkedIn posts or blog articles.
 - [ ] **(OUT OF SCOPE)** ~~Network & Opportunity Finder~~

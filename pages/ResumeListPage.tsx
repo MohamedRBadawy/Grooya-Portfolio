@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -6,10 +7,11 @@ import { useTranslation } from '../hooks/useTranslation';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import type { Resume } from '../types';
-import { Plus, FilePenLine, Trash2, Search, FileText, Download } from 'lucide-react';
+import { Plus, FilePenLine, Trash2, Search, FileText } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateResumeModal from '../components/CreateResumeModal';
 import toast from 'react-hot-toast';
+import UpgradeModal from '../components/UpgradeModal';
 
 const ResumeCard: React.FC<{
     resume: Resume,
@@ -34,11 +36,23 @@ const ResumeCard: React.FC<{
 };
 
 const ResumeListPage: React.FC = () => {
-  const { resumes, user, deleteResume } = useData();
+  const { resumes, user, deleteResume, entitlements } = useData();
   const navigate = useNavigate();
   const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isUpgradeModalOpen, setIsUpgradeModalOpen] = useState(false);
+
+  const canCreate = resumes.length < entitlements.maxResumes;
+  const tierName = user?.subscription.tier || 'free';
+  
+  const handleCreateNew = () => {
+    if (canCreate) {
+        setIsCreateModalOpen(true);
+    } else {
+        setIsUpgradeModalOpen(true);
+    }
+  };
 
   const containerVariants = {
       hidden: { opacity: 0 },
@@ -80,6 +94,11 @@ const ResumeListPage: React.FC = () => {
       initial: "hidden",
       animate: "visible",
   };
+  
+  const bannerMotionProps = {
+      initial: { opacity: 0, y: -10 },
+      animate: { opacity: 1, y: 0 },
+  };
 
   return (
     <>
@@ -90,11 +109,20 @@ const ResumeListPage: React.FC = () => {
                 <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-sora">{t('yourResumes')}</h1>
                 {user && <p className="text-slate-500 dark:text-slate-400 mt-1">{t('welcomeBack', { name: user.name.split(' ')[0] })}</p>}
             </div>
-            <Button onClick={() => setIsCreateModalOpen(true)} variant="primary">
+            <Button onClick={handleCreateNew} variant="primary">
                <Plus className="w-5 h-5 me-2" />
               {t('createNewResume')}
             </Button>
           </div>
+
+           {!canCreate && (
+             <motion.div 
+                {...bannerMotionProps}
+                className="p-4 mb-8 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-center"
+             >
+                <p className="text-amber-800 dark:text-amber-200 text-sm">You've reached your resume limit ({entitlements.maxResumes}) for the <span className="capitalize font-semibold">{tierName}</span> plan. <Link to="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-100">Upgrade your plan</Link> to create more.</p>
+            </motion.div>
+          )}
 
           <div className="mb-8 p-4 bg-white/60 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-xl">
             <div className="relative flex-grow">
@@ -131,7 +159,7 @@ const ResumeListPage: React.FC = () => {
               <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-sm mx-auto">
                 {t('getStartedResumes')}
               </p>
-              <Button onClick={() => setIsCreateModalOpen(true)} variant="primary" className="mt-6">{t('createNewResume')}</Button>
+              <Button onClick={handleCreateNew} variant="primary" className="mt-6">{t('createNewResume')}</Button>
             </div>
           )}
         </main>
@@ -144,6 +172,16 @@ const ResumeListPage: React.FC = () => {
             />
         )}
       </AnimatePresence>
+      <AnimatePresence>
+        {isUpgradeModalOpen && (
+            <UpgradeModal
+                isOpen={isUpgradeModalOpen}
+                onClose={() => setIsUpgradeModalOpen(false)}
+                featureName="Create More Resumes"
+                featureDescription={`You have reached the maximum of ${entitlements.maxResumes} resumes for the ${tierName} plan. Upgrade to a higher tier to create unlimited resumes.`}
+            />
+        )}
+        </AnimatePresence>
     </>
   );
 };

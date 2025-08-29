@@ -1,0 +1,21 @@
+{
+  "name": "Grooya Portfolio Builder",
+  "short_name": "Grooya",
+  "description": "A Minimum Viable Product (MVP) for the Grooya AI Career Operating System, focused on allowing users to create, design, and publish beautiful, professional portfolios based on their skills and projects.",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#14b8a6",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "type": "image/png",
+      "sizes": "192x192"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ]
+}

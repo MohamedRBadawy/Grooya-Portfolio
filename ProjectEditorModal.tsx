@@ -1,10 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-import { motion } from 'framer-motion';
-// FIX: '"../services/aiService"' has no exported member named 'generateProjectDescription'. Did you mean 'generateProjectStory'?
+import { motion, type MotionProps } from 'framer-motion';
 import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
@@ -78,18 +78,20 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
         return;
     }
     
-    // FIX: Argument of type '"projectDescription"' is not assignable to parameter of type 'AIFeature'.
     if (!consumeAiFeature('projectStory')) {
-      const message = user?.subscription?.tier === 'pro'
-        ? "You've run out of AI text credits for this month."
-        : "You've used your one free generation for this feature. Please upgrade to Pro to use it again.";
+      const tier = user?.subscription?.tier;
+      let message = "An error occurred.";
+      if (tier === 'free') {
+          message = "You've used your one free project story generation. Please upgrade to use it again.";
+      } else if (tier) {
+          message = "You've run out of AI text credits for this month. Please upgrade your plan or purchase more credits.";
+      }
       toast.error(message);
       return;
     }
 
     setIsGenerating(true);
     try {
-        // FIX: '"../services/aiService"' has no exported member named 'generateProjectDescription'. Did you mean 'generateProjectStory'?
         const description = await generateProjectStory(formData.title, formData.technologies, formData.description);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {
@@ -104,23 +106,29 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
     }
   };
 
-  const isPro = user?.subscription?.tier === 'pro';
+  const isPaidTier = user?.subscription?.tier !== 'free';
+  const backdropMotionProps: MotionProps = {
+      initial: { opacity: 0 },
+      animate: { opacity: 1 },
+      exit: { opacity: 0 },
+  };
+  const modalMotionProps: MotionProps = {
+      initial: { y: 20, scale: 0.95, opacity: 0 },
+      animate: { y: 0, scale: 1, opacity: 1 },
+      exit: { y: 20, scale: 0.95, opacity: 0 },
+      transition: { type: 'spring', stiffness: 300, damping: 30 },
+  };
 
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
+      {...backdropMotionProps}
     >
       <motion.div 
         className="bg-white dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800"
         onClick={e => e.stopPropagation()}
-        initial={{ y: 20, scale: 0.95, opacity: 0 }}
-        animate={{ y: 0, scale: 1, opacity: 1 }}
-        exit={{ y: 20, scale: 0.95, opacity: 0 }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+        {...modalMotionProps}
       >
         <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 rounded-t-2xl">
             <h3 className="font-bold text-slate-900 dark:text-slate-200 text-lg font-sora">
@@ -143,7 +151,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
                 <div className="flex justify-between items-center">
                     <EditorLabel htmlFor="description">{t('projectDescription')}</EditorLabel>
                      <div className="flex items-center gap-2">
-                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription?.credits.text} credits left</span>}
+                        {isPaidTier && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription.credits.text} credits left</span>}
                         <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
                     </div>
                 </div>

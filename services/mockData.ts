@@ -1,4 +1,4 @@
-import type { User, Project, Skill, Portfolio, EducationItem, Resume } from '../types';
+import type { User, Project, Skill, Portfolio, EducationItem, Resume, PromoCode } from '../types';
 
 export const mockUser: User = {
   id: 'user-1',
@@ -23,6 +23,26 @@ export const mockUser: User = {
 
 export const mockAllUsers: User[] = [
     mockUser,
+    {
+      id: 'user-admin',
+      name: 'Grooya Admin',
+      title: 'Platform Administrator',
+      email: 'admin@Grooya.com',
+      bio: 'System administrator for the Grooya platform.',
+      avatarUrl: 'https://picsum.photos/seed/admingrooya/200/200',
+      role: 'admin',
+      isEarlyAdopter: true,
+      subscription: {
+        tier: 'premium',
+        status: 'active',
+        renewsAt: Date.now() + 365 * 24 * 60 * 60 * 1000,
+        freeFeaturesUsed: {},
+        credits: {
+          text: 9999,
+          image: 9999,
+        },
+      },
+    },
     {
       id: 'user-2',
       name: 'Jane Smith',
@@ -134,6 +154,18 @@ export const mockEducation: EducationItem[] = [
 
 const now = Date.now();
 const oneDay = 1000 * 60 * 60 * 24;
+
+export const mockPromoCodes: PromoCode[] = [
+  {
+    id: 'promo-1',
+    code: 'GROOYA-ALPHA',
+    usageLimit: 1000,
+    timesUsed: 50,
+    grantsTier: 'premium',
+    isEarlyAdopter: true,
+    createdAt: now - 10 * oneDay,
+  }
+];
 
 export const initialResumes: Resume[] = [
     {

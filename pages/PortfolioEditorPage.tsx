@@ -2,11 +2,14 @@
 
 
 
+
+
+
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-// FIX: Add HeroBlock and AboutBlock for handleTuneContent
+// FIX: Add HeroBlock and AboutBlock types for tuneContentForAudience
 import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage, HeroBlock, AboutBlock } from '../types';
 import Button from '../components/ui/Button';
 import AddBlockMenu from '../components/AddBlockMenu';
@@ -56,7 +59,7 @@ const PortfolioEditorPage: React.FC = () => {
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [isAIAssistLoading, setIsAIAssistLoading] = useState(false);
     const [isAIDesignLoading, setIsAIDesignLoading] = useState(false);
-    // FIX: Add state for content tuning
+    // FIX: Add isTuning state
     const [isTuning, setIsTuning] = useState(false);
     const [editingPalette, setEditingPalette] = useState<Palette | 'new' | null>(null);
     const [isGeneratingAsset, setIsGeneratingAsset] = useState<boolean>(false);
@@ -317,7 +320,7 @@ const PortfolioEditorPage: React.FC = () => {
         }
     };
 
-    // FIX: Add handler for content tuning
+    // FIX: Add handleTuneContent function
     const handleTuneContent = async (audience: string) => {
         if (!portfolio || !activeBlockId || !user || !activePageId) return;
         const block = activePage?.blocks.find(b => b.id === activeBlockId);
@@ -607,6 +610,7 @@ const PortfolioEditorPage: React.FC = () => {
                     role="separator"
                 />
                 <main className="flex-grow h-full bg-slate-200 dark:bg-slate-950 p-8">
+                    {/* FIX: Pass onTune and isTuning props to PortfolioPreview */}
                     <PortfolioPreview 
                         portfolio={portfolio} 
                         activePage={activePage}
@@ -619,7 +623,6 @@ const PortfolioEditorPage: React.FC = () => {
                         onDeleteBlock={handleRemoveBlock}
                         onAIAssist={handleAIAssist}
                         isAIAssistLoading={isAIAssistLoading}
-                        // FIX: Pass onTune and isTuning props to resolve component error.
                         onTune={handleTuneContent}
                         isTuning={isTuning}
                         onPageLinkClick={(pageId) => setActivePageId(pageId)}
@@ -701,6 +704,7 @@ const PortfolioEditorPage: React.FC = () => {
                 ) : (
                     <main className="h-full relative">
                         <div className="h-full bg-slate-200 dark:bg-slate-950 p-2 sm:p-4">
+                             {/* FIX: Pass onTune and isTuning props to PortfolioPreview */}
                              <PortfolioPreview 
                                 portfolio={portfolio} 
                                 activePage={activePage}
@@ -713,7 +717,6 @@ const PortfolioEditorPage: React.FC = () => {
                                 onDeleteBlock={handleRemoveBlock}
                                 onAIAssist={handleAIAssist}
                                 isAIAssistLoading={isAIAssistLoading}
-                                // FIX: Pass onTune and isTuning props to resolve component error.
                                 onTune={handleTuneContent}
                                 isTuning={isTuning}
                                 onPageLinkClick={(pageId) => setActivePageId(pageId)}

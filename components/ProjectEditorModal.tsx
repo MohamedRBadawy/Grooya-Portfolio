@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
+// FIX: Add missing MotionProps type import
 import { motion, type MotionProps } from 'framer-motion';
-// FIX: Changed generateProjectDescription to generateProjectStory
+// FIX: '"../services/aiService"' has no exported member named 'generateProjectDescription'. Did you mean 'generateProjectStory'?
 import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
@@ -78,7 +80,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
         return;
     }
     
-    // FIX: Changed AIFeature from 'projectDescription' to 'projectStory'
+    // FIX: Argument of type '"projectDescription"' is not assignable to parameter of type 'AIFeature'.
     if (!consumeAiFeature('projectStory')) {
       const tier = user?.subscription?.tier;
       let message = "An error occurred.";
@@ -93,7 +95,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
 
     setIsGenerating(true);
     try {
-        // FIX: Changed function call from generateProjectDescription to generateProjectStory
+        // FIX: '"../services/aiService"' has no exported member named 'generateProjectDescription'. Did you mean 'generateProjectStory'?
         const description = await generateProjectStory(formData.title, formData.technologies, formData.description);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {

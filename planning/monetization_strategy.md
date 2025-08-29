@@ -38,7 +38,7 @@ Based on our discussion and including the Premium tier, here is the complete, mu
 | **AI Image Credits** | — | 10 / month | 30 / month | 100 / month |
 | **Customization** | Standard Blocks & Design | Standard Blocks & Design | Pro Blocks & Pro Design | Pro Blocks & Pro Design |
 | **Remove Branding** | — | ✅ | ✅ | ✅ |
-| **Custom Domain** | — | — | ✅ | ✅ |
+| **Custom Domain (On Hold)** | — | — | ✅ | ✅ |
 | **ATS Optimization** | — | — | ✅ | ✅ |
 | **Bilingual Sites** | — | — | — | ✅ |
 | **Advanced Analytics** | — | — | — | ✅ |

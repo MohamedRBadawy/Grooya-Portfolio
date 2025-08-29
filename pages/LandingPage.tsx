@@ -9,6 +9,38 @@ import { defaultPalettes } from '../services/palettes';
 import { useTranslation } from '../hooks/useTranslation';
 import type { PortfolioTemplate } from '../types';
 
+const plansData = {
+  monthly: {
+    USD: [
+      { tier: 'free', title: 'Free', price: '0', description: 'For personal use & students.', features: ['1 Portfolio', '1 Resume', '1 free use per AI text feature', 'Standard Blocks & Design', 'Grooya Branding'] },
+      { tier: 'starter', title: 'Starter', price: '5', description: 'For professionals getting started.', features: ['3 Portfolios', '3 Resumes', '50 AI Text Credits / month', '10 AI Image Credits / month', 'Remove Branding'] },
+      { tier: 'pro', title: 'Pro', price: '15', description: 'For serious professionals & freelancers.', features: ['10 Portfolios', 'Unlimited Resumes', '150 AI Text Credits / month', '30 AI Image Credits / month', 'Pro Blocks & Design Tools', 'Custom Domain', 'ATS Optimization'] },
+      { tier: 'premium', title: 'Premium', price: '30', description: 'For power users & agencies.', features: ['Unlimited Portfolios', 'Unlimited Resumes', '500 AI Text Credits / month', '100 AI Image Credits / month', 'Bilingual Sites', 'Advanced Analytics'] },
+    ],
+    EGP: [
+      { tier: 'free', title: 'Free', price: '0', description: 'للاستخدام الشخصي والطلاب.', features: ['ملف شخصي واحد', 'سيرة ذاتية واحدة', 'استخدام مجاني واحد لكل ميزة ذكاء اصطناعي', 'أقسام وتصاميم قياسية', 'علامة Grooya التجارية'] },
+      { tier: 'starter', title: 'Starter', price: '200', description: 'للمحترفين الذين يبدأون للتو.', features: ['3 ملفات شخصية', '3 سير ذاتية', '50 رصيد نصي AI / شهر', '10 أرصدة صور AI / شهر', 'إزالة العلامة التجارية'] },
+      { tier: 'pro', title: 'Pro', price: '450', description: 'للمحترفين الجادين والمستقلين.', features: ['10 ملفات شخصية', 'سير ذاتية غير محدودة', '150 رصيد نصي AI / شهر', '30 رصيد صور AI / شهر', 'أقسام وتصاميم احترافية', 'نطاق مخصص', 'تحسين ATS'] },
+      { tier: 'premium', title: 'Premium', price: '800', description: 'للمستخدمين المتقدمين والوكالات.', features: ['ملفات شخصية غير محدودة', 'سير ذاتية غير محدودة', '500 رصيد نصي AI / شهر', '100 رصيد صور AI / شهر', 'مواقع ثنائية اللغة', 'تحليلات متقدمة'] },
+    ]
+  },
+  annual: {
+    USD: [
+      { tier: 'free', title: 'Free', price: '0', description: 'For personal use & students.', features: ['1 Portfolio', '1 Resume', '1 free use per AI text feature', 'Standard Blocks & Design', 'Grooya Branding'] },
+      { tier: 'starter', title: 'Starter', price: '50', description: 'For professionals getting started.', features: ['3 Portfolios', '3 Resumes', '50 AI Text Credits / month', '10 AI Image Credits / month', 'Remove Branding'] },
+      { tier: 'pro', title: 'Pro', price: '150', description: 'For serious professionals & freelancers.', features: ['10 Portfolios', 'Unlimited Resumes', '150 AI Text Credits / month', '30 AI Image Credits / month', 'Pro Blocks & Design Tools', 'Custom Domain', 'ATS Optimization'] },
+      { tier: 'premium', title: 'Premium', price: '300', description: 'For power users & agencies.', features: ['Unlimited Portfolios', 'Unlimited Resumes', '500 AI Text Credits / month', '100 AI Image Credits / month', 'Bilingual Sites', 'Advanced Analytics'] },
+    ],
+    EGP: [
+        { tier: 'free', title: 'Free', price: '0', description: 'للاستخدام الشخصي والطلاب.', features: ['ملف شخصي واحد', 'سيرة ذاتية واحدة', 'استخدام مجاني واحد لكل ميزة ذكاء اصطناعي', 'أقسام وتصاميم قياسية', 'علامة Grooya التجارية'] },
+        { tier: 'starter', title: 'Starter', price: '2000', description: 'للمحترفين الذين يبدأون للتو.', features: ['3 ملفات شخصية', '3 سير ذاتية', '50 رصيد نصي AI / شهر', '10 أرصدة صور AI / شهر', 'إزالة العلامة التجارية'] },
+        { tier: 'pro', title: 'Pro', price: '4500', description: 'للمحترفين الجادين والمستقلين.', features: ['10 ملفات شخصية', 'سير ذاتية غير محدودة', '150 رصيد نصي AI / شهر', '30 رصيد صور AI / شهر', 'أقسام وتصاميم احترافية', 'نطاق مخصص', 'تحسين ATS'] },
+        { tier: 'premium', title: 'Premium', price: '8000', description: 'للمستخدمين المتقدمين والوكالات.', features: ['ملفات شخصية غير محدودة', 'سير ذاتية غير محدودة', '500 رصيد نصي AI / شهر', '100 رصيد صور AI / شهر', 'مواقع ثنائية اللغة', 'تحليلات متقدمة'] },
+    ]
+  }
+};
+
+
 const AnimatedUIPreview: React.FC = () => {
     const containerVariants: Variants = {
         hidden: { opacity: 0 },
@@ -111,27 +143,28 @@ const FeatureListItem: React.FC<{ children: React.ReactNode }> = ({ children }) 
 );
 
 const PricingCard: React.FC<{
-    tier: 'free' | 'pro';
+    tier: string;
     title: string;
     price: string;
     description: string;
     features: string[];
-}> = ({ tier, title, price, description, features }) => {
-    const isPro = tier === 'pro';
+    isPopular?: boolean;
+}> = ({ tier, title, price, description, features, isPopular = false }) => {
     return (
-        <div className={`p-8 rounded-2xl border-2 flex flex-col ${isPro ? 'bg-slate-50 dark:bg-slate-900 border-teal-500' : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}>
-            <h3 className={`text-2xl font-bold font-sora ${isPro ? 'text-teal-600 dark:text-teal-400' : 'text-slate-900 dark:text-slate-50'}`}>{title}</h3>
+        <div className={`p-8 rounded-2xl border-2 flex flex-col relative overflow-hidden ${isPopular ? 'bg-slate-50 dark:bg-slate-900 border-teal-500' : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}>
+            {isPopular && <div className="absolute top-0 right-0 bg-teal-500 text-white text-xs font-bold px-8 py-1 -rotate-45 translate-x-1/3 translate-y-1/2">Most Popular</div>}
+            <h3 className={`text-2xl font-bold font-sora ${isPopular ? 'text-teal-600 dark:text-teal-400' : 'text-slate-900 dark:text-slate-50'}`}>{title}</h3>
             <p className="text-slate-600 dark:text-slate-400 mt-2 h-12">{description}</p>
             <div className="my-8">
-                <span className="text-5xl font-bold text-slate-900 dark:text-slate-50">{price}</span>
-                <span className="text-slate-500 dark:text-slate-400">{isPro ? '/ month' : ''}</span>
+                <span className="text-5xl font-bold text-slate-900 dark:text-slate-50">{price === '0' ? 'Free' : `$${price}`}</span>
+                <span className="text-slate-500 dark:text-slate-400">{price !== '0' ? '/ month' : ''}</span>
             </div>
             <ul className="space-y-4 mb-8 flex-grow">
                 {features.map((feature, i) => <FeatureListItem key={i}>{feature}</FeatureListItem>)}
             </ul>
-             <Link to={isPro ? "/dashboard/upgrade" : "/dashboard"}>
-                <Button variant={isPro ? 'primary' : 'secondary'} size="lg" className="w-full">
-                    {isPro ? 'Upgrade to Pro' : 'Get Started'}
+             <Link to={tier === 'free' ? "/dashboard" : "/dashboard/upgrade"}>
+                <Button variant={isPopular ? 'primary' : 'secondary'} size="lg" className="w-full">
+                    {tier === 'free' ? 'Get Started' : `Choose ${title}`}
                 </Button>
             </Link>
         </div>
@@ -313,25 +346,35 @@ const LandingPage: React.FC = () => {
                         </p>
                     </motion.div>
                     <motion.div 
-                        className="mt-16 grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-4xl mx-auto"
+                        className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
                         {...gridMotionProps}
                     >
                         <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="free"
-                                title="Starter"
-                                price="Free"
-                                description="Perfect for getting started and building your first portfolio."
-                                features={[ '1 Portfolio', '1 Resume', 'AI Content Generation (Free Trial)', 'Standard Design Tools', 'Grooya Branding' ]}
+                                title={plansData.monthly.USD[0].title}
+                                price={plansData.monthly.USD[0].price}
+                                description={plansData.monthly.USD[0].description}
+                                features={plansData.monthly.USD[0].features}
                             />
                         </motion.div>
                          <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="pro"
-                                title="Pro"
-                                price="$15"
-                                description="For professionals who want to stand out and unlock all features."
-                                features={[ '10 Portfolios', 'Unlimited Resumes', 'Monthly AI Credits', 'AI Image Generation', 'Pro Design Tools', 'Remove Branding' ]}
+                                title={plansData.monthly.USD[2].title}
+                                price={plansData.monthly.USD[2].price}
+                                description={plansData.monthly.USD[2].description}
+                                features={plansData.monthly.USD[2].features}
+                                isPopular={true}
+                            />
+                        </motion.div>
+                         <motion.div variants={itemVariants}>
+                            <PricingCard
+                                tier="starter"
+                                title={plansData.monthly.USD[1].title}
+                                price={plansData.monthly.USD[1].price}
+                                description={plansData.monthly.USD[1].description}
+                                features={plansData.monthly.USD[1].features}
                             />
                         </motion.div>
                     </motion.div>

@@ -15,13 +15,22 @@ This phase established the foundational elements of the application, focusing on
     -   `[x]` **Project Management Page:** A global library for managing projects.
     -   `[x]` **Resume Builder (List & full-featured Editor for all sections):** Dedicated pages for creating and editing resumes.
     -   `[x]` **Template Showcase Page:** A full-page gallery to browse and select portfolio templates.
+    -   `[x]` **Analytics Dashboard Page (Premium):** A new page to display portfolio analytics.
 -   **[x] Settings & Account Pages**
     -   `[x]` **User Profile Page:** Form to update user details.
     -   `[x]` **Upgrade / Billing Page:** A page to display subscription tiers and simulate upgrades.
+    -   `[ ]` **Domain Management Page (Pro) (On Hold):** A new settings page for users to configure a custom domain.
 -   **[x] Supporting Features & UI Components**
     -   `[x]` **Command Palette:** `Cmd/Ctrl+K` for quick actions.
     -   `[x]` **Undo/Redo Functionality:** Client-side history in the editor.
     -   `[x]` **Theme & Language Switchers:** Controls for light/dark mode and en/ar languages.
+
+## Architectural Considerations for Premium Features
+
+-   **Bilingual Sites:** Implementing this feature will require significant architectural changes:
+    -   **Data Structure:** The `JSONField` for blocks in the `Portfolio` model will need to support multilingual content (e.g., `headline: { en: '...', ar: '...' }`).
+    -   **Editor UI:** A language switcher will need to be added to the `PortfolioEditorPage` to allow users to input content for different languages.
+    -   **Public UI:** The `PublicPortfolioPage` will need a visitor-facing language selector.
 
 ## ✅ Phase 2: Public Presence & User Acquisition (Completed)
 
@@ -53,9 +62,9 @@ This phase improves the user experience within the authenticated application, ma
         -   `[ ]` Ability to delete unused assets.
 -   **[ ] Supporting Features & UI Components**
     -   `[ ]` **Onboarding Tour:** A guided, step-by-step tutorial for new users in the editor (e.g., using a library like Shepherd.js).
-    -   `[ ]` **PWA (Progressive Web App) Support:**
-        -   `[ ]` Create a `manifest.json` file.
-        -   `[ ]` Implement a service worker for basic offline caching of the editor shell and assets.
+    -   `[✅]` **PWA (Progressive Web App) Support:**
+        -   `[✅]` Create a `manifest.json` file.
+        -   `[✅]` Implement a service worker for basic offline caching of the editor shell and assets.
 
 ## ✅ Phase 4: Administration & Platform Management (Completed)
 

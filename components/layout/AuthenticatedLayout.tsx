@@ -1,11 +1,9 @@
-
-
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
-import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy, LogOut } from 'lucide-react';
+import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy, LogOut, BarChartHorizontal } from 'lucide-react';
 import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 
 const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
@@ -69,6 +67,9 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
         animate: { opacity: 1, height: 'auto' },
         exit: { opacity: 0, height: 0 },
     };
+    
+    const hasLifetime = user?.oneTimePurchases?.includes('proLifetime');
+    const isPaidTier = user?.subscription.tier !== 'free' || hasLifetime;
 
     return (
         <div className="min-h-screen bg-slate-100 dark:bg-slate-950">
@@ -119,7 +120,7 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                 </div>
                                                 <div className="p-2">
                                                     {user.role === 'admin' && (
-                                                        <NavLink to="/admin/dashboard" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
+                                                        <NavLink to="/admin" onClick={() => setIsUserMenuOpen(false)} className={({isActive}) => `flex items-center w-full px-3 py-2 text-sm rounded-md ${isActive ? 'bg-slate-100 dark:bg-slate-700/50 text-slate-800 dark:text-slate-200' : 'text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50'}`}>
                                                             <Shield size={16} className="mr-3" /> Admin Panel
                                                         </NavLink>
                                                     )}
@@ -133,12 +134,16 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                         <LifeBuoy size={16} className="mr-3" /> {t('nav.support')}
                                                     </a>
                                                     <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+                                                     {isPaidTier && (
+                                                        <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 space-y-1">
+                                                            <div className="flex justify-between items-center"><span>Text Credits</span> <span className="font-semibold text-slate-700 dark:text-slate-300">{user.subscription.credits.text}</span></div>
+                                                            <div className="flex justify-between items-center"><span>Image Credits</span> <span className="font-semibold text-slate-700 dark:text-slate-300">{user.subscription.credits.image}</span></div>
+                                                        </div>
+                                                     )}
+                                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
                                                     <button onClick={handleLogout} className="flex items-center w-full px-3 py-2 text-sm rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
                                                         <LogOut size={16} className="mr-3" /> {t('logout')}
                                                     </button>
-                                                </div>
-                                                <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
-                                                    <p className="text-xs text-slate-600 dark:text-slate-400">Current Plan: <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">{user.subscription?.tier}</span></p>
                                                 </div>
                                             </motion.div>
                                         )}

@@ -1,6 +1,8 @@
 
 
 
+
+
 /**
  * @description يمثل مستخدم التطبيق.
  * @property {string} id - المعرّف الفريد للمستخدم.
@@ -562,4 +564,17 @@ export interface AIPortfolioReview {
     }[];
     projectShowcaseFeedback: string;
     missingSections: PortfolioBlock['type'][];
+}
+
+/**
+ * @description Represents a promotional code that can be redeemed by users.
+ */
+export interface PromoCode {
+  id: string;
+  code: string; // The string users will enter
+  usageLimit: number; // Max number of times this code can be used
+  timesUsed: number; // How many times it has been used
+  grantsTier: 'starter' | 'pro' | 'premium'; // Which tier it grants
+  isEarlyAdopter: boolean; // Does it grant the early adopter badge?
+  createdAt: number; // Timestamp
 }

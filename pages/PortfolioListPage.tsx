@@ -7,7 +7,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import type { Portfolio } from '../types';
-import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban, Sparkles } from 'lucide-react';
+import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban, Sparkles, BarChartHorizontal } from 'lucide-react';
 import PortfolioPreviewModal from '../components/PortfolioPreviewModal';
 import { useApp } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
@@ -70,6 +70,12 @@ const PortfolioCard: React.FC<{
             {t('updated')}: {new Date(portfolio.updatedAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
          </p>
          <div className="flex items-center gap-2">
+            <Link to={`/dashboard/analytics`} onClick={e => e.stopPropagation()}>
+                <Button variant="secondary" size="sm" className="!px-3 !bg-cyan-100/50 dark:!bg-cyan-900/20 !text-cyan-700 dark:!text-cyan-300 border-cyan-200 dark:border-cyan-800">
+                    <BarChartHorizontal size={14} className="me-1.5" />
+                    Analytics
+                </Button>
+            </Link>
             <Link to={`/dashboard/edit/${portfolio.id}`} onClick={e => e.stopPropagation()}>
                 <Button variant="secondary" size="sm" className="!px-3">
                     <FilePenLine size={14} className="me-1.5" />

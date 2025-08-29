@@ -1,7 +1,3 @@
-
-
-
-
 import React, { useMemo, useRef, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -96,7 +92,6 @@ interface PublicPortfolioPageProps {
     onPageLinkClick?: (pageId: string) => void;
     onAIAssist?: () => void;
     isAIAssistLoading?: boolean;
-    // FIX: Add onTune and isTuning props
     onTune?: (audience: string) => void;
     isTuning?: boolean;
     scrollContainerRef?: React.RefObject<HTMLDivElement | null>;

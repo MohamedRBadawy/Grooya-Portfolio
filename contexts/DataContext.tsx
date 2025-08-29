@@ -1,8 +1,9 @@
 
 
+
 import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo } from 'react';
-import type { User, Project, Skill, Portfolio, PortfolioBlock, Resume, Page, AIFeature, PortfolioTemplate } from '../types';
-import { mockUser, initialProjects, masterSkillsList, initialPortfolios, initialResumes } from '../services/mockData';
+import type { User, Project, Skill, Portfolio, PortfolioBlock, Resume, Page, AIFeature, PortfolioTemplate, PromoCode } from '../types';
+import { mockUser, initialProjects, masterSkillsList, initialPortfolios, initialResumes, mockPromoCodes } from '../services/mockData';
 import { portfolioTemplates as initialTemplates } from '../services/templates';
 import toast from 'react-hot-toast';
 
@@ -48,6 +49,8 @@ const ENTITLEMENTS = {
         atsOptimization: false,
         advancedAnalytics: false,
         bilingualSites: false,
+        hasProDesignTools: false,
+        hasProBlocks: false,
     },
     starter: {
         maxPortfolios: 3,
@@ -57,6 +60,8 @@ const ENTITLEMENTS = {
         atsOptimization: false,
         advancedAnalytics: false,
         bilingualSites: false,
+        hasProDesignTools: false,
+        hasProBlocks: false,
     },
     pro: {
         maxPortfolios: 10,
@@ -64,8 +69,10 @@ const ENTITLEMENTS = {
         canRemoveBranding: true,
         canUseCustomDomains: true,
         atsOptimization: true,
-        advancedAnalytics: true,
+        advancedAnalytics: false,
         bilingualSites: false,
+        hasProDesignTools: true,
+        hasProBlocks: true,
     },
     premium: {
         maxPortfolios: 999, // Unlimited
@@ -75,6 +82,8 @@ const ENTITLEMENTS = {
         atsOptimization: true,
         advancedAnalytics: true,
         bilingualSites: true,
+        hasProDesignTools: true,
+        hasProBlocks: true,
     }
 };
 
@@ -88,6 +97,7 @@ interface DataContextType {
   portfolios: Portfolio[];
   resumes: Resume[];
   templates: PortfolioTemplate[];
+  promoCodes: PromoCode[];
   entitlements: Entitlements;
   getPortfolioById: (id: string) => Portfolio | undefined;
   updatePortfolio: (updatedPortfolio: Portfolio) => void;
@@ -107,6 +117,8 @@ interface DataContextType {
   updateTemplate: (updatedTemplate: PortfolioTemplate) => void;
   createTemplate: (newTemplateData: Omit<PortfolioTemplate, 'id'>) => PortfolioTemplate;
   deleteTemplate: (templateId: string) => void;
+  createPromoCode: (newPromoCodeData: Omit<PromoCode, 'id' | 'createdAt' | 'timesUsed'>) => PromoCode;
+  deletePromoCode: (promoCodeId: string) => void;
   upgradeToStarter: () => void;
   upgradeToPro: () => void;
   upgradeToPremium: () => void;
@@ -128,6 +140,7 @@ const PROJECTS_STORAGE_KEY = 'grooya_projects';
 const SKILLS_STORAGE_KEY = 'grooya_skills';
 const RESUMES_STORAGE_KEY = 'grooya_resumes';
 const TEMPLATES_STORAGE_KEY = 'grooya_templates';
+const PROMO_CODES_STORAGE_KEY = 'grooya_promo_codes';
 
 /**
  * The DataProvider component is a central place to manage all application data.
@@ -205,6 +218,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return initialTemplates;
     }
   });
+  
+  // Initialize promo codes state
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => {
+    try {
+      const stored = window.localStorage.getItem(PROMO_CODES_STORAGE_KEY);
+      return stored ? JSON.parse(stored) : mockPromoCodes;
+    } catch (error) {
+      console.error("Error reading promo codes from local storage", error);
+      return mockPromoCodes;
+    }
+  });
 
   // --- Effects to persist data to local storage ---
   useEffect(() => { window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user)); }, [user]);
@@ -213,17 +237,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => { window.localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(skills)); }, [skills]);
   useEffect(() => { window.localStorage.setItem(RESUMES_STORAGE_KEY, JSON.stringify(resumes)); }, [resumes]);
   useEffect(() => { window.localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates)); }, [templates]);
+  useEffect(() => { window.localStorage.setItem(PROMO_CODES_STORAGE_KEY, JSON.stringify(promoCodes)); }, [promoCodes]);
   
   // --- Entitlements Calculation ---
   const entitlements = useMemo(() => {
     if (!user) return ENTITLEMENTS.free;
 
     const hasProLifetime = user.oneTimePurchases?.includes('proLifetime');
-    const tier = user.subscription?.tier || 'free';
     
     // User gets Pro entitlements if they have a Pro subscription OR a lifetime license.
     if (hasProLifetime) return ENTITLEMENTS.pro;
     
+    const tier = user.subscription?.tier || 'free';
     return ENTITLEMENTS[tier];
   }, [user]);
 
@@ -323,6 +348,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setTemplates(prev => prev.filter(t => t.id !== templateId));
   };
 
+  // --- Promo Code CRUD (Admin) ---
+  const createPromoCode = (newPromoCodeData: Omit<PromoCode, 'id' | 'createdAt' | 'timesUsed'>) => {
+    const newCode: PromoCode = {
+      ...newPromoCodeData,
+      id: `promo-${Date.now()}`,
+      createdAt: Date.now(),
+      timesUsed: 0,
+    };
+    setPromoCodes(prev => [...prev, newCode]);
+    return newCode;
+  };
+  
+  const deletePromoCode = (promoCodeId: string) => {
+    setPromoCodes(prev => prev.filter(p => p.id !== promoCodeId));
+  };
+
   // --- User Profile ---
   const updateUser = (updatedUser: User) => {
     setUser(updatedUser);
@@ -363,12 +404,37 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const applyPromoCode = (code: string) => {
-      if (code.toUpperCase() === 'GROOYA-ALPHA') {
-           setUser(prev => prev ? { ...prev, subscription: PREMIUM_PLAN, isEarlyAdopter: true } : null);
-           toast.success('Promo code applied! Welcome, Early Adopter! You now have the Premium plan.');
-      } else {
-          toast.error('Invalid promo code.');
-      }
+    const promo = promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase());
+
+    if (!promo) {
+        toast.error('Invalid promo code.');
+        return;
+    }
+
+    if (promo.timesUsed >= promo.usageLimit) {
+        toast.error('This promo code has reached its usage limit.');
+        return;
+    }
+
+    const plans = {
+        starter: STARTER_PLAN,
+        pro: PRO_PLAN,
+        premium: PREMIUM_PLAN,
+    };
+    const planToGrant = plans[promo.grantsTier];
+    
+    setUser(prev => prev ? { 
+        ...prev, 
+        subscription: planToGrant, 
+        isEarlyAdopter: prev.isEarlyAdopter || promo.isEarlyAdopter 
+    } : null);
+
+    // Update promo code usage
+    setPromoCodes(prev => prev.map(p => 
+        p.id === promo.id ? { ...p, timesUsed: p.timesUsed + 1 } : p
+    ));
+
+    toast.success(`Promo code applied! You now have the ${promo.grantsTier} plan.`);
   };
 
     const makeOneTimePurchase = (purchaseId: 'proLifetime' | 'creditsTextTier1' | 'creditsImageTier1') => {
@@ -398,14 +464,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
         const { subscription } = user;
         const isTextFeature = feature !== 'imageGeneration';
+        const cost = 1; // All features currently cost 1 credit
 
         if (subscription.tier === 'free') {
-            // Free users cannot generate images.
-            if (!isTextFeature) return false;
-            // Free users cannot use a feature more than once.
-            if (subscription.freeFeaturesUsed[feature]) return false;
+            if (!isTextFeature) {
+                toast.error("AI Image Generation is a feature for paid plans. Please upgrade to continue.");
+                return false;
+            }
+            if (subscription.freeFeaturesUsed[feature]) {
+                toast.error("You've already used your one free credit for this feature. Please upgrade to use it again.");
+                return false;
+            }
 
-            // Mark the feature as used for the free user.
             setUser(prev => {
                 if (!prev) return null;
                 const newFreeFeaturesUsed = { ...prev.subscription.freeFeaturesUsed, [feature]: true };
@@ -414,48 +484,54 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                     subscription: { ...prev.subscription, freeFeaturesUsed: newFreeFeaturesUsed }
                 };
             });
+            toast.success("Used 1 free AI credit.");
             return true;
         }
 
-        // For paid tiers, check and decrement credits.
         if (isTextFeature) {
-            if (subscription.credits.text > 0) {
+            if (subscription.credits.text >= cost) {
                 setUser(prev => {
                     if (!prev) return null;
                     return {
                         ...prev,
-                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, text: prev.subscription.credits.text - 1 } }
+                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, text: prev.subscription.credits.text - cost } }
                     };
                 });
+                toast.success(`Used ${cost} Text Credit.`);
                 return true;
+            } else {
+                toast.error("You've run out of AI text credits. Please upgrade your plan or purchase more.");
+                return false;
             }
         } else { // Image generation
-            if (subscription.credits.image > 0) {
+            if (subscription.credits.image >= cost) {
                 setUser(prev => {
                     if (!prev) return null;
                     return {
                         ...prev,
-                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, image: prev.subscription.credits.image - 1 } }
+                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, image: prev.subscription.credits.image - cost } }
                     };
                 });
+                toast.success(`Used ${cost} Image Credit.`);
                 return true;
+            } else {
+                toast.error("You've run out of AI image credits. Please upgrade your plan or purchase more.");
+                return false;
             }
         }
-
-        // If no conditions are met (e.g., out of credits), deny usage.
-        return false;
     };
 
 
   return (
     <DataContext.Provider value={{
-      user, projects, skills, portfolios, resumes, templates,
+      user, projects, skills, portfolios, resumes, templates, promoCodes,
       entitlements,
       getPortfolioById, updatePortfolio, createPortfolio, deletePortfolio, duplicatePortfolio,
       createProject, updateProject, deleteProject,
       createSkill,
       getResumeById, updateResume, createResume, deleteResume,
       getTemplateById, updateTemplate, createTemplate, deleteTemplate,
+      createPromoCode, deletePromoCode,
       updateUser,
       upgradeToStarter, upgradeToPro, upgradeToPremium, switchToFree,
       consumeAiFeature,

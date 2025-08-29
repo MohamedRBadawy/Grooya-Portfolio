@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { useData } from '../contexts/DataContext';
 import { Link } from 'react-router-dom';
@@ -7,7 +5,6 @@ import Button from './ui/Button';
 import { Gem, Calendar, RefreshCw, XCircle, Star } from 'lucide-react';
 
 const CreditUsageBar: React.FC<{ used: number, total: number, label: string }> = ({ used, total, label }) => {
-    const percentage = total > 0 ? (used / total) * 100 : 0;
     const remaining = total - used;
     const remainingPercentage = total > 0 ? (remaining / total) * 100 : 0;
     

@@ -24,8 +24,8 @@ This document outlines the strategic roadmap for evolving the Grooya Portfolio H
 
 - [✅] **Image Optimization Pipeline:**
     - [ ] **Format Conversion & Resizing:** Implement a process (or simulate one in the frontend) to serve images in modern formats like **WebP** and resize them to optimal dimensions for the user's device.
-    - [✅] **Lazy Loading:** Implement lazy-loading for all off-screen images in the public portfolio view to drastically reduce initial page load time.
-- [ ] **Component Lazy Loading:**
+    - [✅] **Lazy Loading:** Implemented native browser lazy loading (`loading="lazy"`) for images across the application (public portfolios, project lists, admin views) to improve initial page load times.
+- [ ] **Component Lazy Loading (On Hold):**
     - [ ] Use `React.lazy` and `Suspense` to code-split and lazy-load individual portfolio block components, so the browser only downloads the code for blocks that are about to enter the viewport.
 - [ ] **Integrate Tailwind CSS into Build Process:**
     - [ ] Remove the Tailwind CSS CDN script from `index.html`.
@@ -44,10 +44,10 @@ This document outlines the strategic roadmap for evolving the Grooya Portfolio H
 - [ ] **Implement Interactive Onboarding Tour:**
     - [ ] Integrate a library like **Shepherd.js** or **Intro.js** to create a guided tour for new users.
     - [ ] The tour should highlight key features of the editor: the sidebar tabs, the block inserter, inline editing, and the "Get AI Review" button.
-- [ ] **Add Progressive Web App (PWA) Support:**
-    - [ ] Create a `manifest.json` file with app icons and metadata.
-    - [ ] Implement a service worker (`service-worker.js`) to cache the application shell and key assets for offline access.
-    - [ ] This enables "Add to Home Screen" functionality on mobile devices, making the app feel more native.
+- [✅] **Add Progressive Web App (PWA) Support:**
+    - [✅] Create a `manifest.json` file with app icons and metadata.
+    - [✅] Implement a service worker (`service-worker.js`) to cache the application shell and key assets for offline access.
+    - [✅] This enables "Add to Home Screen" functionality on mobile devices, making the app feel more native.
 
 ---
 

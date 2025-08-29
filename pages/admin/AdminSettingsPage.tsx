@@ -1,10 +1,10 @@
-
 import React, { useState } from 'react';
 import { useTranslation } from '../../hooks/useTranslation';
 import Button from '../../components/ui/Button';
 import Card from '../../components/ui/Card';
-import { Save, Bell, Code } from 'lucide-react';
+import { Save, Bell, Code, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { useData } from '../../contexts/DataContext';
 
 const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string, className?: string }> = ({ children, htmlFor, className }) => (
     <label htmlFor={htmlFor} className={`block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5 ${className || ''}`}>{children}</label>
@@ -27,6 +27,7 @@ const ToggleSwitch: React.FC<{ label: string; enabled: boolean; setEnabled: (ena
 
 const AdminSettingsPage: React.FC = () => {
     const { t } = useTranslation();
+    const { promoCodes, createPromoCode, deletePromoCode } = useData();
     
     // Mock state for settings. In a real app, this would come from a context or API.
     const [settings, setSettings] = useState({
@@ -39,6 +40,13 @@ const AdminSettingsPage: React.FC = () => {
         },
         proPrice: 9,
     });
+    
+    // State for new promo code form
+    const [isCreatingPromo, setIsCreatingPromo] = useState(false);
+    const [newPromoCode, setNewPromoCode] = useState('');
+    const [newPromoLimit, setNewPromoLimit] = useState(100);
+    const [newPromoTier, setNewPromoTier] = useState<'starter' | 'pro' | 'premium'>('pro');
+    const [grantsEarlyAdopter, setGrantsEarlyAdopter] = useState(true);
 
     const handleSettingChange = (key: keyof typeof settings, value: any) => {
         setSettings(prev => ({ ...prev, [key]: value }));
@@ -52,6 +60,42 @@ const AdminSettingsPage: React.FC = () => {
                 [key]: value,
             }
         }));
+    };
+    
+    const handleCreatePromoCode = () => {
+        if (!newPromoCode.trim() || newPromoLimit <= 0) {
+            toast.error("Please enter a valid code and usage limit.");
+            return;
+        }
+        createPromoCode({
+            code: newPromoCode,
+            usageLimit: newPromoLimit,
+            grantsTier: newPromoTier,
+            isEarlyAdopter: grantsEarlyAdopter,
+        });
+        toast.success(`Promo code "${newPromoCode}" created!`);
+        // Reset form
+        setNewPromoCode('');
+        setNewPromoLimit(100);
+        setNewPromoTier('pro');
+        setGrantsEarlyAdopter(true);
+        setIsCreatingPromo(false);
+    };
+    
+    const handleDeletePromoCode = (id: string, code: string) => {
+        toast((toastInstance) => (
+            <div className="flex flex-col items-start gap-3">
+                <span className="font-medium">Delete "{code}"?</span>
+                <div className="flex gap-2 self-stretch">
+                    <Button variant="danger" size="sm" className="flex-grow" onClick={() => { deletePromoCode(id); toast.dismiss(toastInstance.id); }}>
+                        Confirm
+                    </Button>
+                    <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
+                        Cancel
+                    </Button>
+                </div>
+            </div>
+        ), { duration: 6000 });
     };
 
     const handleSave = () => {
@@ -109,17 +153,98 @@ const AdminSettingsPage: React.FC = () => {
                          </div>
                     </Card>
                 </div>
-                {/* Feature Flags */}
-                <Card className="!shadow-sm">
-                     <div className="p-6">
-                        <h2 className="text-xl font-bold font-sora mb-4">{t('admin.settings.featureFlags.title')}</h2>
-                         <div className="space-y-4">
-                            <ToggleSwitch label="Enable Video Blocks" enabled={settings.featureFlags.videoBlocks} setEnabled={(val) => handleFlagChange('videoBlocks', val)} />
-                            <ToggleSwitch label="Enable AI Resume Tailoring" enabled={settings.featureFlags.aiResumeTailoring} setEnabled={(val) => handleFlagChange('aiResumeTailoring', val)} />
-                            <ToggleSwitch label="Enable Custom Domains (Pro)" enabled={settings.featureFlags.customDomains} setEnabled={(val) => handleFlagChange('customDomains', val)} />
+                <div className="space-y-8">
+                    {/* Feature Flags */}
+                    <Card className="!shadow-sm">
+                         <div className="p-6">
+                            <h2 className="text-xl font-bold font-sora mb-4">{t('admin.settings.featureFlags.title')}</h2>
+                             <div className="space-y-4">
+                                <ToggleSwitch label="Enable Video Blocks" enabled={settings.featureFlags.videoBlocks} setEnabled={(val) => handleFlagChange('videoBlocks', val)} />
+                                <ToggleSwitch label="Enable AI Resume Tailoring" enabled={settings.featureFlags.aiResumeTailoring} setEnabled={(val) => handleFlagChange('aiResumeTailoring', val)} />
+                                <ToggleSwitch label="Enable Custom Domains (Pro)" enabled={settings.featureFlags.customDomains} setEnabled={(val) => handleFlagChange('customDomains', val)} />
+                             </div>
                          </div>
-                     </div>
-                </Card>
+                    </Card>
+                    {/* Promo Codes */}
+                    <Card className="!shadow-sm">
+                        <div className="p-6">
+                            <h2 className="text-xl font-bold font-sora mb-4">Promo Code Management</h2>
+                            <div className="space-y-3">
+                                {promoCodes.map(promo => (
+                                    <div key={promo.id} className="flex justify-between items-start p-3 bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700">
+                                        <div>
+                                            <p className="font-mono font-semibold text-slate-800 dark:text-slate-200">{promo.code}</p>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-xs font-semibold capitalize bg-cyan-100 text-cyan-800 dark:bg-cyan-900/50 dark:text-cyan-300 px-2 py-0.5 rounded-full">{promo.grantsTier}</span>
+                                                {promo.isEarlyAdopter && (
+                                                    <span className="text-xs font-semibold bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-300 px-2 py-0.5 rounded-full">Early Adopter 🎖️</span>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                                                Usage: {promo.timesUsed} / {promo.usageLimit}
+                                            </p>
+                                        </div>
+                                        <Button variant="ghost" size="sm" className="!p-2 text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50 flex-shrink-0" onClick={() => handleDeletePromoCode(promo.id, promo.code)}>
+                                            <Trash2 size={16}/>
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                            
+                            {isCreatingPromo ? (
+                                <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+                                    <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">Create New Promo Code</h3>
+                                    <div>
+                                        <EditorLabel htmlFor="newPromoCode">Code</EditorLabel>
+                                        <EditorInput 
+                                            id="newPromoCode"
+                                            placeholder="e.g., LAUNCH2024"
+                                            value={newPromoCode}
+                                            onChange={e => setNewPromoCode(e.target.value.toUpperCase())}
+                                        />
+                                    </div>
+                                    <div>
+                                        <EditorLabel htmlFor="newPromoLimit">Usage Limit</EditorLabel>
+                                        <EditorInput 
+                                            id="newPromoLimit"
+                                            type="number"
+                                            value={newPromoLimit}
+                                            onChange={e => setNewPromoLimit(parseInt(e.target.value, 10))}
+                                        />
+                                    </div>
+                                    <div>
+                                        <EditorLabel htmlFor="newPromoTier">Grants Tier</EditorLabel>
+                                        <select
+                                            id="newPromoTier"
+                                            value={newPromoTier}
+                                            onChange={e => setNewPromoTier(e.target.value as any)}
+                                            className="block w-full bg-slate-50 dark:bg-slate-800/50 border-slate-300 dark:border-slate-700 rounded-lg shadow-sm sm:text-sm focus:ring-teal-500 focus:border-teal-500 text-slate-800 dark:text-slate-100 transition-colors p-2"
+                                        >
+                                            <option value="starter">Starter</option>
+                                            <option value="pro">Pro</option>
+                                            <option value="premium">Premium</option>
+                                        </select>
+                                    </div>
+                                     <div className="pt-2">
+                                        <ToggleSwitch
+                                            label="Grant Early Adopter Badge"
+                                            enabled={grantsEarlyAdopter}
+                                            setEnabled={setGrantsEarlyAdopter}
+                                        />
+                                    </div>
+                                    <div className="flex justify-end gap-2 pt-2">
+                                        <Button variant="secondary" size="sm" onClick={() => setIsCreatingPromo(false)}>Cancel</Button>
+                                        <Button variant="primary" size="sm" onClick={handleCreatePromoCode}>Create</Button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <Button variant="secondary" size="sm" className="w-full mt-4" onClick={() => setIsCreatingPromo(true)}>
+                                    Add New Promo Code
+                                </Button>
+                            )}
+                        </div>
+                    </Card>
+                </div>
             </div>
         </div>
     );

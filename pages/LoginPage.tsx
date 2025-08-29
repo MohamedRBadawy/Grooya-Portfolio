@@ -1,10 +1,10 @@
 
 
-import React, { FormEvent } from 'react';
+import React, { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
-import { Github } from 'lucide-react';
+import { Github, Eye, EyeOff } from 'lucide-react';
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-slate-700 dark:text-slate-200">
@@ -19,6 +19,7 @@ const GoogleIcon = () => (
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
     const { login } = useAuth();
+    const [showPassword, setShowPassword] = useState(false);
 
     const handleLogin = (e: FormEvent) => {
         e.preventDefault();
@@ -64,7 +65,7 @@ const LoginPage: React.FC = () => {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                defaultValue="alex.doe@example.com"
+                                defaultValue="admin@Grooya.com"
                                 className="appearance-none block w-full px-3 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                             />
                         </div>
@@ -74,16 +75,24 @@ const LoginPage: React.FC = () => {
                         <label htmlFor="password"  className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                             Password
                         </label>
-                        <div className="mt-1">
+                        <div className="mt-1 relative">
                             <input
                                 id="password"
                                 name="password"
-                                type="password"
+                                type={showPassword ? 'text' : 'password'}
                                 autoComplete="current-password"
                                 required
-                                defaultValue="••••••••"
-                                className="appearance-none block w-full px-3 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                defaultValue="Password123"
+                                className="appearance-none block w-full pl-3 pr-10 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                             />
+                             <button
+                                type="button"
+                                onClick={() => setShowPassword(!showPassword)}
+                                className="absolute inset-y-0 right-0 pr-3 flex items-center text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 focus:outline-none"
+                                aria-label={showPassword ? "Hide password" : "Show password"}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
 

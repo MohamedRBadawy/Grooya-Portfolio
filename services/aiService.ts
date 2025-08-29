@@ -1,5 +1,4 @@
 import { GoogleGenAI, Type } from "@google/genai";
-// FIX: Add HeroBlock and AboutBlock for the new tuneContentForAudience function.
 import type { ColorTheme, FontPairing, Portfolio, User, Resume, ExperienceItem, Skill, ResumeProjectItem, Project, AITailoringSuggestions, AIPortfolioReview, ProjectsBlock, SkillsBlock, EducationItem, PortfolioBlock, Palette, HeroBlock, AboutBlock } from '../types';
 
 // A custom error class for API key issues that can be caught in the UI.

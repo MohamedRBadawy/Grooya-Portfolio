@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -38,7 +39,6 @@ const EditorDetails: React.FC<{title: string, children: React.ReactNode, default
 
 // Sortable item wrapper for DnD
 const SortableItem: React.FC<{id: string, children: React.ReactNode, onRemove: () => void}> = ({ id, children, onRemove }) => {
-    // FIX: Add resizeObserverConfig to useSortable to fix dnd-kit error.
     const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id, resizeObserverConfig: { disabled: true } });
     const style = {
         transform: CSS.Transform.toString(transform),
