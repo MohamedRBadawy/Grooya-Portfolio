@@ -1,8 +1,8 @@
 import React from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion, HTMLMotionProps, type MotionProps } from 'framer-motion';
 
 const Card: React.FC<HTMLMotionProps<'div'>> = ({ children, className = '', ...props }) => {
-  const motionProps: any = {
+  const motionProps: MotionProps = {
       whileHover: { y: -4, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1), 0 0 15px 0 rgba(22, 163, 175, 0.2)" },
       transition: { type: 'spring', stiffness: 300, damping: 20 }
   };

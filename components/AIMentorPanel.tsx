@@ -1,10 +1,11 @@
 
+
 import React, { useMemo, useState, useEffect } from 'react';
 import type { Portfolio, PortfolioBlock, HeroBlock, AboutBlock, ProjectsBlock, Skill } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { Lightbulb, CheckCircle, ArrowRight, X, Circle, Check } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 import { useData } from '../contexts/DataContext';
 import { getSuggestedBlocks, ApiKeyMissingError } from '../services/aiService';
 import toast from 'react-hot-toast';
@@ -210,7 +211,7 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ portfolio, onUpdate
       }
   };
 
-  const cardMotionProps: any = {
+  const cardMotionProps: MotionProps = {
     initial: { opacity: 0, y: 10 },
     animate: { opacity: 1, y: 0 },
     exit: { opacity: 0, y: -10 },

@@ -6,7 +6,7 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy, LogOut } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 
 const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
   const activeClasses = "text-slate-900 dark:text-slate-50";
@@ -57,14 +57,14 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
         navigate('/');
     };
 
-    const userMenuMotionProps: any = {
+    const userMenuMotionProps: MotionProps = {
         initial: { opacity: 0, y: 10, scale: 0.95 },
         animate: { opacity: 1, y: 0, scale: 1 },
         exit: { opacity: 0, y: 10, scale: 0.95 },
         transition: { duration: 0.15 },
     };
 
-    const mobileMenuMotionProps: any = {
+    const mobileMenuMotionProps: MotionProps = {
         initial: { opacity: 0, height: 0 },
         animate: { opacity: 1, height: 'auto' },
         exit: { opacity: 0, height: 0 },
@@ -96,7 +96,7 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                             {user && (
                                 <div className="relative" ref={userMenuRef}>
                                     <button onClick={() => setIsUserMenuOpen(prev => !prev)} className="w-9 h-9 rounded-full overflow-hidden focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-cyan-500 focus:ring-offset-slate-100 dark:focus:ring-offset-slate-900">
-                                        <img src={user.avatarUrl} alt="User avatar" className="w-full h-full object-cover" />
+                                        <img src={user.avatarUrl} alt="User avatar" className="w-full h-full object-cover" loading="lazy" decoding="async" />
                                     </button>
                                     <AnimatePresence>
                                         {isUserMenuOpen && (

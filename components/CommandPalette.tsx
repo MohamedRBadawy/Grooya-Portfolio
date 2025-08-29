@@ -3,7 +3,7 @@ import { Command } from 'cmdk';
 import { useTranslation } from '../hooks/useTranslation';
 import type { PortfolioBlock, ColorTheme } from '../types';
 import { FileText, Palette, Save, Trash2, Image, User, LayoutGrid, Sparkles, GalleryThumbnails, Quote, Clapperboard, MousePointerClick, FileTextIcon, Link, Sun, Moon, Droplet, Sprout, Briefcase, Mail, Code, DollarSign, PenSquare } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -61,7 +61,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, setIsOpe
     return () => document.removeEventListener('keydown', down)
   }, [isOpen, setIsOpen])
 
-  const motionProps: any = {
+  const motionProps: MotionProps = {
       initial: { y: -20, opacity: 0, scale: 0.98 },
       animate: { y: 0, opacity: 1, scale: 1 },
       exit: { y: -20, opacity: 0, scale: 0.98 },

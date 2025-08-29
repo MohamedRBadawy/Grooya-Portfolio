@@ -5,7 +5,7 @@ import type { Palette } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 
 interface PaletteEditorModalProps {
   palette?: Palette | null;
@@ -83,13 +83,13 @@ const PaletteEditorModal: React.FC<PaletteEditorModalProps> = ({ palette, onClos
     onSave(currentPalette);
   };
 
-  const backdropMotionProps: any = {
+  const backdropMotionProps: MotionProps = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
       exit: { opacity: 0 },
   };
 
-  const modalMotionProps: any = {
+  const modalMotionProps: MotionProps = {
       initial: { y: 20, scale: 0.95, opacity: 0 },
       animate: { y: 0, scale: 1, opacity: 1 },
       exit: { y: 20, scale: 0.95, opacity: 0 },

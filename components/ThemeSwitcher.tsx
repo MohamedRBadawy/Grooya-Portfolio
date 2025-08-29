@@ -1,7 +1,7 @@
 import React from 'react';
 import { useApp } from '../contexts/LocalizationContext';
 import { Sun, Moon } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 
 const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useApp();
@@ -10,7 +10,7 @@ const ThemeSwitcher: React.FC = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
-  const motionProps: any = {
+  const motionProps: MotionProps = {
       initial: { y: -20, opacity: 0 },
       animate: { y: 0, opacity: 1 },
       exit: { y: 20, opacity: 0 },

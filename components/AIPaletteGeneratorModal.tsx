@@ -4,7 +4,7 @@ import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Sparkles } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 import type { Palette } from '../types';
 import { generateColorPalette, ApiKeyMissingError } from '../services/aiService';
 import toast from 'react-hot-toast';
@@ -60,13 +60,13 @@ const AIPaletteGeneratorModal: React.FC<AIPaletteGeneratorModalProps> = ({ onClo
     }
   };
   
-  const backdropMotionProps = {
+  const backdropMotionProps: MotionProps = {
     initial: { opacity: 0 },
     animate: { opacity: 1 },
     exit: { opacity: 0 },
   };
 
-  const modalMotionProps: any = {
+  const modalMotionProps: MotionProps = {
     initial: { y: 20, scale: 0.95, opacity: 0 },
     animate: { y: 0, scale: 1, opacity: 1 },
     exit: { y: 20, scale: 0.95, opacity: 0 },

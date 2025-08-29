@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Check, FilePenLine } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 
 interface Item {
   id: string;
@@ -32,7 +32,7 @@ export const MultiItemSelector: React.FC<MultiItemSelectorProps> = ({
     );
   }, [items, searchTerm]);
 
-  const checkMotionProps: any = {
+  const checkMotionProps: MotionProps = {
       initial: { scale: 0 },
       animate: { scale: 1 },
       exit: { scale: 0 },

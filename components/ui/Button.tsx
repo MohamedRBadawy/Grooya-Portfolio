@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion, HTMLMotionProps } from 'framer-motion';
+import { motion, HTMLMotionProps, type MotionProps } from 'framer-motion';
 
 interface ButtonProps extends HTMLMotionProps<'button'> {
   children: React.ReactNode;
@@ -34,7 +34,7 @@ const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg'
   };
 
-  const motionProps: any = {
+  const motionProps: MotionProps = {
       whileTap: { scale: 0.97, y: 0 },
       transition: { type: "spring", stiffness: 400, damping: 17 }
   };

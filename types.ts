@@ -1,7 +1,23 @@
 
 
+
 /**
- * Represents a user of the application.
+ * @description يمثل مستخدم التطبيق.
+ * @property {string} id - المعرّف الفريد للمستخدم.
+ * @property {string} name - الاسم الكامل للمستخدم.
+ * @property {string} title - المسمى الوظيفي (مثال: "مهندس واجهات أمامية أول").
+ * @property {string} email - البريد الإلكتروني للمستخدم.
+ * @property {string} bio - نبذة تعريفية قصيرة عن المستخدم.
+ * @property {string} avatarUrl - رابط الصورة الرمزية للمستخدم.
+ * @property {'user' | 'admin'} role - دور المستخدم في النظام (مستخدم عادي أو مسؤول).
+ * @property {boolean} [isEarlyAdopter] - علامة تشير إلى ما إذا كان المستخدم من المتبنين الأوائل للمنصة.
+ * @property {object} subscription - تفاصيل اشتراك المستخدم.
+ * @property {'free' | 'starter' | 'pro' | 'premium'} subscription.tier - فئة الاشتراك الحالية.
+ * @property {'active' | 'trial' | 'past_due' | 'canceled'} subscription.status - حالة الاشتراك.
+ * @property {number} [subscription.renewsAt] - الطابع الزمني لتاريخ تجديد الاشتراك.
+ * @property {Partial<Record<AIFeature, boolean>>} subscription.freeFeaturesUsed - يتتبع الميزات المجانية التي استخدمها المستخدم في الخطة المجانية.
+ * @property {object} subscription.credits - أرصدة الذكاء الاصطناعي الشهرية للمشتركين.
+ * @property {('proLifetime' | 'creditsTextTier1' | 'creditsImageTier1')[]} [oneTimePurchases] - قائمة بعمليات الشراء لمرة واحدة.
  */
 export interface User {
   id: string;
@@ -29,7 +45,7 @@ export interface User {
 }
 
 /**
- * A union type representing each distinct AI feature for granular credit tracking.
+ * @description نوع موحد يمثل كل ميزة من ميزات الذكاء الاصطناعي لتتبع الاستهلاك بدقة.
  */
 export type AIFeature =
   | 'projectStory'
@@ -47,7 +63,13 @@ export type AIFeature =
   | 'contentTuning';
 
 /**
- * Represents a project that can be showcased in a portfolio.
+ * @description يمثل مشروعًا يمكن عرضه في ملف الأعمال.
+ * @property {string} id - المعرّف الفريد للمشروع.
+ * @property {string} title - عنوان المشروع.
+ * @property {string} description - وصف تفصيلي للمشروع.
+ * @property {string} imageUrl - رابط صورة المشروع.
+ * @property {string[]} technologies - قائمة بالتقنيات المستخدمة في المشروع.
+ * @property {string} link - رابط مباشر للمشروع (إن وجد).
  */
 export interface Project {
   id:string;
@@ -59,7 +81,10 @@ export interface Project {
 }
 
 /**
- * Represents a technical skill.
+ * @description يمثل مهارة تقنية.
+ * @property {string} id - المعرّف الفريد للمهارة.
+ * @property {string} name - اسم المهارة (مثال: "React").
+ * @property {'Language' | 'Framework' | 'Tool' | 'Database' | 'Cloud'} category - فئة المهارة.
  */
 export interface Skill {
   id:string;
@@ -83,7 +108,10 @@ export type LineHeight = 'tight' | 'normal' | 'relaxed';
 export type LetterSpacing = 'normal' | 'wide';
 
 /**
- * Represents a CSS gradient.
+ * @description يمثل تدرجًا لونيًا (gradient) في CSS.
+ * @property {number} direction - زاوية التدرج بالدرجات.
+ * @property {string} color1 - اللون الأول في التدرج (hex).
+ * @property {string} color2 - اللون الثاني في التدرج (hex).
  */
 export interface Gradient {
   direction: number; // Angle in degrees
@@ -92,7 +120,10 @@ export interface Gradient {
 }
 
 /**
- * Represents a custom color palette created by the user.
+ * @description يمثل لوحة ألوان مخصصة أنشأها المستخدم.
+ * @property {string} id - المعرّف الفريد للوحة الألوان.
+ * @property {string} name - اسم لوحة الألوان.
+ * @property {object} colors - كائن يحتوي على رموز الألوان المختلفة للموقع.
  */
 export interface Palette {
   id: string;
@@ -112,8 +143,12 @@ export interface Palette {
 }
 
 /**
- * Represents a single link in the navigation bar.
- * A link can target either a page or a specific block.
+ * @description يمثل رابطًا واحدًا في شريط التنقل.
+ * يمكن أن يستهدف الرابط صفحة أو قسمًا معينًا (block).
+ * @property {string} id - المعرّف الفريد لعنصر التنقل.
+ * @property {string} label - النص الذي يظهر للرابط.
+ * @property {string} targetPageId - معرّف الصفحة المستهدفة.
+ * @property {string} [targetBlockId] - معرّف القسم المستهدف (اختياري، للتمرير إلى قسم معين).
  */
 export interface NavLinkItem {
     id: string;
@@ -123,7 +158,10 @@ export interface NavLinkItem {
 }
 
 /**
- * Represents a single border side's style.
+ * @description يمثل نمط إطار لجانب واحد.
+ * @property {number} width - عرض الإطار بالبكسل.
+ * @property {'solid' | 'dashed' | 'dotted'} style - نمط الخط (صلب، متقطع، منقط).
+ * @property {string} color - لون الإطار.
  */
 export interface BorderStyle {
     width: number;
@@ -132,7 +170,8 @@ export interface BorderStyle {
 }
 
 /**
- * Defines the global design system settings for a portfolio.
+ * @description يحدد إعدادات نظام التصميم العام لملف الأعمال.
+ * سيتم تخزين هذا الكائن بأكمله في حقل JSON واحد في قاعدة البيانات.
  */
 export interface Design {
   paletteId: string;
@@ -181,7 +220,7 @@ export interface Design {
 }
 
 /**
- * Represents a saved design system configuration.
+ * @description يمثل إعداد تصميم محفوظ مسبقًا.
  */
 export interface DesignPreset {
   id: string;
@@ -190,7 +229,7 @@ export interface DesignPreset {
 }
 
 /**
- * Represents a link to an external platform.
+ * @description يمثل رابطًا لمنصة خارجية.
  */
 export interface ExternalLink {
   id: string;
@@ -200,7 +239,7 @@ export interface ExternalLink {
 }
 
 /**
- * Represents an SVG shape divider for separating blocks.
+ * @description يمثل فاصل أشكال SVG للفصل بين الأقسام.
  */
 export interface ShapeDivider {
     type: 'wave' | 'slant' | 'curve';
@@ -210,12 +249,14 @@ export interface ShapeDivider {
 }
 
 /**
- * The base interface for all portfolio content blocks.
+ * @description الواجهة الأساسية لجميع أقسام محتوى ملف الأعمال.
  */
 interface BlockBase {
   id: string;
   type: 'hero' | 'about' | 'projects' | 'skills' | 'gallery' | 'testimonials' | 'cta' | 'resume' | 'links' | 'experience' | 'contact' | 'code' | 'services' | 'blog' | 'video';
-  /** Per-block style overrides that deviate from the global Design settings. */
+  /** 
+   * @description تخصيصات نمط لكل قسم على حدة تتجاوز إعدادات التصميم العامة.
+   */
   designOverrides?: {
     background?: string | Gradient;
     backgroundImage?: string;
@@ -394,11 +435,13 @@ export interface BlogBlock extends BlockBase {
   posts: BlogPost[];
 }
 
-/** A union type representing any possible portfolio block. */
+/** 
+ * @description نوع موحد يمثل أي قسم محتمل من أقسام ملف الأعمال.
+ */
 export type PortfolioBlock = HeroBlock | AboutBlock | ProjectsBlock | SkillsBlock | GalleryBlock | TestimonialsBlock | CtaBlock | ResumeBlock | LinksBlock | ExperienceBlock | ContactBlock | CodeBlock | ServicesBlock | BlogBlock | VideoBlock;
 
 /**
- * Represents an asset (e.g., an AI-generated image) associated with a portfolio.
+ * @description يمثل أصلًا (asset) مرتبطًا بملف الأعمال (مثل صورة تم إنشاؤها بواسطة الذكاء الاصطناعي).
  */
 export interface PortfolioAsset {
   id: string;
@@ -408,7 +451,7 @@ export interface PortfolioAsset {
 }
 
 /**
- * Represents a single page within a multi-page portfolio.
+ * @description يمثل صفحة واحدة داخل ملف أعمال متعدد الصفحات.
  */
 export interface Page {
   id: string;
@@ -418,7 +461,9 @@ export interface Page {
 }
 
 /**
- * The main data structure for a user's portfolio.
+ * @description هيكل البيانات الرئيسي لملف أعمال المستخدم.
+ * سيتم تخزين هذا الكائن بأكمله في قاعدة البيانات.
+ * سيتم تخزين مصفوفة `pages` في حقل JSON واحد.
  */
 export interface Portfolio {
   id:string;
@@ -439,7 +484,7 @@ export interface Portfolio {
 }
 
 /**
- * Represents a pre-defined template for creating a new portfolio.
+ * @description يمثل قالبًا محددًا مسبقًا لإنشاء ملف أعمال جديد.
  */
 export interface PortfolioTemplate {
   id: string;
@@ -466,7 +511,8 @@ export interface ResumeProjectItem {
 }
 
 /**
- * The main data structure for a user's resume.
+ * @description هيكل البيانات الرئيسي لسيرة ذاتية للمستخدم.
+ * سيتم تخزين المحتوى (summary, experience, etc.) في حقل JSON واحد.
  */
 export interface Resume {
   id: string;
@@ -497,7 +543,7 @@ export interface Resume {
 }
 
 /**
- * The structure of suggestions returned by the AI resume tailor.
+ * @description هيكل الاقتراحات التي يتم إرجاعها بواسطة مُخصص السيرة الذاتية بالذكاء الاصطناعي.
  */
 export interface AITailoringSuggestions {
   newSummary: string;
@@ -506,7 +552,7 @@ export interface AITailoringSuggestions {
 }
 
 /**
- * The structure of feedback returned by the AI portfolio reviewer.
+ * @description هيكل الملاحظات التي يتم إرجاعها بواسطة مراجع ملف الأعمال بالذكاء الاصطناعي.
  */
 export interface AIPortfolioReview {
     overallImpression: string;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 import { Copy, ArrowUp, ArrowDown, Trash2, Sparkles, Users } from 'lucide-react';
 
 interface ContextualToolbarProps {
@@ -40,7 +40,7 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
 
   const audiences = ['Technical Recruiter', 'Hiring Manager', 'Potential Client'];
 
-  const motionProps: any = {
+  const motionProps: MotionProps = {
       initial: { opacity: 0, y: 10, x: '-50%' },
       animate: { opacity: 1, y: 0, x: '-50%' },
       exit: { opacity: 0, y: 10, x: '-50%' },

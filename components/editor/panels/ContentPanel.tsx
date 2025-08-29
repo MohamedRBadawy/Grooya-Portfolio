@@ -1,6 +1,7 @@
 
+
 import React from 'react';
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, type DragEndEvent } from '@dnd-kit/core';
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import type { Page, Portfolio, Project, Skill, PortfolioBlock } from '../../../types';
 import BlockEditor from '../BlockEditor';
@@ -16,7 +17,7 @@ interface ContentPanelProps {
     pages: Page[];
     focusedBlockId: string | null;
     setFocusedBlockId: (id: string | null) => void;
-    handleDragEnd: (event: any) => void;
+    handleDragEnd: (event: DragEndEvent) => void;
     setAddingBlockIndex: (index: number) => void;
     setActiveBlockId: (id: string | null) => void;
     updateBlock: (blockId: string, newBlockData: any) => void;

@@ -1,4 +1,5 @@
 
+
 import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useHistoryState } from './useHistoryState';
@@ -6,6 +7,7 @@ import { useDebouncedCallback } from './useDebouncedCallback';
 import { useData } from '../contexts/DataContext';
 import type { Portfolio, PortfolioBlock, Page } from '../types';
 import { arrayMove } from '@dnd-kit/sortable';
+import type { DragEndEvent } from '@dnd-kit/core';
 import toast from 'react-hot-toast';
 
 const slugify = (str: string) =>
@@ -246,10 +248,10 @@ export const usePortfolioManager = (portfolioId?: string) => {
         });
     }, [portfolio, activePageId, updatePortfolioImmediate]);
 
-    const handleDragEnd = useCallback((event: any) => {
+    const handleDragEnd = useCallback((event: DragEndEvent) => {
         if (!activePage || !activePageId) return;
         const {active, over} = event;
-        if (active.id !== over.id) {
+        if (over && active.id !== over.id) {
             updatePortfolioImmediate(p => {
                 const pageToUpdate = p.pages.find(pg => pg.id === activePageId);
                  if (!pageToUpdate) return p;

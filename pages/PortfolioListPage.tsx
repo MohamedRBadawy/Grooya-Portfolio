@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -9,7 +10,7 @@ import type { Portfolio } from '../types';
 import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban, Sparkles } from 'lucide-react';
 import PortfolioPreviewModal from '../components/PortfolioPreviewModal';
 import { useApp } from '../contexts/LocalizationContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 import AIGuidedCreationModal from '../components/AIGuidedCreationModal';
 import toast from 'react-hot-toast';
 
@@ -38,7 +39,7 @@ const PortfolioCard: React.FC<{
     };
   }, []);
 
-  const menuMotionProps: any = {
+  const menuMotionProps: MotionProps = {
       initial: { opacity: 0, y: 10 },
       animate: { opacity: 1, y: 0 },
       exit: { opacity: 0, y: 10 },
@@ -190,7 +191,7 @@ const PortfolioListPage: React.FC = () => {
       }
   }
 
-  const bannerMotionProps: any = {
+  const bannerMotionProps: MotionProps = {
       initial: { opacity: 0, y: -10 },
       animate: { opacity: 1, y: 0 },
   };

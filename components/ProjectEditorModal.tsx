@@ -3,7 +3,7 @@ import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps } from 'framer-motion';
 // FIX: Changed generateProjectDescription to generateProjectStory
 import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
@@ -109,12 +109,12 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
   };
 
   const isPaidTier = user?.subscription?.tier !== 'free';
-  const backdropMotionProps: any = {
+  const backdropMotionProps: MotionProps = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
       exit: { opacity: 0 },
   };
-  const modalMotionProps: any = {
+  const modalMotionProps: MotionProps = {
       initial: { y: 20, scale: 0.95, opacity: 0 },
       animate: { y: 0, scale: 1, opacity: 1 },
       exit: { y: 20, scale: 0.95, opacity: 0 },

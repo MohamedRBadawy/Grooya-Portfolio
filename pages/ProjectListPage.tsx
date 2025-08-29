@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -7,7 +8,7 @@ import Button from '../components/ui/Button';
 import type { Project } from '../types';
 import { Plus, Search, FilePenLine, Trash2, MoreVertical } from 'lucide-react';
 import ProjectEditorModal from '../components/ProjectEditorModal';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 import toast from 'react-hot-toast';
 
 const ProjectCard: React.FC<{ 
@@ -31,7 +32,7 @@ const ProjectCard: React.FC<{
         };
     }, []);
 
-    const menuAnimationProps: any = {
+    const menuAnimationProps: MotionProps = {
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: 10 },

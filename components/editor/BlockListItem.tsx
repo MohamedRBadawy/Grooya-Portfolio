@@ -3,7 +3,7 @@ import type { PortfolioBlock, Page } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
 import { Grip, MoreVertical, FilePenLine, Copy, ArrowRight, Trash2 } from 'lucide-react';
 
 interface BlockListItemProps {
@@ -47,7 +47,7 @@ const BlockListItem: React.FC<BlockListItemProps> = ({
 
     const otherPages = pages.filter(p => p.id !== activePageId);
 
-    const menuMotionProps: any = {
+    const menuMotionProps: MotionProps = {
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
         exit: { opacity: 0, y: 10 },

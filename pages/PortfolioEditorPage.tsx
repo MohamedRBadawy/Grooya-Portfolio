@@ -1,4 +1,7 @@
 
+
+
+
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -61,7 +64,6 @@ const PortfolioEditorPage: React.FC = () => {
     const [regeneratingPrompt, setRegeneratingPrompt] = useState<string | null>(null);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
-    // FIX: Add state for AI palette modal
     const [isAIPaletteModalOpen, setAIPaletteModalOpen] = useState(false);
     
     // State for triggering inline creation forms
