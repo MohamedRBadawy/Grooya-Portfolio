@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 
 // Define the shape of the authentication context
 interface AuthContextType {
@@ -11,17 +11,46 @@ interface AuthContextType {
 // Create the context
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+const AUTH_TOKEN_KEY = 'grooya_auth_token';
+
 /**
  * Provides authentication state and functions to the application.
- * This implementation has been simplified to always treat the user as authenticated.
+ * This implementation uses localStorage to simulate a persistent user session.
  */
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Authentication is now always true to hide the login page.
-  const isAuthenticated = true;
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+        return !!window.localStorage.getItem(AUTH_TOKEN_KEY);
+    } catch {
+        return false;
+    }
+  });
 
-  // Mock login/logout functions as they are no longer needed but might be called by other components.
-  const login = () => {};
-  const logout = () => {};
+  useEffect(() => {
+    const handleStorageChange = () => {
+        setIsAuthenticated(!!window.localStorage.getItem(AUTH_TOKEN_KEY));
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, []);
+
+  const login = () => {
+    try {
+        window.localStorage.setItem(AUTH_TOKEN_KEY, 'mock_user_logged_in');
+        setIsAuthenticated(true);
+    } catch (error) {
+        console.error("Could not set auth token in local storage", error);
+    }
+  };
+
+  const logout = () => {
+    try {
+        window.localStorage.removeItem(AUTH_TOKEN_KEY);
+        setIsAuthenticated(false);
+    } catch (error) {
+        console.error("Could not remove auth token from local storage", error);
+    }
+  };
 
   // Provide the state and functions to children components
   const value = { isAuthenticated, login, logout };

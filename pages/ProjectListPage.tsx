@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -38,7 +39,7 @@ const ProjectCard: React.FC<{
 
     return (
         <Card className="flex flex-col group">
-            <img src={project.imageUrl} alt={project.title} className="w-full h-48 object-cover" />
+            <img src={project.imageUrl} alt={project.title} className="w-full h-48 object-cover" loading="lazy" decoding="async" />
             <div className="p-6 flex-grow">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 font-sora">{project.title}</h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400 mt-2 line-clamp-3">{project.description}</p>

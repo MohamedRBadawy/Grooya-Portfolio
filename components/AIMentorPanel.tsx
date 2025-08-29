@@ -1,11 +1,13 @@
 
-
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import type { Portfolio, PortfolioBlock, HeroBlock, AboutBlock, ProjectsBlock, Skill } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { Lightbulb, CheckCircle, ArrowRight, X, Circle, Check } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useData } from '../contexts/DataContext';
+import { getSuggestedBlocks, ApiKeyMissingError } from '../services/aiService';
+import toast from 'react-hot-toast';
 
 interface AIAssistantPanelProps {
   portfolio: Portfolio;
@@ -138,8 +140,38 @@ const getMentorGuide = (
  */
 const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ portfolio, onUpdate, setActiveBlockId, addBlock, onTriggerProjectCreation }) => {
   const { t } = useTranslation();
+  const { consumeAiFeature } = useData();
+  const [suggestions, setSuggestions] = useState<{ type: PortfolioBlock['type'], reason: string }[] | null>(null);
+  const [isLoadingSuggestions, setIsLoadingSuggestions] = useState(false);
   
   const mentorGuide = useMemo(() => getMentorGuide(addBlock, setActiveBlockId, onTriggerProjectCreation), [addBlock, setActiveBlockId, onTriggerProjectCreation]);
+
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+        if (!portfolio.goal || !portfolio.role || !consumeAiFeature('blockSuggestions')) {
+            return;
+        }
+        setIsLoadingSuggestions(true);
+        try {
+            const existingBlocks = portfolio.pages.flatMap(p => p.blocks.map(b => b.type));
+            const result = await getSuggestedBlocks(portfolio.goal, portfolio.role, existingBlocks);
+            setSuggestions(result);
+        } catch(error) {
+            console.error("Failed to get block suggestions:", error);
+            if (error instanceof ApiKeyMissingError) {
+                toast.error(error.message);
+            }
+            // We don't toast a generic error to not bother the user.
+        } finally {
+            setIsLoadingSuggestions(false);
+        }
+    }
+    // Only fetch suggestions once when the panel is first loaded.
+    if (!suggestions && !isLoadingSuggestions) {
+        fetchSuggestions();
+    }
+  }, [portfolio, consumeAiFeature, suggestions, isLoadingSuggestions]);
+
 
   // This memoized value calculates the user's current position in the guide.
   // It iterates through stages and tasks, checking the `isCompleted` status for each.
@@ -266,6 +298,28 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ portfolio, onUpdate
         </motion.div>
         </AnimatePresence>
         
+         {/* AI Suggestions Card */}
+        {suggestions && suggestions.length > 0 && (
+            <motion.div
+                className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.5 }}
+            >
+                <h5 className="font-bold text-slate-900 dark:text-slate-100 mb-2">AI Suggestions</h5>
+                <div className="space-y-3">
+                    {suggestions.map(suggestion => (
+                        <div key={suggestion.type} className="p-3 bg-slate-100/70 dark:bg-slate-800/70 rounded-md">
+                            <p className="font-semibold text-sm capitalize text-slate-800 dark:text-slate-200">{t(`block.${suggestion.type}`)}</p>
+                            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1 mb-2">{suggestion.reason}</p>
+                            <Button size="sm" variant="secondary" className="w-full !text-xs" onClick={() => addBlock(suggestion.type, portfolio.pages[0].blocks.length)}>
+                                Add Section
+                            </Button>
+                        </div>
+                    ))}
+                </div>
+            </motion.div>
+        )}
       </div>
 
        <div className="p-4 border-t border-slate-200 dark:border-slate-800">

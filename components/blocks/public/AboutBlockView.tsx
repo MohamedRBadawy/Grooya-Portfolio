@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Portfolio } from '../../../types';
@@ -54,7 +53,7 @@ const MediaComponent: React.FC<{ block: any, design: Portfolio['design'] }> = ({
     }
 
     // Fallback to image if it's an image type or an unsupported video URL
-    return <img src={block.mediaUrl} alt={block.title} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} />;
+    return <img src={block.mediaUrl} alt={block.title} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} loading="lazy" decoding="async" />;
 };
 
 

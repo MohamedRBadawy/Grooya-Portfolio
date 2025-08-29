@@ -32,7 +32,7 @@ export interface User {
  * A union type representing each distinct AI feature for granular credit tracking.
  */
 export type AIFeature =
-  | 'projectDescription'
+  | 'projectStory'
   | 'heroContent'
   | 'aboutContent'
   | 'designSuggestions'
@@ -40,7 +40,11 @@ export type AIFeature =
   | 'resumeFromJobDescription'
   | 'resumeTailoring'
   | 'portfolioReview'
-  | 'imageGeneration';
+  | 'imageGeneration'
+  | 'experienceEnhancement'
+  | 'blockSuggestions'
+  | 'paletteGeneration'
+  | 'contentTuning';
 
 /**
  * Represents a project that can be showcased in a portfolio.

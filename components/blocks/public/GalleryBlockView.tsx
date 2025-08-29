@@ -28,7 +28,7 @@ export const GalleryBlockView: React.FC<BlockViewProps> = ({ block, design, them
                 <motion.div variants={itemVariant} className={block.layout === 'masonry' ? `columns-1 sm:columns-2 md:columns-3 ${gridGapClass}` : `grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 ${gridGapClass}`}>
                     {block.images.map((image: any) => (
                         <div key={image.id} className="mb-4 break-inside-avoid">
-                            <img src={image.url} alt={image.caption} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} />
+                            <img src={image.url} alt={image.caption} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} loading="lazy" decoding="async" />
                             {image.caption && <p className={`mt-2 text-sm text-center`} style={{ color: captionColor }}>{image.caption}</p>}
                         </div>
                     ))}

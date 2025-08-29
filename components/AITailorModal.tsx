@@ -25,9 +25,13 @@ const AITailorModal: React.FC<AITailorModalProps> = ({ resume, onClose, onApplyS
     if (!jobDescription.trim()) return;
     
     if (!consumeAiFeature('resumeTailoring')) {
-      const message = user?.subscription?.tier === 'pro'
-        ? "You've run out of AI text credits for this month."
-        : "You've used your one free use of the AI Tailor. Please upgrade to Pro.";
+      const tier = user?.subscription?.tier;
+      let message = "An error occurred.";
+      if (tier === 'free') {
+          message = "You've used your one free AI resume tailoring. Please upgrade to use it again.";
+      } else if (tier) {
+          message = "You've run out of AI text credits for this month. Please upgrade your plan or purchase more credits.";
+      }
       toast.error(message);
       return;
     }

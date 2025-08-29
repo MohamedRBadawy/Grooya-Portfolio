@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import type { Portfolio, Palette, ColorTheme, FontWeight, LineHeight, LetterSpacing, FontSize, PageWidth, Spacing, CornerRadius, ShadowStyle, ButtonStyle, AnimationStyle, NavigationStyle, DesignPreset, NavLinkItem, Page, BorderStyle } from '../../../types';
 import Button from '../../ui/Button';
@@ -53,7 +51,8 @@ const SortableNavLinkItem: React.FC<{
     onUpdate: (id: string, updates: Partial<NavLinkItem>) => void,
     onRemove: (id: string) => void,
 }> = ({ item, pages, onUpdate, onRemove }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id });
+    // FIX: Add resizeObserverConfig to useSortable to fix dnd-kit error.
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id: item.id, resizeObserverConfig: { disabled: true } });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -106,6 +105,7 @@ interface DesignPanelProps {
     updatePortfolioDebounced: (updater: (p: Portfolio) => Portfolio) => void;
     setEditingPalette: (palette: Palette | 'new' | null) => void;
     handleDeletePalette: (paletteId: string) => void;
+    setAIPaletteModalOpen: (isOpen: boolean) => void;
 }
 
 /**
@@ -118,7 +118,8 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
     updatePortfolioImmediate,
     updatePortfolioDebounced,
     setEditingPalette,
-    handleDeletePalette
+    handleDeletePalette,
+    setAIPaletteModalOpen
 }) => {
     const { t } = useTranslation();
     const { entitlements } = useData();
@@ -264,20 +265,29 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
     return (
         <div className="p-4 space-y-4">
             {/* AI Design Assistant Section */}
-            <div className="p-4 bg-gradient-to-br from-amber-100/30 to-teal-100/30 dark:from-amber-500/10 dark:to-teal-500/10 rounded-lg border border-amber-200 dark:border-amber-700/30">
-                <h4 className="font-semibold mb-2 text-slate-900 dark:text-slate-100">AI Design Assistant</h4>
-                <p className="text-sm text-slate-800 dark:text-slate-400 mb-3">Let AI suggest a theme, font, and color based on your professional title.</p>
-                <Button onClick={handleAIDesignSuggest} variant="secondary" size="sm" className="w-full" disabled={isAIDesignLoading}>
-                    {isAIDesignLoading ? (
-                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-700 dark:text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                    ) : (
+            <div className="p-4 bg-gradient-to-br from-amber-100/30 to-teal-100/30 dark:from-amber-500/10 dark:to-teal-500/10 rounded-lg border border-amber-200 dark:border-amber-700/30 space-y-3">
+                <div>
+                    <h4 className="font-semibold mb-2 text-slate-900 dark:text-slate-100">AI Design Assistant</h4>
+                    <p className="text-sm text-slate-800 dark:text-slate-400 mb-3">Let AI suggest a theme, font, and color based on your professional title.</p>
+                    <Button onClick={handleAIDesignSuggest} variant="secondary" size="sm" className="w-full" disabled={isAIDesignLoading}>
+                        {isAIDesignLoading ? (
+                            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-slate-700 dark:text-slate-300" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        ) : (
+                            <Sparkles size={16} className="me-2 text-amber-500 dark:text-amber-400" />
+                        )}
+                        {isAIDesignLoading ? 'Generating...' : 'Suggest a Design'}
+                    </Button>
+                </div>
+                 <div>
+                    <p className="text-sm text-slate-800 dark:text-slate-400 mb-3">Or, describe a theme and let AI generate a custom color palette for you.</p>
+                    <Button onClick={() => setAIPaletteModalOpen(true)} variant="secondary" size="sm" className="w-full">
                         <Sparkles size={16} className="me-2 text-amber-500 dark:text-amber-400" />
-                    )}
-                    {isAIDesignLoading ? 'Generating...' : 'Suggest a Design'}
-                </Button>
+                        Generate with AI
+                    </Button>
+                </div>
             </div>
             
             <DetailsSection title="Theme & Colors" defaultOpen>
@@ -782,56 +792,59 @@ const DesignPanel: React.FC<DesignPanelProps> = ({
                    </label>
                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Overrides colors to a high-contrast theme for better readability. Disables gradients and shadows.</p>
                </div>
-                <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg mt-4">
-                    <label className="flex items-center justify-between cursor-pointer">
-                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Respect Reduced Motion</span>
+                <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                    <label className="flex items-center justify-between cursor-pointer" onClick={handleBrandingToggle}>
+                       <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Hide "Made with Grooya" Branding</span>
                        <input 
                            type="checkbox" 
-                           checked={portfolio.design.respectReducedMotion !== false} // default to true
+                           checked={portfolio.design.hideBranding || false}
+                           readOnly
+                           className={`h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500 ${!entitlements.canRemoveBranding ? 'cursor-not-allowed' : ''}`}
+                       />
+                   </label>
+                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Requires a Starter plan or higher.</p>
+               </div>
+                 <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg">
+                    <label className="flex items-center justify-between cursor-pointer">
+                       <span className="text-sm text-slate-700 dark:text-slate-300">Respect Reduced Motion</span>
+                       <input 
+                           type="checkbox" 
+                           checked={portfolio.design.respectReducedMotion !== false}
                            onChange={e => updatePortfolioImmediate(p => ({...p, design: {...p.design, respectReducedMotion: e.target.checked}}))}
                            className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                        />
                    </label>
-                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Disables animations for users who have requested reduced motion in their OS settings. It's recommended to keep this on.</p>
+                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Disables animations for users who have requested reduced motion in their OS settings.</p>
                </div>
             </DetailsSection>
             
             <DetailsSection title="Advanced">
-                <div>
-                    <EditorLabel>Custom CSS</EditorLabel>
-                     <EditorTextarea 
+                 <div>
+                    <EditorLabel htmlFor="customCss">Custom CSS</EditorLabel>
+                    <EditorTextarea 
+                        id="customCss"
                         value={portfolio.design.customCss || ''}
-                        onChange={e => updatePortfolioImmediate(p => ({...p, design: {...p.design, customCss: e.target.value}}))}
-                        rows={8}
-                        placeholder="e.g., .my-custom-class { color: red; }"
+                        onChange={e => handleDesignChange('customCss', e.target.value)}
+                        rows={10}
                         className="font-mono text-xs"
+                        placeholder="e.g., body { font-variant-ligatures: none; }"
                     />
-                </div>
-                 <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
-                    <div className="p-3 bg-slate-100 dark:bg-slate-800 rounded-lg" onClick={handleBrandingToggle}>
-                        <div className={`flex items-center justify-between ${!entitlements.canRemoveBranding ? 'cursor-pointer' : ''}`}>
-                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300">Remove Grooya Branding</span>
-                            <div className="relative">
-                                <div className={`block w-10 h-6 rounded-full transition-colors ${(portfolio.design.hideBranding && entitlements.canRemoveBranding) ? 'bg-teal-500' : 'bg-slate-300 dark:bg-slate-700'}`}></div>
-                                <div className={`dot absolute left-1 top-1 bg-white w-4 h-4 rounded-full transition-transform ${(portfolio.design.hideBranding && entitlements.canRemoveBranding) ? 'translate-x-4' : ''}`}></div>
-                            </div>
-                        </div>
-                        {!entitlements.canRemoveBranding && <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">✨ Pro Feature</p>}
-                    </div>
-                </div>
+                 </div>
             </DetailsSection>
+
             <AnimatePresence>
-            {isUpgradeModalOpen && (
-                <UpgradeModal 
-                    isOpen={isUpgradeModalOpen}
-                    onClose={() => setIsUpgradeModalOpen(false)}
-                    featureName="Remove Grooya Branding"
-                    featureDescription="Upgrade to a Pro plan to remove the 'Made with Grooya' branding from your portfolio footer for a fully professional look."
-                />
-            )}
+                {isUpgradeModalOpen && (
+                    <UpgradeModal
+                        isOpen={isUpgradeModalOpen}
+                        onClose={() => setIsUpgradeModalOpen(false)}
+                        featureName='Remove Branding'
+                        featureDescription='The ability to remove "Made with Grooya" branding from your portfolio is available on all paid plans.'
+                    />
+                )}
             </AnimatePresence>
         </div>
     );
 };
 
+// FIX: Add default export to fix import error.
 export default DesignPanel;

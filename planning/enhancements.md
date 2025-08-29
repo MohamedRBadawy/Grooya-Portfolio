@@ -24,7 +24,7 @@ This document outlines the strategic roadmap for evolving the Grooya Portfolio H
 
 - [ ] **Image Optimization Pipeline:**
     - [ ] **Format Conversion & Resizing:** Implement a process (or simulate one in the frontend) to serve images in modern formats like **WebP** and resize them to optimal dimensions for the user's device.
-    - [ ] **Lazy Loading:** Implement lazy-loading for all off-screen images in the public portfolio view to drastically reduce initial page load time.
+    - [✅] **Lazy Loading:** Implement lazy-loading for all off-screen images in the public portfolio view to drastically reduce initial page load time.
 - [ ] **Component Lazy Loading:**
     - [ ] Use `React.lazy` and `Suspense` to code-split and lazy-load individual portfolio block components, so the browser only downloads the code for blocks that are about to enter the viewport.
 

@@ -94,6 +94,8 @@ interface PublicPortfolioPageProps {
     onPageLinkClick?: (pageId: string) => void;
     onAIAssist?: () => void;
     isAIAssistLoading?: boolean;
+    onTune?: (audience: string) => void;
+    isTuning?: boolean;
     scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
     focusedBlockId?: string | null;
 }
@@ -193,6 +195,8 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     onPageLinkClick,
     onAIAssist,
     isAIAssistLoading,
+    onTune,
+    isTuning,
     scrollContainerRef,
     focusedBlockId,
 }) => {
@@ -240,7 +244,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
 
     const canRemoveBranding = ['starter', 'pro', 'premium'].includes(portfolioOwner?.subscription?.tier ?? 'free');
     
-    const prefersReducedMotion = useMemo(() => {
+    const osPrefersReducedMotion = useMemo(() => {
         if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
         return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }, []);
@@ -291,7 +295,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     }, [portfolio.design, portfolio.customPalettes]);
 
 
-    const isMotionActuallyReduced = (design.respectReducedMotion !== false && prefersReducedMotion);
+    const isMotionActuallyReduced = (design.respectReducedMotion !== false && osPrefersReducedMotion);
 
     const fontSizeClass = {
         sm: 'text-sm',
@@ -345,7 +349,9 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
             }
 
             if (targetElement) {
+                const scrollBehavior = isMotionActuallyReduced ? 'auto' : 'smooth';
                 const container = scrollContainerRef?.current;
+                
                 if (container) {
                     const containerRect = container.getBoundingClientRect();
                     const targetRect = targetElement.getBoundingClientRect();
@@ -354,11 +360,11 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
 
                     container.scrollTo({
                         top: top,
-                        behavior: 'smooth',
+                        behavior: scrollBehavior,
                     });
                 } else {
                     targetElement.scrollIntoView({
-                        behavior: 'smooth',
+                        behavior: scrollBehavior,
                         block: 'start'
                     });
                 }
@@ -448,6 +454,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                 {activePage?.blocks.map(block => {
                      const isActive = isEditable && activeBlockId === block.id;
                      const canUseAI = isActive && onAIAssist && (block.type === 'hero' || block.type === 'about');
+                     const canTune = isActive && onTune && (block.type === 'hero' || block.type === 'about');
                      
                      const { backgroundImage, backgroundOpacity, background, shapeDividers, border } = block.designOverrides || {};
                      const backgroundStyle: React.CSSProperties = {};
@@ -540,6 +547,8 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                                     onDelete={() => onDeleteBlock(block.id)}
                                     onAIAssist={canUseAI ? onAIAssist : undefined}
                                     isAIAssistLoading={isAIAssistLoading}
+                                    onTune={canTune ? onTune : undefined}
+                                    isTuning={isTuning}
                                 />
                             )}
                         </div>

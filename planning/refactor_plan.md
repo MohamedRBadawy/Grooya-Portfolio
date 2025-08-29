@@ -1,67 +1,90 @@
-# Refactoring Plan: Codebase Simplification & LoC Reduction
+# Grooya - Codebase Refactoring & Architectural Enhancement Plan
 
-**Objective:** To systematically refactor the largest and most complex files in the Grooya codebase. The primary goal is to reduce the lines of code (LoC) in each target file by breaking them down into smaller, more focused, and reusable components and hooks.
-
-**Expected Outcomes:**
-*   **Improved Maintainability:** Smaller files are easier to understand, debug, and modify.
-*   **Enhanced Reusability:** Logic and UI will be extracted into components that can be reused elsewhere.
-*   **Better Developer Experience:** Navigating the codebase will be faster and more intuitive.
-*   **Increased Scalability:** A modular architecture makes it easier to add new features without increasing the complexity of existing files.
+**Objective:** To systematically refactor the Grooya codebase to improve maintainability, readability, and scalability. This plan focuses on deconstructing large, monolithic files, refining the application's data flow, and establishing clear standards for code clarity and documentation.
 
 ---
 
-## Guiding Principles
+## 1. Guiding Principles
 
-1.  **Single Responsibility Principle (SRP):** Each component or file should have one primary reason to exist.
-2.  **Componentization:** Break down large JSX structures into smaller, self-contained components.
-3.  **Hook Abstraction:** Extract complex or reusable state logic into custom hooks.
-4.  **Don't Repeat Yourself (DRY):** Consolidate redundant code, especially in services and data layers.
+Our refactoring efforts will be guided by established software engineering principles to ensure a high-quality, long-lasting architecture:
+
+1.  **Single Responsibility Principle (SRP):** Each component, hook, or file should have one primary responsibility and reason to change.
+2.  **Componentization:** Large UI structures should be broken down into smaller, self-contained, and reusable components.
+3.  **Hook Abstraction:** Complex or reusable state logic should be extracted from components into custom hooks.
+4.  **Don't Repeat Yourself (DRY):** Redundant code should be consolidated into shared helpers, services, or components.
+5.  **Code Clarity:** Code should be easy to understand. This is achieved through clear naming, explicit typing, and strategic commenting that explains the *why*, not just the *what*.
 
 ---
 
-## Refactoring Targets & Strategies
+## ✅ 2. Phase 1: Deconstructing Monolithic Components (The 600+ LoC Rule)
 
-### ✅ 1. `pages/PublicPortfolioPage.tsx` (Completed)
+**Goal:** Address the most significant sources of complexity by breaking down files exceeding 600 lines of code into smaller, more focused modules.
 
-*   **Problem:** This file was extremely large (over 1000 lines) because it contained the rendering logic for every single type of portfolio block.
-*   **Strategy:** Componentization. Each block's view logic has been extracted into its own component.
+### ✅ Target 1: `pages/PortfolioEditorPage.tsx`
+*   **Problem:** This is a monolithic component managing all state, UI, and logic for the entire editing experience. It is difficult to debug and extend.
+*   **Strategy:** Decompose the page into a lean layout component. Abstract all state management into custom hooks and move UI sections into dedicated, panel-based components.
 *   **Action Plan:**
-    1.  ✅ Create a new directory: `components/blocks/public/`.
-    2.  ✅ For each `...BlockView` component, create a new file (e.g., `components/blocks/public/HeroBlockView.tsx`).
-    3.  ✅ Move the corresponding component code from `PublicPortfolioPage.tsx` into its new file.
-    4.  ✅ Update the `BlockRenderer` component in `PublicPortfolioPage.tsx` to import and render these new, individual components.
-*   **Result:** `PublicPortfolioPage.tsx` is now dramatically smaller, acting primarily as a layout container and data provider for the individual block components.
+    1.  **✅ Extract Logic into Hooks:**
+        *   `✅ hooks/usePortfolioManager.ts`: Encapsulate `useHistoryState` and all core data mutation functions (`updateBlock`, `addBlock`, `removeBlock`, page management, etc.). This will centralize the business logic of the editor.
+        *   `✅ hooks/useResizableSidebar.ts`: Isolate the state and event handlers for the sidebar resizing feature.
+        *   `✅ hooks/useEditorShortcuts.ts`: Manage all keyboard shortcut logic for undo, redo, and the command palette.
+    2.  **✅ Componentize the UI:**
+        *   `✅` Create `components/editor/EditorSidebar.tsx` to serve as the main container for all sidebar controls.
+        *   `✅` Create a new directory: `components/editor/panels/`.
+        *   `✅` Create focused panel components for each tab: `PagesPanel.tsx`, `ContentPanel.tsx`, `DesignPanel.tsx`, and `AssetsPanel.tsx`.
+        *   `✅` Move the corresponding JSX and logic from the old editor page into these new panel components.
+*   **Result:** `PortfolioEditorPage.tsx` becomes a high-level layout component that assembles the editor from these modular, maintainable pieces.
 
-### ✅ 2. `pages/PortfolioEditorPage.tsx` & `EditorSidebar` (Completed)
-
-*   **Problem:** The editor page was a monolithic component managing all state, UI, and logic for the entire editing experience, making it difficult to maintain and extend.
-*   **Strategy:** Abstract logic into custom hooks and componentize the UI into a main `EditorSidebar` with distinct panels for each tab.
+### ✅ Target 2: `pages/PublicPortfolioPage.tsx`
+*   **Problem:** This file contains the rendering logic for every type of portfolio block, making it large and difficult to manage as new block types are added.
+*   **Strategy:** Isolate the view logic for each block type into its own dedicated, reusable component.
 *   **Action Plan:**
-    1.  ✅ Create custom hooks (`usePortfolioManager`, `useResizableSidebar`, `useEditorShortcuts`) to encapsulate complex state and event logic.
-    2.  ✅ Create a new `EditorSidebar` component to manage the sidebar's structure.
-    3.  ✅ Create a new directory: `components/editor/panels/`.
-    4.  ✅ Create new components: `PagesPanel.tsx`, `ContentPanel.tsx`, `DesignPanel.tsx`, and `AssetsPanel.tsx`.
-    5.  ✅ Move the JSX and logic for each tab from the old editor page into the corresponding new panel component.
-    6.  ✅ Refactor `PortfolioEditorPage.tsx` to be a high-level layout component that uses the new hooks and renders the `EditorSidebar` and `PortfolioPreview`.
-*   **Result:** The editor's architecture is now modular and follows the Single Responsibility Principle. State logic is cleanly separated, and UI components are small and focused, making future feature development significantly easier.
+    1.  `✅` Create a new directory: `components/blocks/public/`.
+    2.  `✅` For each block type (Hero, About, etc.), create a new component file (e.g., `HeroBlockView.tsx`).
+    3.  `✅` Move the rendering logic for that block from `PublicPortfolioPage.tsx` into its new, dedicated file.
+    4.  `✅` Refactor the `BlockRenderer` in `PublicPortfolioPage.tsx` to simply import and render these new components.
+*   **Result:** `PublicPortfolioPage.tsx` is dramatically simplified, acting as a layout container and data provider. Adding or modifying a block's appearance only requires changes in one small, isolated file.
 
-### 3. `components/editor/BlockEditor.tsx`
-
-*   **Problem:** Similar to the public page, this file contains a large `switch` statement to render the editor fields for every block type, making it brittle and hard to manage.
-*   **Strategy:** Componentization of block-specific editor forms.
+### ✅ Target 3: `components/editor/BlockEditor.tsx`
+*   **Problem:** Similar to the public page, this component uses a large `switch` statement to render the editor form for every block type.
+*   **Strategy:** Componentize each block's specific editor form.
 *   **Action Plan:**
-    1.  Create a new directory: `components/editor/block_editors/`.
-    2.  For each `case` in the `renderFields` switch statement, create a new component file (e.g., `components/editor/block_editors/HeroEditor.tsx`, `ProjectsEditor.tsx`, etc.).
-    3.  Move the JSX and logic for that block's form fields into the new component.
-    4.  Refactor `BlockEditor.tsx` to act as a dispatcher, importing and rendering the correct editor component based on the `block.type`.
-*   **Result:** `BlockEditor.tsx` becomes a lean component, and adding or modifying the editor for a specific block type only requires changing one small, isolated file.
+    1.  `✅` Create a new directory: `components/editor/block_editors/`.
+    2.  `✅` For each `case` in the `renderFields` switch statement, create a new component file (e.g., `HeroEditor.tsx`, `ProjectsEditor.tsx`).
+    3.  `✅` Move the JSX and logic for that block's form fields into the new component.
+    4.  `✅` Refactor `BlockEditor.tsx` to become a simple dispatcher that imports and renders the correct editor component based on the `block.type`.
+*   **Result:** `BlockEditor.tsx` becomes a lean component. Adding or modifying the editor for a specific block now only requires changing one small, isolated file.
 
-### ✅ 4. `services/aiService.ts` (Completed)
+---
 
-*   **Problem:** There was repeated boilerplate code in every function for getting the `GoogleGenAI` client and handling the `ApiKeyMissingError`.
-*   **Strategy:** Abstract the client initialization and error handling into a centralized helper.
+## ✅ 3. Phase 2: Code Clarity & Documentation Initiative
+
+**Goal:** Systematically improve the readability and maintainability of the entire codebase by establishing and enforcing clear documentation standards.
+
+*   **Strategy:** Institute a codebase-wide initiative to add comments and documentation where they provide the most value, making the code self-explanatory wherever possible.
 *   **Action Plan:**
-    1.  ✅ Create a single helper function, `getAiClient()`, at the top of the file that checks for `process.env.API_KEY` and throws `ApiKeyMissingError` if it's missing.
-    2.  ✅ Refactor every exported function (`generateImage`, `generateProjectDescription`, etc.) to call `getAiClient()` at the beginning of its `try` block.
-    3.  ✅ Ensure all `catch` blocks re-throw the `ApiKeyMissingError` so it can be handled appropriately in the UI.
-*   **Result:** Reduced code duplication and a single, clear point of failure if the API key is not configured.
+    1.  **✅ JSDoc for Hooks and Complex Components:**
+        *   `✅` Every custom hook (`usePortfolioManager`, etc.) must have a JSDoc block explaining its purpose, parameters, and return values.
+        *   `✅` Every major UI component (`EditorSidebar`, `PortfolioPreview`, etc.) must have a JSDoc block explaining its primary role and props.
+    2.  **✅ Inline Comments for Complex Logic:**
+        *   `✅` Any non-obvious code, such as complex state transformations, array manipulations, or mathematical calculations (e.g., in `useResizableSidebar`), must be preceded by a brief inline comment explaining the *intent* or *reasoning* behind the code.
+    3.  **✅ Strict Typing:**
+        *   `✅` Eliminate all remaining instances of the `any` type.
+        *   `✅` Provide explicit, descriptive types for all props, state variables, and event handlers (e.g., use `DragEndEvent` from `@dnd-kit/core` instead of `any`). This serves as a form of self-documentation.
+    4.  **✅ Centralized Type Definitions:**
+        *   `✅` Ensure all shared data structures (e.g., `Portfolio`, `User`, `Project`) are defined only once in `types.ts` and imported wherever needed to maintain a single source of truth.
+
+---
+
+## 4. Future Considerations: Advanced Refactoring
+
+**Goal:** Lay the groundwork for future scalability by addressing potential architectural bottlenecks before they become critical.
+
+*   **Target: `contexts/DataContext.tsx`**
+    *   **Potential Problem:** As the application grows, `DataContext` could become a "God Object," managing too many unrelated pieces of state and making it difficult to track data flow.
+    *   **Future Strategy:** Decouple data domains by abstracting the logic for each domain (portfolios, projects, user, etc.) into its own custom hook (e.g., `usePortfolios`, `useProjects`). The main `useData` hook would then compose these individual hooks. This maintains a simple provider tree while separating the state management logic.
+*   **Target: `services/aiService.ts`**
+    *   **Strategy:** Improve structure and error handling.
+    *   **Action Plan:**
+        *   `✅` Centralize Gemini API client initialization and API key error handling into a single helper function (`getAiClient`).
+        *   `✅` Refactor all service functions to use this helper, reducing boilerplate code and creating a single, clear point of failure if the API key is not configured.

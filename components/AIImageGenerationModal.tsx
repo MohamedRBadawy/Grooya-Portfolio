@@ -30,13 +30,15 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
   const handleGenerate = async () => {
     if (!prompt.trim()) return;
 
-    if (user?.subscription?.tier !== 'pro') {
-        toast.error("Upgrade to Pro to generate images.");
-        return;
-    }
-    
     if (!consumeAiFeature('imageGeneration')) {
-      toast.error("You've run out of AI image credits for this month.");
+      const tier = user?.subscription?.tier;
+      let message = "An error occurred.";
+      if (tier === 'free') {
+          message = "AI Image Generation is a feature for paid plans. Please upgrade to continue.";
+      } else if (tier) {
+          message = "You've run out of AI image credits for this month. Please upgrade your plan or purchase more credits.";
+      }
+      toast.error(message);
       return;
     }
 
@@ -65,7 +67,8 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
       }
   }
 
-  const remainingCredits = user?.subscription?.tier === 'pro' ? `(${user.subscription.credits.image} credits left)` : '';
+  const isPaidTier = user?.subscription?.tier !== 'free';
+  const remainingCredits = isPaidTier ? `(${user?.subscription.credits.image} credits left)` : '';
   const backdropMotionProps: any = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
@@ -93,7 +96,7 @@ const AIImageGenerationModal: React.FC<AIImageGenerationModalProps> = ({ onClose
           <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg font-sora flex items-center gap-2">
             <Sparkles className="text-amber-500" size={20} />
             {t('aiImageGeneration')}
-             {user?.subscription?.tier === 'pro' && <span className="text-xs font-normal text-slate-500 dark:text-slate-400">{remainingCredits}</span>}
+             {isPaidTier && <span className="text-xs font-normal text-slate-500 dark:text-slate-400">{remainingCredits}</span>}
           </h3>
           <button onClick={onClose} className="p-2 rounded-full text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-800" aria-label={t('close')}>
             <X size={20} />

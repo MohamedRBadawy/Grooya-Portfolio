@@ -1,30 +1,92 @@
 
-
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import Button from '../components/ui/Button';
-import { Sparkles, FileText, Image as ImageIcon, PenSquare, ArrowRight, Check, ChevronDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { Sparkles, FileText, Palette, LayoutDashboard, ArrowRight, Check, ChevronDown } from 'lucide-react';
+import { motion, type Variants } from 'framer-motion';
 import { portfolioTemplates } from '../services/templates';
 import { defaultPalettes } from '../services/palettes';
 import { useTranslation } from '../hooks/useTranslation';
 import type { PortfolioTemplate } from '../types';
 
-const FeatureCard: React.FC<{ icon: React.ElementType; title: string; description: string }> = ({ icon: Icon, title, description }) => (
-    <div className="bg-white/30 dark:bg-slate-900/30 p-6 rounded-xl border border-slate-200/30 dark:border-slate-800/30 shadow-lg backdrop-blur-sm h-full">
-        <div className="flex items-center justify-center w-12 h-12 bg-cyan-100 dark:bg-cyan-900/50 rounded-lg mb-4">
-            <Icon className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+const AnimatedUIPreview: React.FC = () => {
+    const containerVariants: Variants = {
+        hidden: { opacity: 0 },
+        visible: { opacity: 1, transition: { staggerChildren: 0.3, delayChildren: 0.5 } }
+    };
+    const itemVariants: Variants = {
+        hidden: { y: 10, opacity: 0 },
+        visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+    };
+
+    return (
+        <motion.div 
+            className="relative mt-12 max-w-4xl mx-auto"
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+        >
+            <div className="relative aspect-[16/10] bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl backdrop-blur-lg p-4">
+                <div className="flex items-center gap-1.5 mb-3">
+                    <div className="w-3 h-3 rounded-full bg-rose-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-amber-500"></div>
+                    <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                </div>
+                <div className="bg-slate-50 dark:bg-slate-900 rounded-lg h-[calc(100%-24px)] p-4 flex gap-4">
+                    {/* Left Pane */}
+                    <motion.div variants={itemVariants} className="w-1/3 bg-white dark:bg-slate-800/50 rounded-md p-2 space-y-2">
+                        <div className="h-4 w-3/4 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                        <div className="h-3 w-1/2 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                        <div className="h-3 w-5/6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                    </motion.div>
+                    {/* Right Pane */}
+                    <div className="w-2/3 space-y-3">
+                        <motion.div variants={itemVariants} className="h-12 w-full rounded-md bg-white dark:bg-slate-800/50 flex items-center p-2">
+                             <div className="w-8 h-8 rounded-full bg-cyan-200 dark:bg-cyan-900/50 mr-2"></div>
+                             <div className="space-y-1 flex-grow">
+                                <div className="h-2 w-1/3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                                <div className="h-2 w-2/3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                             </div>
+                        </motion.div>
+                        <motion.div variants={itemVariants} className="h-24 w-full rounded-md bg-white dark:bg-slate-800/50 p-2 space-y-1">
+                            <div className="h-2 w-1/4 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                            <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                            <div className="h-2 w-5/6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                            <div className="h-2 w-3/4 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+                        </motion.div>
+                    </div>
+                </div>
+            </div>
+        </motion.div>
+    )
+}
+
+const FeatureShowcase: React.FC<{
+    icon: React.ElementType;
+    title: string;
+    description: string;
+    children: React.ReactNode;
+    align: 'left' | 'right';
+}> = ({ icon: Icon, title, description, children, align }) => (
+    <div className={`grid md:grid-cols-2 gap-12 items-center ${align === 'right' ? 'md:grid-flow-col-dense' : ''}`}>
+        <div className={align === 'right' ? 'md:col-start-2' : ''}>
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-cyan-100 dark:bg-cyan-900/50 rounded-lg mb-4">
+                <Icon className="w-6 h-6 text-cyan-600 dark:text-cyan-400" />
+            </div>
+            <h3 className="text-3xl font-bold text-slate-900 dark:text-slate-50 font-sora mb-4">{title}</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-lg">{description}</p>
         </div>
-        <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 font-sora mb-2">{title}</h3>
-        <p className="text-slate-600 dark:text-slate-400">{description}</p>
+        <div className="relative">
+            {children}
+        </div>
     </div>
 );
+
 
 const TemplateVisual: React.FC<{ design: PortfolioTemplate['design'] }> = ({ design }) => {
     const palette = defaultPalettes.find(p => p.id === design.paletteId) || defaultPalettes[0];
     return (
-        <div className="aspect-video p-4 flex flex-col gap-2 border-b border-slate-200 dark:border-slate-700" style={{ backgroundColor: palette.colors.background }}>
+        <div className="aspect-[4/3] p-4 flex flex-col gap-2 border-b border-slate-200 dark:border-slate-700" style={{ backgroundColor: palette.colors.background }}>
             <div className="flex justify-between items-center">
                 <div className="w-1/4 h-3 rounded-full" style={{ backgroundColor: palette.colors.heading }}></div>
                 <div className="flex gap-1">
@@ -59,7 +121,7 @@ const PricingCard: React.FC<{
     return (
         <div className={`p-8 rounded-2xl border-2 flex flex-col ${isPro ? 'bg-slate-50 dark:bg-slate-900 border-teal-500' : 'bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700'}`}>
             <h3 className={`text-2xl font-bold font-sora ${isPro ? 'text-teal-600 dark:text-teal-400' : 'text-slate-900 dark:text-slate-50'}`}>{title}</h3>
-            <p className="text-slate-600 dark:text-slate-400 mt-2">{description}</p>
+            <p className="text-slate-600 dark:text-slate-400 mt-2 h-12">{description}</p>
             <div className="my-8">
                 <span className="text-5xl font-bold text-slate-900 dark:text-slate-50">{price}</span>
                 <span className="text-slate-500 dark:text-slate-400">{isPro ? '/ month' : ''}</span>
@@ -67,7 +129,7 @@ const PricingCard: React.FC<{
             <ul className="space-y-4 mb-8 flex-grow">
                 {features.map((feature, i) => <FeatureListItem key={i}>{feature}</FeatureListItem>)}
             </ul>
-             <Link to="/dashboard">
+             <Link to={isPro ? "/dashboard/upgrade" : "/dashboard"}>
                 <Button variant={isPro ? 'primary' : 'secondary'} size="lg" className="w-full">
                     {isPro ? 'Upgrade to Pro' : 'Get Started'}
                 </Button>
@@ -102,7 +164,7 @@ const faqs = [
 const LandingPage: React.FC = () => {
     const { t } = useTranslation();
 
-    const containerVariants: any = {
+    const containerVariants: Variants = {
       hidden: { opacity: 0 },
       visible: {
         opacity: 1,
@@ -110,25 +172,25 @@ const LandingPage: React.FC = () => {
       }
     };
 
-    const itemVariants: any = {
+    const itemVariants: Variants = {
         hidden: { y: 20, opacity: 0 },
         visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
     };
     
-    const heroMotionProps: any = {
+    const heroMotionProps = {
         initial: "hidden",
         animate: "visible",
         variants: containerVariants,
     };
 
-    const sectionMotionProps: any = {
-        initial: { opacity: 0, y: 20 },
+    const sectionMotionProps = {
+        initial: { opacity: 0, y: 50 },
         whileInView: { opacity: 1, y: 0 },
-        viewport: { once: true, amount: 0.5 },
+        viewport: { once: true, amount: 0.3 },
         transition: { duration: 0.5 },
     };
 
-    const gridMotionProps: any = {
+    const gridMotionProps = {
         initial: "hidden",
         whileInView: "visible",
         viewport: { once: true, amount: 0.2 },
@@ -147,10 +209,10 @@ const LandingPage: React.FC = () => {
                     {...heroMotionProps}
                 >
                     <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">
-                        The AI-Powered <span className="text-cyan-500">Career Operating System</span>
+                        Build a job-winning portfolio in <span className="text-cyan-500">minutes</span>.
                     </motion.h1>
                     <motion.p variants={itemVariants} className="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-slate-600 dark:text-slate-400">
-                        Stop juggling tools. Grooya integrates your learning, projects, and portfolio into one intelligent platform to help you build and showcase your skills.
+                        Grooya is your AI co-pilot for crafting stunning online portfolios and tailored resumes that get you noticed by top recruiters.
                     </motion.p>
                     <motion.div variants={itemVariants} className="mt-10">
                         <Link to="/dashboard">
@@ -161,59 +223,49 @@ const LandingPage: React.FC = () => {
                         </Link>
                     </motion.div>
                 </motion.div>
+                <AnimatedUIPreview />
             </section>
 
             {/* Features Section */}
-            <section className="py-24 bg-slate-100 dark:bg-slate-900">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <motion.div 
-                        className="text-center"
-                        {...sectionMotionProps}
-                    >
-                        <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Everything you need to grow your career</h2>
-                        <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
-                            From your first line of code to your dream job offer.
-                        </p>
+            <section className="py-24">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-24">
+                    <motion.div {...sectionMotionProps}>
+                        <FeatureShowcase
+                            align="left"
+                            icon={Sparkles}
+                            title="Your Personal AI Co-Pilot"
+                            description="Never face a blank page again. Our AI, powered by Gemini, helps you generate professional headlines, write compelling project descriptions in the STAR format, and suggest design themes tailored to your profession."
+                        >
+                            <img src="https://picsum.photos/seed/feature1/600/450" alt="AI Co-pilot" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                        </FeatureShowcase>
                     </motion.div>
 
-                    <motion.div 
-                        className="mt-16 grid md:grid-cols-2 lg:grid-cols-4 gap-8"
-                        {...gridMotionProps}
-                    >
-                        <motion.div variants={itemVariants}>
-                            <FeatureCard 
-                                icon={PenSquare}
-                                title="AI-Guided Portfolios"
-                                description="Build beautiful, professional portfolios with an AI mentor that guides you every step of the way, from content to design."
-                            />
-                        </motion.div>
-                        <motion.div variants={itemVariants}>
-                            <FeatureCard 
-                                icon={FileText}
-                                title="Intelligent Resumes"
-                                description="Generate tailored resumes from your portfolio data and use AI to optimize them for specific job descriptions."
-                            />
-                        </motion.div>
-                         <motion.div variants={itemVariants}>
-                             <FeatureCard 
-                                icon={Sparkles}
-                                title="Content Co-Pilot"
-                                description="Beat writer's block. Let AI generate compelling headlines, project descriptions, and professional summaries for you."
-                            />
-                        </motion.div>
-                         <motion.div variants={itemVariants}>
-                             <FeatureCard 
-                                icon={ImageIcon}
-                                title="AI Asset Generation"
-                                description="Create unique background images and hero visuals from simple text prompts, right inside the editor."
-                            />
-                        </motion.div>
+                     <motion.div {...sectionMotionProps}>
+                        <FeatureShowcase
+                            align="right"
+                            icon={FileText}
+                            title="The Intelligent Resume Hub"
+                            description="Transform your portfolio into an ATS-friendly resume with one click. Paste a job description and let our AI tailor your resume, optimizing it with relevant keywords to get you past the first filter."
+                        >
+                             <img src="https://picsum.photos/seed/feature2/600/450" alt="Intelligent Resumes" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                        </FeatureShowcase>
+                    </motion.div>
+
+                    <motion.div {...sectionMotionProps}>
+                         <FeatureShowcase
+                            align="left"
+                            icon={Palette}
+                            title="Unmatched Customization"
+                            description="Take full control of your brand. Choose from pre-designed themes, create custom color palettes, select professional font pairings, and override styles on any block for a truly unique look. Your portfolio, your rules."
+                        >
+                            <img src="https://picsum.photos/seed/feature3/600/450" alt="Design Customization" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                        </FeatureShowcase>
                     </motion.div>
                 </div>
             </section>
             
              {/* Template Showcase Section */}
-            <section className="py-24">
+            <section className="py-24 bg-slate-100 dark:bg-slate-900">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"
@@ -231,7 +283,7 @@ const LandingPage: React.FC = () => {
                         {portfolioTemplates.slice(0, 6).map(template => (
                              <motion.div variants={itemVariants} key={template.id}>
                                 <Link to={`/templates/${template.id}`} className="block group">
-                                    <div className="h-full rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
+                                    <div className="h-full rounded-xl overflow-hidden shadow-lg hover:shadow-cyan-500/10 dark:hover:shadow-cyan-400/10 transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                         <TemplateVisual design={template.design} />
                                         <div className="p-6">
                                             <h3 className="font-bold text-lg text-slate-800 dark:text-slate-100 font-sora">{t(template.name)}</h3>
@@ -249,7 +301,7 @@ const LandingPage: React.FC = () => {
             </section>
 
              {/* Pricing Section */}
-            <section className="py-24 bg-slate-100 dark:bg-slate-900">
+            <section className="py-24">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"
@@ -270,16 +322,16 @@ const LandingPage: React.FC = () => {
                                 title="Starter"
                                 price="Free"
                                 description="Perfect for getting started and building your first portfolio."
-                                features={[ '1 Portfolio', '1 free use of each AI text feature', 'AI Image Generation (Pro only)', 'Grooya Branding', '.grooya.site domain', ]}
+                                features={[ '1 Portfolio', '1 Resume', 'AI Content Generation (Free Trial)', 'Standard Design Tools', 'Grooya Branding' ]}
                             />
                         </motion.div>
                          <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="pro"
                                 title="Pro"
-                                price="$9"
+                                price="$15"
                                 description="For professionals who want to stand out and unlock all features."
-                                features={[ '5 Portfolios', '100 AI Text Credits / month', '20 AI Image Credits / month', 'Connect 1 Custom Domain', 'Remove Grooya Branding', ]}
+                                features={[ '10 Portfolios', 'Unlimited Resumes', 'Monthly AI Credits', 'AI Image Generation', 'Pro Design Tools', 'Remove Branding' ]}
                             />
                         </motion.div>
                     </motion.div>
@@ -287,7 +339,7 @@ const LandingPage: React.FC = () => {
             </section>
 
              {/* FAQ Section */}
-            <section className="py-24">
+            <section className="py-24 bg-slate-100 dark:bg-slate-900">
                 <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                     <motion.div 
                         className="text-center"

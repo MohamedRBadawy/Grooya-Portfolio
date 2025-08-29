@@ -16,10 +16,12 @@ export const PortfolioPreview: React.FC<{
     onDeleteBlock: (id: string) => void;
     onAIAssist: () => void;
     isAIAssistLoading: boolean;
+    onTune: (audience: string) => void;
+    isTuning: boolean;
     onPageLinkClick: (pageId: string) => void;
     focusedBlockId?: string | null;
     scrollContainerRef: React.RefObject<HTMLDivElement>;
-}> = ({ portfolio, activePage, activePageId, onUpdateBlock, activeBlockId, setActiveBlockId, onDuplicateBlock, onMoveBlock, onDeleteBlock, onAIAssist, isAIAssistLoading, onPageLinkClick, focusedBlockId, scrollContainerRef }) => {
+}> = ({ portfolio, activePage, activePageId, onUpdateBlock, activeBlockId, setActiveBlockId, onDuplicateBlock, onMoveBlock, onDeleteBlock, onAIAssist, isAIAssistLoading, onTune, isTuning, onPageLinkClick, focusedBlockId, scrollContainerRef }) => {
     
     if (!portfolio || !activePage) {
         return <div className="flex items-center justify-center h-full bg-slate-100 dark:bg-slate-900 rounded-lg text-slate-600 dark:text-slate-400">Loading Preview...</div>;
@@ -38,6 +40,8 @@ export const PortfolioPreview: React.FC<{
         onDeleteBlock={onDeleteBlock}
         onAIAssist={onAIAssist}
         isAIAssistLoading={isAIAssistLoading}
+        onTune={onTune}
+        isTuning={isTuning}
         onPageLinkClick={onPageLinkClick}
         focusedBlockId={focusedBlockId}
         scrollContainerRef={scrollContainerRef}

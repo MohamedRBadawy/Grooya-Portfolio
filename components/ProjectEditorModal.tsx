@@ -4,7 +4,8 @@ import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateProjectDescription, ApiKeyMissingError } from '../services/aiService';
+// FIX: Changed generateProjectDescription to generateProjectStory
+import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
 import { useData } from '../contexts/DataContext';
@@ -77,17 +78,23 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
         return;
     }
     
-    if (!consumeAiFeature('projectDescription')) {
-      const message = user?.subscription?.tier === 'pro'
-        ? "You've run out of AI text credits for this month."
-        : "You've used your one free generation for this feature. Please upgrade to Pro to use it again.";
+    // FIX: Changed AIFeature from 'projectDescription' to 'projectStory'
+    if (!consumeAiFeature('projectStory')) {
+      const tier = user?.subscription?.tier;
+      let message = "An error occurred.";
+      if (tier === 'free') {
+          message = "You've used your one free project story generation. Please upgrade to use it again.";
+      } else if (tier) {
+          message = "You've run out of AI text credits for this month. Please upgrade your plan or purchase more credits.";
+      }
       toast.error(message);
       return;
     }
 
     setIsGenerating(true);
     try {
-        const description = await generateProjectDescription(formData.title, formData.technologies);
+        // FIX: Changed function call from generateProjectDescription to generateProjectStory
+        const description = await generateProjectStory(formData.title, formData.technologies, formData.description);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {
         console.error(error);
@@ -101,7 +108,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
     }
   };
 
-  const isPro = user?.subscription?.tier === 'pro';
+  const isPaidTier = user?.subscription?.tier !== 'free';
   const backdropMotionProps: any = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
@@ -146,7 +153,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
                 <div className="flex justify-between items-center">
                     <EditorLabel htmlFor="description">{t('projectDescription')}</EditorLabel>
                      <div className="flex items-center gap-2">
-                        {isPro && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription.credits.text} credits left</span>}
+                        {isPaidTier && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription.credits.text} credits left</span>}
                         <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
                     </div>
                 </div>

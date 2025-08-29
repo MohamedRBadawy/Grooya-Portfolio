@@ -51,7 +51,7 @@ export const ProjectsBlockView: React.FC<BlockViewProps> = ({ block, design, the
                                 className={`${commonClasses} ${hoverClasses}`}
                                 style={cardStyles}
                             >
-                                <img src={project.imageUrl} alt={project.title} className="w-full h-56 object-cover" />
+                                <img src={project.imageUrl} alt={project.title} className="w-full h-56 object-cover" loading="lazy" decoding="async" />
                                 <div className="p-6">
                                     <h3 className={`text-xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: theme.heading }}>{project.title}</h3>
                                     <p className={`mt-2`} style={{ color: theme.subtle }}>{project.description}</p>

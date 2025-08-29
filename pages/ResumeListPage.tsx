@@ -1,7 +1,4 @@
 
-
-
-
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -9,7 +6,7 @@ import { useTranslation } from '../hooks/useTranslation';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import type { Resume } from '../types';
-import { Plus, FilePenLine, Trash2, MoreVertical, Search, FileText } from 'lucide-react';
+import { Plus, FilePenLine, Trash2, Search, FileText, Download } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import CreateResumeModal from '../components/CreateResumeModal';
 import toast from 'react-hot-toast';

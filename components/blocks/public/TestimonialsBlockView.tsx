@@ -30,7 +30,7 @@ export const TestimonialsBlockView: React.FC<BlockViewProps> = ({ block, design,
                         <div key={testimonial.id} className={`p-6 ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass}`} style={cardStyles}>
                             <p className={`italic`} style={{ color: theme.text }}>"{testimonial.quote}"</p>
                             <div className="flex items-center mt-4">
-                                {testimonial.authorAvatarUrl && <img src={testimonial.authorAvatarUrl} alt={testimonial.author} className="w-12 h-12 rounded-full mr-4" />}
+                                {testimonial.authorAvatarUrl && <img src={testimonial.authorAvatarUrl} alt={testimonial.author} className="w-12 h-12 rounded-full mr-4" loading="lazy" decoding="async" />}
                                 <div>
                                     <p className={`font-heading ${fontWeightHeadingClass}`} style={{ color: theme.heading }}>{testimonial.author}</p>
                                     <p style={{ color: theme.subtle }}>{testimonial.authorTitle}</p>

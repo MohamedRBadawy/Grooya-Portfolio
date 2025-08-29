@@ -1,5 +1,6 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import type { ColorTheme, FontPairing, Portfolio, User, Resume, ExperienceItem, Skill, ResumeProjectItem, Project, AITailoringSuggestions, AIPortfolioReview, ProjectsBlock, SkillsBlock, EducationItem } from '../types';
+// FIX: Add HeroBlock and AboutBlock for the new tuneContentForAudience function.
+import type { ColorTheme, FontPairing, Portfolio, User, Resume, ExperienceItem, Skill, ResumeProjectItem, Project, AITailoringSuggestions, AIPortfolioReview, ProjectsBlock, SkillsBlock, EducationItem, PortfolioBlock, Palette, HeroBlock, AboutBlock } from '../types';
 
 // A custom error class for API key issues that can be caught in the UI.
 export class ApiKeyMissingError extends Error {
@@ -31,7 +32,7 @@ export const generateImage = async (prompt: string): Promise<string> => {
     try {
         const ai = getAiClient();
         const response = await ai.models.generateImages({
-            model: 'imagen-3.0-generate-002',
+            model: 'imagen-4.0-generate-001',
             prompt: prompt,
             config: {
               numberOfImages: 1,
@@ -56,16 +57,20 @@ export const generateImage = async (prompt: string): Promise<string> => {
 };
 
 /**
- * Generates a professional project description using AI.
+ * Generates a compelling, narrative-style project description using AI.
  * @param title The title of the project.
  * @param technologies A string of technologies used (e.g., "React, Node.js").
- * @returns A 2-3 sentence project description.
+ * @param existingDescription The user's current description, if any, for context.
+ * @returns A 2-3 paragraph project story.
  */
-export const generateProjectDescription = async (title: string, technologies: string): Promise<string> => {
+export const generateProjectStory = async (title: string, technologies: string, existingDescription: string): Promise<string> => {
   try {
     const ai = getAiClient();
-    // Prompt engineering: Provide clear instructions and an example (few-shot prompting).
-    const prompt = `Generate a professional and engaging project description for a software portfolio. The project is called "${title}" and uses the following technologies: ${technologies}. The description should be concise (around 2-3 sentences), highlight the project's purpose and key features, and be suitable for attracting potential employers. Use the STAR (Situation, Task, Action, Result) method as a loose guideline. For example: "Developed a full-stack e-commerce platform (Situation/Task) using React and Node.js to create a responsive and user-friendly shopping experience (Action), resulting in a 20% increase in user engagement (Result)."`;
+    const prompt = `You are an expert copywriter for tech portfolios. A user is creating a project called "${title}" using these technologies: ${technologies}.
+    
+    ${existingDescription ? `Their current description is: "${existingDescription}".` : ''}
+
+    Your task is to rewrite or generate a compelling project story (2-3 short paragraphs). It should be a narrative, not just bullet points. Describe the problem it solves, the user's role, and the impact of the project. Make it engaging for a recruiter or potential client. Output only the story text.`;
 
     const response = await ai.models.generateContent({
       model: 'gemini-2.5-flash',
@@ -77,8 +82,8 @@ export const generateProjectDescription = async (title: string, technologies: st
     if (error instanceof ApiKeyMissingError) {
         throw error;
     }
-    console.error("Error generating project description:", error);
-    throw new Error("Failed to generate description. Please try again.");
+    console.error("Error generating project story:", error);
+    throw new Error("Failed to generate project story. Please try again.");
   }
 };
 
@@ -670,5 +675,213 @@ export const generatePortfolioReview = async (portfolio: Portfolio, user: User):
         }
         console.error("Error generating portfolio review:", error);
         throw new Error("Failed to generate portfolio review. Please try again.");
+    }
+};
+
+/**
+ * Rewrites a work experience description to be more impactful.
+ * @param description The existing work experience description, likely with bullet points.
+ * @returns A rewritten, more professional description.
+ */
+export const enhanceExperienceDescription = async (description: string): Promise<string> => {
+  try {
+    const ai = getAiClient();
+    const prompt = `You are an expert resume writer and career coach. Rewrite the following job experience description to be more impactful for recruiters. For each bullet point or sentence, use the STAR method (Situation, Task, Action, Result) where possible. Start each point with a strong action verb. Focus on quantifying achievements if the context allows, but do not invent new information. Return only the rewritten description as a single block of text, maintaining the original number of bullet points or sentences.
+
+    Original Description:
+    "${description}"`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: prompt,
+    });
+    
+    return response.text.trim();
+  } catch (error) {
+    if (error instanceof ApiKeyMissingError) {
+        throw error;
+    }
+    console.error("Error enhancing experience description:", error);
+    throw new Error("Failed to enhance description. Please try again.");
+  }
+};
+
+
+/**
+ * Suggests new portfolio blocks for a user based on their goal and role.
+ * @param goal The user's career goal (e.g., 'get a job').
+ * @param role The user's professional title (e.g., 'Software Engineer').
+ * @param existingBlocks An array of block types already in the portfolio.
+ * @returns An array of suggested blocks with reasons.
+ */
+export const getSuggestedBlocks = async (
+    goal: string, 
+    role: string, 
+    existingBlocks: string[]
+): Promise<{ type: PortfolioBlock['type'], reason: string }[]> => {
+  try {
+    const ai = getAiClient();
+    const availableBlocks = ['about', 'projects', 'skills', 'gallery', 'testimonials', 'cta', 'resume', 'links', 'experience', 'contact', 'code', 'services', 'blog', 'video'];
+    const blocksToSuggestFrom = availableBlocks.filter(b => !existingBlocks.includes(b));
+    
+    const prompt = `You are an expert portfolio strategist and career coach. A user who is a "${role}" wants to create a portfolio with the primary goal to "${goal}".
+
+    Their portfolio currently has these sections: [${existingBlocks.join(', ')}].
+
+    Suggest 2-3 new, high-impact sections they should add to make their portfolio more effective for their goal. For each suggestion, provide the block 'type' and a short 'reason' (under 15 words) why it's important.
+
+    You MUST choose the 'type' from this list of available block types: [${blocksToSuggestFrom.join(', ')}].
+    Do NOT suggest any types that are in the existing sections list.
+
+    Format the output as a single JSON array of objects, with each object having a 'type' and a 'reason' key. Do not include any other text.`;
+    
+    const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: prompt,
+        config: {
+            responseMimeType: "application/json",
+            responseSchema: {
+                type: Type.ARRAY,
+                items: {
+                    type: Type.OBJECT,
+                    properties: {
+                        type: { type: Type.STRING },
+                        reason: { type: Type.STRING }
+                    },
+                    required: ["type", "reason"]
+                }
+            }
+        }
+    });
+
+    return JSON.parse(response.text);
+
+  } catch (error) {
+    if (error instanceof ApiKeyMissingError) {
+        throw error;
+    }
+    console.error("Error getting suggested blocks:", error);
+    throw new Error("Failed to get block suggestions. Please try again.");
+  }
+};
+
+/**
+ * Generates a complete, custom color palette from a user's text prompt.
+ * @param prompt A description of the desired theme (e.g., "a playful theme for a candy store").
+ * @returns A promise resolving to the color palette object.
+ */
+export const generateColorPalette = async (prompt: string): Promise<Omit<Palette, 'id' | 'name'>> => {
+  try {
+    const ai = getAiClient();
+    const fullPrompt = `Based on the following theme description, generate a complete and accessible (WCAG AA) color palette for a website. Ensure text and heading colors have sufficient contrast against the background.
+    
+    Theme: "${prompt}"`;
+
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: fullPrompt,
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            colors: {
+              type: Type.OBJECT,
+              properties: {
+                background: { type: Type.STRING, description: "A light/dark hex code for the main page background." },
+                text: { type: Type.STRING, description: "A contrasting hex code for body text." },
+                heading: { type: Type.STRING, description: "A hex code for headings, can be same as text." },
+                subtle: { type: Type.STRING, description: "A hex code for secondary text or borders." },
+                cardBackground: { type: Type.STRING, description: "A hex code for card/container backgrounds." },
+                cardBorder: { type: Type.STRING, description: "A hex code for card/container borders." },
+                inputBackground: { type: Type.STRING, description: "A hex code for form input backgrounds." },
+                inputBorder: { type: Type.STRING, description: "A hex code for form input borders." },
+                inputText: { type: Type.STRING, description: "A hex code for text inside form inputs." },
+                inputPlaceholder: { type: Type.STRING, description: "A hex code for placeholder text in inputs." },
+              },
+              required: ["background", "text", "heading", "subtle", "cardBackground", "cardBorder", "inputBackground", "inputBorder", "inputText", "inputPlaceholder"]
+            }
+          },
+          required: ["colors"]
+        },
+      },
+    });
+
+    return JSON.parse(response.text);
+
+  } catch (error) {
+    if (error instanceof ApiKeyMissingError) {
+        throw error;
+    }
+    console.error("Error generating color palette:", error);
+    throw new Error("Failed to generate color palette.");
+  }
+};
+
+/**
+ * Rewrites content for a specific audience.
+ * @param block The hero or about block to tune.
+ * @param audience The target audience (e.g., 'Technical Recruiter').
+ * @param userTitle The user's professional title for context.
+ * @returns A partial block object with the updated content.
+ */
+export const tuneContentForAudience = async (
+    block: HeroBlock | AboutBlock,
+    audience: string,
+    userTitle: string
+): Promise<Partial<HeroBlock | AboutBlock>> => {
+    try {
+        const ai = getAiClient();
+        let prompt = '';
+        let config: any = {};
+
+        if (block.type === 'hero') {
+            prompt = `You are an expert copywriter. A user who is a "${userTitle}" has a portfolio hero section.
+            Current headline: "${block.headline}"
+            Current subheadline: "${block.subheadline}"
+
+            Rewrite the headline and subheadline to appeal specifically to a "${audience}". Make it professional and compelling for that audience.
+            Return the result as a single JSON object with "headline" and "subheadline" keys.`;
+            config = {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        headline: { type: Type.STRING },
+                        subheadline: { type: Type.STRING },
+                    },
+                    required: ["headline", "subheadline"],
+                },
+            };
+        } else if (block.type === 'about') {
+            prompt = `You are an expert copywriter. A user who is a "${userTitle}" has a portfolio "About Me" section.
+            Current content: "${block.content}"
+
+            Rewrite this content to appeal specifically to a "${audience}". Adjust the tone, language, and focus to be most effective for that audience.
+            Return only the rewritten text.`;
+        } else {
+            // This case should not be hit based on calling code, but it's good practice.
+            throw new Error("Unsupported block type for tuning.");
+        }
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config,
+        });
+
+        if (block.type === 'hero') {
+            const jsonStr = response.text.trim();
+            return JSON.parse(jsonStr);
+        } else {
+            return { content: response.text.trim() };
+        }
+
+    } catch (error) {
+        if (error instanceof ApiKeyMissingError) {
+            throw error;
+        }
+        console.error("Error tuning content:", error);
+        throw new Error("Failed to tune content for audience.");
     }
 };

@@ -1,25 +1,27 @@
 
-
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage } from '../types';
+// FIX: Add HeroBlock and AboutBlock for handleTuneContent
+import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage, HeroBlock, AboutBlock } from '../types';
 import Button from '../components/ui/Button';
 import AddBlockMenu from '../components/AddBlockMenu';
-import { FilePenLine, Eye } from 'lucide-react';
+import { FilePenLine } from 'lucide-react';
 import { useApp } from '../contexts/LocalizationContext';
 import ProjectEditorModal from '../components/ProjectEditorModal';
 import { CommandPalette } from '../components/CommandPalette';
-import { generateHeroContent, generateAboutContent, generateDesignSuggestions, ApiKeyMissingError } from '../services/aiService';
+// FIX: Import tuneContentForAudience
+import { generateHeroContent, generateAboutContent, generateDesignSuggestions, ApiKeyMissingError, tuneContentForAudience } from '../services/aiService';
 import PaletteEditorModal from '../components/PaletteEditorModal';
 import AIImageGenerationModal from '../components/AIImageGenerationModal';
 import AIPortfolioReviewModal from '../components/AIPortfolioReviewModal';
 import AIMentorPanel from '../components/AIMentorPanel';
 import EditorSidebar from '../components/editor/EditorSidebar';
 import PortfolioPreview from '../components/editor/PortfolioPreview';
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+import AIPaletteGeneratorModal from '../components/AIPaletteGeneratorModal';
 
 // Import the new hooks
 import { useResizableSidebar } from '../hooks/useResizableSidebar';
@@ -51,12 +53,16 @@ const PortfolioEditorPage: React.FC = () => {
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [isAIAssistLoading, setIsAIAssistLoading] = useState(false);
     const [isAIDesignLoading, setIsAIDesignLoading] = useState(false);
+    // FIX: Add state for content tuning
+    const [isTuning, setIsTuning] = useState(false);
     const [editingPalette, setEditingPalette] = useState<Palette | 'new' | null>(null);
     const [isGeneratingAsset, setIsGeneratingAsset] = useState<boolean>(false);
     const [applyingAssetId, setApplyingAssetId] = useState<string | null>(null);
     const [regeneratingPrompt, setRegeneratingPrompt] = useState<string | null>(null);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
+    // FIX: Add state for AI palette modal
+    const [isAIPaletteModalOpen, setAIPaletteModalOpen] = useState(false);
     
     // State for triggering inline creation forms
     const [creatingInBlockId, setCreatingInBlockId] = useState<string | null>(null);
@@ -225,9 +231,13 @@ const PortfolioEditorPage: React.FC = () => {
 
         const feature = block.type === 'hero' ? 'heroContent' : 'aboutContent';
         if (!consumeAiFeature(feature)) {
-            const message = user?.subscription?.tier === 'pro'
-                ? "You've run out of AI text credits for this month."
-                : "You've used your one free generation for this feature. Please upgrade to Pro.";
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free AI content generation. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
             toast.error(message);
             return;
         }
@@ -256,9 +266,13 @@ const PortfolioEditorPage: React.FC = () => {
     const handleAIDesignSuggest = async () => {
         if (!user) return;
         if (!consumeAiFeature('designSuggestions')) {
-            const message = user?.subscription?.tier === 'pro'
-                ? "You've run out of AI text credits for this month."
-                : "You've used your one free design suggestion. Please upgrade to Pro.";
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free AI design suggestion. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
             toast.error(message);
             return;
         }
@@ -290,10 +304,52 @@ const PortfolioEditorPage: React.FC = () => {
         if (consumeAiFeature('portfolioReview')) {
             setIsReviewModalOpen(true);
         } else {
-             const message = user?.subscription?.tier === 'pro'
-                ? "You've run out of AI text credits for this month."
-                : "You've used your one free portfolio review. Please upgrade to Pro.";
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free portfolio review. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
             toast.error(message);
+        }
+    };
+
+    // FIX: Add handler for content tuning
+    const handleTuneContent = async (audience: string) => {
+        if (!portfolio || !activeBlockId || !user || !activePageId) return;
+        const block = activePage?.blocks.find(b => b.id === activeBlockId);
+        if (!block || (block.type !== 'hero' && block.type !== 'about')) return;
+
+        if (!consumeAiFeature('contentTuning')) {
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free AI content tuning. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
+            toast.error(message);
+            return;
+        }
+
+        setIsTuning(true);
+        toast.loading(`Tuning content for ${audience}...`);
+        try {
+            const newContent = await tuneContentForAudience(block as HeroBlock | AboutBlock, audience, user.title);
+            updateBlock(block.id, newContent);
+            toast.dismiss();
+            toast.success(`Content tuned successfully!`);
+        } catch (error) {
+            toast.dismiss();
+            console.error("AI Tune failed:", error);
+            if (error instanceof ApiKeyMissingError) {
+                toast.error(error.message);
+            } else {
+                toast.error("AI Tuning failed. Please check the console for details.");
+            }
+        } finally {
+            setIsTuning(false);
         }
     };
 
@@ -309,6 +365,19 @@ const PortfolioEditorPage: React.FC = () => {
         });
         setEditingPalette(null);
     };
+    
+    const handleSaveGeneratedPalette = useCallback((palette: Palette) => {
+        updatePortfolioImmediate(p => {
+            const newPalettes = [...(p.customPalettes || []), palette];
+            return {
+                ...p,
+                customPalettes: newPalettes,
+                design: { ...p.design, paletteId: palette.id }
+            };
+        });
+        toast.success("AI palette applied!");
+    }, [updatePortfolioImmediate]);
+
 
     const handleDeletePalette = (paletteId: string) => {
         toast((toastInstance) => (
@@ -516,6 +585,7 @@ const PortfolioEditorPage: React.FC = () => {
                         updatePortfolioDebounced={updatePortfolioDebounced}
                         setEditingPalette={setEditingPalette}
                         handleDeletePalette={handleDeletePalette}
+                        setAIPaletteModalOpen={setAIPaletteModalOpen}
 
                         // AssetsPanel Props
                         onAddAsset={handleAddAsset}
@@ -547,6 +617,9 @@ const PortfolioEditorPage: React.FC = () => {
                         onDeleteBlock={handleRemoveBlock}
                         onAIAssist={handleAIAssist}
                         isAIAssistLoading={isAIAssistLoading}
+                        // FIX: Pass onTune and isTuning props to resolve component error.
+                        onTune={handleTuneContent}
+                        isTuning={isTuning}
                         onPageLinkClick={(pageId) => setActivePageId(pageId)}
                         focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
                         scrollContainerRef={scrollContainerRef}
@@ -611,6 +684,7 @@ const PortfolioEditorPage: React.FC = () => {
                         updatePortfolioDebounced={updatePortfolioDebounced}
                         setEditingPalette={setEditingPalette}
                         handleDeletePalette={handleDeletePalette}
+                        setAIPaletteModalOpen={setAIPaletteModalOpen}
 
                         // AssetsPanel Props
                         onAddAsset={handleAddAsset}
@@ -637,52 +711,25 @@ const PortfolioEditorPage: React.FC = () => {
                                 onDeleteBlock={handleRemoveBlock}
                                 onAIAssist={handleAIAssist}
                                 isAIAssistLoading={isAIAssistLoading}
+                                // FIX: Pass onTune and isTuning props to resolve component error.
+                                onTune={handleTuneContent}
+                                isTuning={isTuning}
                                 onPageLinkClick={(pageId) => setActivePageId(pageId)}
                                 focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
                                 scrollContainerRef={scrollContainerRef}
                             />
                         </div>
+                        <Button 
+                            onClick={() => setMobileView('editor')} 
+                            variant="primary" 
+                            className="fixed bottom-4 end-4 z-50 !rounded-full !p-3 shadow-lg"
+                        >
+                            <FilePenLine size={20} className="me-1"/> Edit
+                        </Button>
                     </main>
                 )}
             </div>
         </div>
-        
-        {/* New Mobile Toggle Bar */}
-        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-t border-slate-200 dark:border-slate-800 p-2">
-            <div className="flex items-center justify-center gap-1 p-1 bg-slate-200 dark:bg-slate-800 rounded-full max-w-sm mx-auto">
-                <button
-                    onClick={() => setMobileView('editor')}
-                    className={`w-1/2 py-2 text-sm font-semibold rounded-full relative transition-colors flex items-center justify-center gap-2 ${
-                        mobileView === 'editor' ? 'text-slate-900 dark:text-slate-50' : 'text-slate-600 dark:text-slate-400'
-                    }`}
-                >
-                    {mobileView === 'editor' && (
-                        <motion.div
-                            layoutId="mobile-toggle-highlight"
-                            className="absolute inset-0 bg-white dark:bg-slate-700 rounded-full shadow-sm"
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        />
-                    )}
-                    <span className="relative z-10 flex items-center justify-center gap-2"><FilePenLine size={16}/> Editor</span>
-                </button>
-                <button
-                    onClick={() => setMobileView('preview')}
-                    className={`w-1/2 py-2 text-sm font-semibold rounded-full relative transition-colors flex items-center justify-center gap-2 ${
-                        mobileView === 'preview' ? 'text-slate-900 dark:text-slate-50' : 'text-slate-600 dark:text-slate-400'
-                    }`}
-                >
-                     {mobileView === 'preview' && (
-                        <motion.div
-                            layoutId="mobile-toggle-highlight"
-                            className="absolute inset-0 bg-white dark:bg-slate-700 rounded-full shadow-sm"
-                            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-                        />
-                    )}
-                    <span className="relative z-10 flex items-center justify-center gap-2"><Eye size={16}/> Preview</span>
-                </button>
-            </div>
-        </div>
-        
         <AnimatePresence>
             {addingBlockIndex !== null && (
                 <AddBlockMenu 
@@ -718,6 +765,14 @@ const PortfolioEditorPage: React.FC = () => {
                     }}
                     onImageGenerated={handleImageGenerated}
                     initialPrompt={regeneratingPrompt || undefined}
+                />
+            )}
+        </AnimatePresence>
+         <AnimatePresence>
+            {isAIPaletteModalOpen && (
+                <AIPaletteGeneratorModal
+                    onClose={() => setAIPaletteModalOpen(false)}
+                    onSave={handleSaveGeneratedPalette}
                 />
             )}
         </AnimatePresence>

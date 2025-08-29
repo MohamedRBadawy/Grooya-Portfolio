@@ -1,9 +1,11 @@
 
+
 import React, { useState, useEffect, useRef } from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, useNavigate } from 'react-router-dom';
 import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
-import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy } from 'lucide-react';
+import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
@@ -25,6 +27,8 @@ const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?:
 
 const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }) => {
     const { user } = useData();
+    const { logout } = useAuth();
+    const navigate = useNavigate();
     const { t } = useTranslation();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
@@ -47,6 +51,11 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, []);
+    
+    const handleLogout = () => {
+        logout();
+        navigate('/');
+    };
 
     const userMenuMotionProps: any = {
         initial: { opacity: 0, y: 10, scale: 0.95 },
@@ -123,6 +132,10 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                      <a href="mailto:grooya.ai@gmail.com" className="flex items-center w-full px-3 py-2 text-sm rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
                                                         <LifeBuoy size={16} className="mr-3" /> {t('nav.support')}
                                                     </a>
+                                                    <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
+                                                    <button onClick={handleLogout} className="flex items-center w-full px-3 py-2 text-sm rounded-md text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700/50">
+                                                        <LogOut size={16} className="mr-3" /> {t('logout')}
+                                                    </button>
                                                 </div>
                                                 <div className="p-3 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700">
                                                     <p className="text-xs text-slate-600 dark:text-slate-400">Current Plan: <span className="font-semibold capitalize text-slate-800 dark:text-slate-200">{user.subscription?.tier}</span></p>

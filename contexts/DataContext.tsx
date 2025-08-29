@@ -393,34 +393,58 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
   // --- AI Credit Consumption ---
-  const consumeAiFeature = (feature: AIFeature) => {
-      if (!user) return false;
-      const { tier, credits, freeFeaturesUsed } = user.subscription;
+    const consumeAiFeature = (feature: AIFeature): boolean => {
+        if (!user) return false;
 
-      const isTextFeature = feature !== 'imageGeneration';
+        const { subscription } = user;
+        const isTextFeature = feature !== 'imageGeneration';
 
-      if (tier === 'free') {
-          if (freeFeaturesUsed[feature]) {
-              return false; // Free feature already used
-          }
-          setUser(prev => prev ? { ...prev, subscription: { ...prev.subscription, freeFeaturesUsed: { ...prev.subscription.freeFeaturesUsed, [feature]: true }}} : null);
-          return true;
-      }
-      
-      // Paid Tiers
-      if (isTextFeature) {
-          if (credits.text > 0) {
-              setUser(prev => prev ? { ...prev, subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, text: prev.subscription.credits.text - 1 }}} : null);
-              return true;
-          }
-      } else {
-          if (credits.image > 0) {
-              setUser(prev => prev ? { ...prev, subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, image: prev.subscription.credits.image - 1 }}} : null);
-              return true;
-          }
-      }
-      return false; // No credits left
-  };
+        if (subscription.tier === 'free') {
+            // Free users cannot generate images.
+            if (!isTextFeature) return false;
+            // Free users cannot use a feature more than once.
+            if (subscription.freeFeaturesUsed[feature]) return false;
+
+            // Mark the feature as used for the free user.
+            setUser(prev => {
+                if (!prev) return null;
+                const newFreeFeaturesUsed = { ...prev.subscription.freeFeaturesUsed, [feature]: true };
+                return {
+                    ...prev,
+                    subscription: { ...prev.subscription, freeFeaturesUsed: newFreeFeaturesUsed }
+                };
+            });
+            return true;
+        }
+
+        // For paid tiers, check and decrement credits.
+        if (isTextFeature) {
+            if (subscription.credits.text > 0) {
+                setUser(prev => {
+                    if (!prev) return null;
+                    return {
+                        ...prev,
+                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, text: prev.subscription.credits.text - 1 } }
+                    };
+                });
+                return true;
+            }
+        } else { // Image generation
+            if (subscription.credits.image > 0) {
+                setUser(prev => {
+                    if (!prev) return null;
+                    return {
+                        ...prev,
+                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, image: prev.subscription.credits.image - 1 } }
+                    };
+                });
+                return true;
+            }
+        }
+
+        // If no conditions are met (e.g., out of credits), deny usage.
+        return false;
+    };
 
 
   return (

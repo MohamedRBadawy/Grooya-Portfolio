@@ -1,6 +1,4 @@
 
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -9,7 +7,7 @@ import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
 import type { Portfolio } from '../types';
 import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban, Sparkles } from 'lucide-react';
-import PortfolioPreviewModal from './PortfolioPreviewModal';
+import PortfolioPreviewModal from '../components/PortfolioPreviewModal';
 import { useApp } from '../contexts/LocalizationContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIGuidedCreationModal from '../components/AIGuidedCreationModal';

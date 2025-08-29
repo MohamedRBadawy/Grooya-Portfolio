@@ -45,7 +45,7 @@ export const BlogBlockView: React.FC<BlockViewProps> = ({ block, design, theme, 
                             className={`block group overflow-hidden ${cornerRadiusStyles[design.cornerRadius]} ${shadowClass} transition-all duration-300 hover:-translate-y-1`}
                             style={cardStyles}
                         >
-                            <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" />
+                            <img src={post.imageUrl} alt={post.title} className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105" loading="lazy" decoding="async" />
                             <div className="p-6">
                                 <h3 className={`text-xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`} style={{ color: theme.heading }}>{post.title}</h3>
                                 <p className={`mt-2 text-sm line-clamp-3`} style={{ color: theme.subtle }}>{post.excerpt}</p>

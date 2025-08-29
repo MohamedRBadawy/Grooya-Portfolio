@@ -1,5 +1,3 @@
-
-
 # Grooya - Full Application Structure & Roadmap
 
 This document outlines the complete architectural plan for the Grooya AI Career Operating System, detailing every page, component, and feature. It serves as a master checklist to track development progress.
@@ -25,23 +23,22 @@ This phase established the foundational elements of the application, focusing on
     -   `[x]` **Undo/Redo Functionality:** Client-side history in the editor.
     -   `[x]` **Theme & Language Switchers:** Controls for light/dark mode and en/ar languages.
 
-## Phase 2: Public Presence & User Acquisition (On Hold)
+## ✅ Phase 2: Public Presence & User Acquisition (Completed)
 
-This phase focuses on building the public-facing "storefront" of the application to attract new users and showcase the product's capabilities. **Development on this phase is currently paused to focus on the core authenticated user experience.**
+This phase focuses on building the public-facing "storefront" of the application to attract new users and showcase the product's capabilities. 
 
--   **[ ] Public & Authentication Pages**
-    -   `[ ]` **Landing Page:** The main marketing page.
-        -   `[ ]` Hero section with a clear value proposition and CTA.
-        -   `[ ]` Features section detailing what Grooya offers.
-        -   `[ ]` Template showcase section with links to previews.
-        -   `[ ]` Pricing tier comparison table.
-        -   `[ ]` FAQ section.
-        -   `[ ]` Footer with legal links.
-    -   `[ ]` **Authentication Pages (Real Implementation):**
-        -   `[ ]` Sign Up Page with social login options (Google/GitHub).
-        -   `[ ]` Login Page.
-        -   `[ ]` Forgot/Reset Password flow.
-    -   `[ ]` **Public "Template Preview" Page:** A route (`/templates/:templateId`) to display a live, non-editable preview of an official template.
+-   **[x] Public & Authentication Pages**
+    -   `[x]` **Landing Page:** The main marketing page.
+        -   `[x]` Hero section with a clear value proposition and CTA.
+        -   `[x]` Features section detailing what Grooya offers.
+        -   `[x]` Template showcase section with links to previews.
+        -   `[x]` Pricing tier comparison table.
+        -   `[x]` FAQ section.
+        -   `[x]` Footer with legal links.
+    -   `[x]` **Authentication Pages (Real Implementation):**
+        -   `[x]` Sign Up Page with social login options (Google/GitHub).
+        -   `[x]` Login Page.
+    -   `[x]` **Public "Template Preview" Page:** A route (`/templates/:templateId`) to display a live, non-editable preview of an official template.
     -   `[ ]` **Terms of Service & Privacy Policy Pages:** Static legal pages.
     -   `[ ]` **Custom 404 "Not Found" Page:** A user-friendly error page.
 
@@ -78,7 +75,7 @@ This phase involves building the necessary tools for administrators to manage th
         -   `[x]` UI for admin actions (view, unpublish, feature as template).
     -   `[x]` **Template Management Page:**
         -   `[x]` An interface to create and manage the official templates.
-    -   `[ ]` **Platform Settings Page:**
-        -   `[ ]` UI for managing subscription plan details.
-        -   `[ ]` UI for a feature flag system.
-        -   `[ ]` UI for creating global announcement banners.
+    -   `[x]` **Platform Settings Page:**
+        -   `[x]` UI for managing subscription plan details.
+        -   `[x]` UI for a feature flag system.
+        -   `[x]` UI for creating global announcement banners.

@@ -1,9 +1,3 @@
-
-
-
-
-
-
 import React, { useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { mockAllUsers, initialPortfolios, initialProjects } from '../../services/mockData';
@@ -59,7 +53,7 @@ const AdminUserDetailPage: React.FC = () => {
                 <div className="lg:col-span-1 space-y-8">
                     <DetailCard title="Profile" icon={UserIcon}>
                         <div className="flex flex-col items-center text-center">
-                            <img src={user.avatarUrl} alt={user.name} className="w-24 h-24 rounded-full mb-4 border-4 border-slate-200 dark:border-slate-700" />
+                            <img src={user.avatarUrl} alt={user.name} className="w-24 h-24 rounded-full mb-4 border-4 border-slate-200 dark:border-slate-700" loading="lazy" decoding="async" />
                             <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">{user.name}</h1>
                             <p className="text-slate-600 dark:text-slate-400">{user.title}</p>
                             <a href={`mailto:${user.email}`} className="text-sm text-cyan-600 hover:underline mt-1">{user.email}</a>

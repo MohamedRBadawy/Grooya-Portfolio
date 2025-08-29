@@ -1,11 +1,8 @@
 
-
 import React, { useCallback } from 'react';
-// FIX: Removed BubbleMenu from this import to resolve the error "Module '\"@tiptap/react\"' has no exported member 'BubbleMenu'".
 import { useEditor, EditorContent } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-// FIX: Imported both the BubbleMenu component (as default) and the BubbleMenu extension (as a named export with an alias) from '@tiptap/extension-bubble-menu'. This resolves the import error and the name collision between the component and the extension.
 import BubbleMenu, { BubbleMenu as BubbleMenuExtension } from '@tiptap/extension-bubble-menu';
 import { Bold, Italic, Link as LinkIcon } from 'lucide-react';
 

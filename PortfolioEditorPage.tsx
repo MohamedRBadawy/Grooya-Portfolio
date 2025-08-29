@@ -20,6 +20,8 @@ import EditorSidebar from '../components/editor/EditorSidebar';
 import PortfolioPreview from '../components/editor/PortfolioPreview';
 import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
+// FIX: Import AIPaletteGeneratorModal
+import AIPaletteGeneratorModal from '../components/AIPaletteGeneratorModal';
 
 // Import the new hooks
 import { useResizableSidebar } from '../hooks/useResizableSidebar';
@@ -57,6 +59,8 @@ const PortfolioEditorPage: React.FC = () => {
     const [regeneratingPrompt, setRegeneratingPrompt] = useState<string | null>(null);
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
+    // FIX: Add state for the AI Palette modal
+    const [isAIPaletteModalOpen, setAIPaletteModalOpen] = useState(false);
     
     // State for triggering inline creation forms
     const [creatingInBlockId, setCreatingInBlockId] = useState<string | null>(null);
@@ -225,9 +229,13 @@ const PortfolioEditorPage: React.FC = () => {
 
         const feature = block.type === 'hero' ? 'heroContent' : 'aboutContent';
         if (!consumeAiFeature(feature)) {
-            const message = user?.subscription?.tier === 'pro'
-                ? "You've run out of AI text credits for this month."
-                : "You've used your one free generation for this feature. Please upgrade to Pro.";
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free AI content generation. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
             toast.error(message);
             return;
         }
@@ -256,9 +264,13 @@ const PortfolioEditorPage: React.FC = () => {
     const handleAIDesignSuggest = async () => {
         if (!user) return;
         if (!consumeAiFeature('designSuggestions')) {
-            const message = user?.subscription?.tier === 'pro'
-                ? "You've run out of AI text credits for this month."
-                : "You've used your one free design suggestion. Please upgrade to Pro.";
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free AI design suggestion. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
             toast.error(message);
             return;
         }
@@ -290,9 +302,13 @@ const PortfolioEditorPage: React.FC = () => {
         if (consumeAiFeature('portfolioReview')) {
             setIsReviewModalOpen(true);
         } else {
-             const message = user?.subscription?.tier === 'pro'
-                ? "You've run out of AI text credits for this month."
-                : "You've used your one free portfolio review. Please upgrade to Pro.";
+            const tier = user?.subscription?.tier;
+            let message = "An error occurred.";
+            if (tier === 'free') {
+                message = "You've used your one free portfolio review. Please upgrade to use it again.";
+            } else if (tier) {
+                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
+            }
             toast.error(message);
         }
     };
@@ -309,6 +325,20 @@ const PortfolioEditorPage: React.FC = () => {
         });
         setEditingPalette(null);
     };
+    
+    // FIX: Add callback for saving generated palettes.
+    const handleSaveGeneratedPalette = useCallback((palette: Palette) => {
+        updatePortfolioImmediate(p => {
+            const newPalettes = [...(p.customPalettes || []), palette];
+            return {
+                ...p,
+                customPalettes: newPalettes,
+                design: { ...p.design, paletteId: palette.id }
+            };
+        });
+        toast.success("AI palette applied!");
+    }, [updatePortfolioImmediate]);
+
 
     const handleDeletePalette = (paletteId: string) => {
         toast((toastInstance) => (
@@ -516,6 +546,8 @@ const PortfolioEditorPage: React.FC = () => {
                         updatePortfolioDebounced={updatePortfolioDebounced}
                         setEditingPalette={setEditingPalette}
                         handleDeletePalette={handleDeletePalette}
+                        // FIX: Property 'setAIPaletteModalOpen' is missing.
+                        setAIPaletteModalOpen={setAIPaletteModalOpen}
 
                         // AssetsPanel Props
                         onAddAsset={handleAddAsset}
@@ -611,6 +643,8 @@ const PortfolioEditorPage: React.FC = () => {
                         updatePortfolioDebounced={updatePortfolioDebounced}
                         setEditingPalette={setEditingPalette}
                         handleDeletePalette={handleDeletePalette}
+                        // FIX: Property 'setAIPaletteModalOpen' is missing.
+                        setAIPaletteModalOpen={setAIPaletteModalOpen}
 
                         // AssetsPanel Props
                         onAddAsset={handleAddAsset}
@@ -688,6 +722,15 @@ const PortfolioEditorPage: React.FC = () => {
                     }}
                     onImageGenerated={handleImageGenerated}
                     initialPrompt={regeneratingPrompt || undefined}
+                />
+            )}
+        </AnimatePresence>
+         {/* FIX: Render AIPaletteGeneratorModal */}
+         <AnimatePresence>
+            {isAIPaletteModalOpen && (
+                <AIPaletteGeneratorModal
+                    onClose={() => setAIPaletteModalOpen(false)}
+                    onSave={handleSaveGeneratedPalette}
                 />
             )}
         </AnimatePresence>

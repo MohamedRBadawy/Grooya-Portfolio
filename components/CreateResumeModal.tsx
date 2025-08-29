@@ -49,9 +49,13 @@ const CreateResumeModal: React.FC<CreateResumeModalProps> = ({ onClose, onCreate
     if (!portfolio) return;
     
     if (!consumeAiFeature('resumeFromPortfolio')) {
-      const message = user?.subscription?.tier === 'pro'
-        ? "You've run out of AI text credits for this month."
-        : "You've used your one free resume generation. Please upgrade to Pro.";
+      const tier = user?.subscription?.tier;
+      let message = "An error occurred.";
+      if (tier === 'free') {
+          message = "You've used your one free resume generation from a portfolio. Please upgrade to use it again.";
+      } else if (tier) {
+          message = "You've run out of AI text credits for this month. Please upgrade your plan or purchase more credits.";
+      }
       toast.error(message);
       return;
     }
@@ -89,9 +93,13 @@ const CreateResumeModal: React.FC<CreateResumeModalProps> = ({ onClose, onCreate
     }
 
     if (!consumeAiFeature('resumeFromJobDescription')) {
-      const message = user?.subscription?.tier === 'pro'
-        ? "You've run out of AI text credits for this month."
-        : "You've used your one free resume generation for a job description. Please upgrade to Pro.";
+      const tier = user?.subscription?.tier;
+      let message = "An error occurred.";
+      if (tier === 'free') {
+          message = "You've used your one free resume tailoring for a job description. Please upgrade to use it again.";
+      } else if (tier) {
+          message = "You've run out of AI text credits for this month. Please upgrade your plan or purchase more credits.";
+      }
       toast.error(message);
       return;
     }

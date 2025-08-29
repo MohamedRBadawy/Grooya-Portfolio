@@ -23,18 +23,16 @@ const LoginPage: React.FC = () => {
     const handleLogin = (e: FormEvent) => {
         e.preventDefault();
         login();
-        navigate('/');
+        navigate('/dashboard');
     };
 
     return (
-        <div className="min-h-screen w-full flex flex-col items-center justify-center p-4">
+        <div className="w-full flex flex-col items-center justify-center py-12 px-4">
             <div className="text-center mb-8">
-                <h1 className="text-5xl font-bold text-teal-500 font-sora">
-                    Grooya
-                </h1>
-                <h2 className="text-2xl mt-4 font-semibold text-slate-800 dark:text-slate-200">
+                <h2 className="text-3xl mt-4 font-semibold text-slate-800 dark:text-slate-200">
                     Welcome Back!
                 </h2>
+                <p className="text-slate-600 dark:text-slate-400 mt-2">Sign in to continue to your dashboard.</p>
             </div>
             <div className="w-full max-w-md bg-white dark:bg-slate-900 shadow-xl rounded-2xl p-8 border border-slate-200 dark:border-slate-800">
                 <div className="grid grid-cols-2 gap-4">
@@ -66,7 +64,7 @@ const LoginPage: React.FC = () => {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                defaultValue="you@example.com"
+                                defaultValue="alex.doe@example.com"
                                 className="appearance-none block w-full px-3 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                             />
                         </div>

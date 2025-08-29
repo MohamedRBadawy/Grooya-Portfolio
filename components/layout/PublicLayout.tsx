@@ -1,11 +1,14 @@
 
 
-
 import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
-import Button from '../components/ui/Button';
+import Button from '../ui/Button';
+import { useAuth } from '../../contexts/AuthContext';
+import LanguageSwitcher from '../LanguageSwitcher';
+import ThemeSwitcher from '../ThemeSwitcher';
 
 const PublicLayout: React.FC = () => {
+    const { isAuthenticated } = useAuth();
     return (
         <div className="min-h-screen flex flex-col bg-slate-50 dark:bg-slate-950">
             <header className="sticky top-0 z-30 w-full bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-800">
@@ -15,11 +18,22 @@ const PublicLayout: React.FC = () => {
                             <h1 className="text-2xl font-bold text-cyan-500 font-sora">Grooya</h1>
                         </Link>
                         <div className="flex items-center gap-2">
-                             <Link to="/dashboard">
-                                <Button variant="secondary" size="sm">
-                                    Dashboard
-                                </Button>
-                            </Link>
+                             <LanguageSwitcher />
+                             <ThemeSwitcher />
+                             {isAuthenticated ? (
+                                <Link to="/dashboard">
+                                    <Button variant="primary" size="sm">Dashboard</Button>
+                                </Link>
+                             ) : (
+                                <>
+                                 <Link to="/login">
+                                    <Button variant="ghost" size="sm">Log In</Button>
+                                 </Link>
+                                 <Link to="/dashboard">
+                                    <Button variant="primary" size="sm">Get Started</Button>
+                                 </Link>
+                                </>
+                             )}
                         </div>
                     </div>
                 </div>

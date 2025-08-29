@@ -1,11 +1,5 @@
-
-
-
-
-
-
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import type { Resume, ExperienceItem, EducationItem, Skill, ResumeProjectItem } from '../types';
@@ -17,6 +11,8 @@ import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, us
 import { SortableContext, sortableKeyboardCoordinates, useSortable, arrayMove, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
+import AIAssistButton from '../components/ui/AIAssistButton';
+import { enhanceExperienceDescription, ApiKeyMissingError } from '../services/aiService';
 
 // Reusable components for editor fields
 const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string }> = ({ children, htmlFor }) => (
@@ -42,7 +38,8 @@ const EditorDetails: React.FC<{title: string, children: React.ReactNode, default
 
 // Sortable item wrapper for DnD
 const SortableItem: React.FC<{id: string, children: React.ReactNode, onRemove: () => void}> = ({ id, children, onRemove }) => {
-    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id });
+    // FIX: Add resizeObserverConfig to useSortable to fix dnd-kit error.
+    const { attributes, listeners, setNodeRef, transform, transition } = useSortable({ id, resizeObserverConfig: { disabled: true } });
     const style = {
         transform: CSS.Transform.toString(transform),
         transition,
@@ -62,11 +59,12 @@ const SortableItem: React.FC<{id: string, children: React.ReactNode, onRemove: (
 const ResumeEditorPage: React.FC = () => {
     const { resumeId } = useParams<{ resumeId: string }>();
     const navigate = useNavigate();
-    const { getResumeById, updateResume, skills: masterSkillsList } = useData();
+    const { getResumeById, updateResume, skills: masterSkillsList, user, consumeAiFeature } = useData();
     const { t } = useTranslation();
 
     const [resume, setResume] = useState<Resume | null>(null);
     const [skillSearch, setSkillSearch] = useState('');
+    const [enhancingId, setEnhancingId] = useState<string | null>(null);
 
     useEffect(() => {
         if (resumeId) {
@@ -84,10 +82,6 @@ const ResumeEditorPage: React.FC = () => {
             updateResume(resume);
             toast.success(t('resumeSaved'));
         }
-    };
-    
-    const handleDownload = () => {
-        window.print();
     };
 
     const handleFieldChange = (field: keyof Resume, value: any) => {
@@ -161,6 +155,40 @@ const ResumeEditorPage: React.FC = () => {
         });
     };
 
+    const handleEnhanceDescription = async (item: ExperienceItem) => {
+        if (!item.description) {
+            toast.error("Please enter a description first.");
+            return;
+        }
+        
+        if (!consumeAiFeature('experienceEnhancement')) {
+          const tier = user?.subscription?.tier;
+          let message = "An error occurred.";
+          if (tier === 'free') {
+              message = "You've used your one free AI enhancement. Please upgrade to use it again.";
+          } else if (tier) {
+              message = "You've run out of AI text credits. Please upgrade or purchase more.";
+          }
+          toast.error(message);
+          return;
+        }
+        
+        setEnhancingId(item.id);
+        try {
+            const enhancedDescription = await enhanceExperienceDescription(item.description);
+            handleArrayItemChange('experience', item.id, 'description', enhancedDescription);
+        } catch (error) {
+            console.error(error);
+            if (error instanceof ApiKeyMissingError) {
+                toast.error(error.message);
+            } else {
+                toast.error("Failed to enhance description. Please try again.");
+            }
+        } finally {
+            setEnhancingId(null);
+        }
+      };
+
     const filteredSkills = masterSkillsList.filter(s => s.name.toLowerCase().includes(skillSearch.toLowerCase()));
 
     if (!resume) {
@@ -202,7 +230,13 @@ const ResumeEditorPage: React.FC = () => {
                                             <EditorLabel>Job Title</EditorLabel><EditorInput value={exp.title} onChange={e => handleArrayItemChange('experience', exp.id, 'title', e.target.value)} />
                                             <EditorLabel>Company</EditorLabel><EditorInput value={exp.company} onChange={e => handleArrayItemChange('experience', exp.id, 'company', e.target.value)} />
                                             <EditorLabel>Date Range</EditorLabel><EditorInput value={exp.dateRange} onChange={e => handleArrayItemChange('experience', exp.id, 'dateRange', e.target.value)} />
-                                            <EditorLabel>Description</EditorLabel><EditorTextarea rows={3} value={exp.description} onChange={e => handleArrayItemChange('experience', exp.id, 'description', e.target.value)} />
+                                            <div>
+                                                <div className="flex justify-between items-center">
+                                                    <EditorLabel>Description</EditorLabel>
+                                                    <AIAssistButton onClick={() => handleEnhanceDescription(exp)} isLoading={enhancingId === exp.id} />
+                                                </div>
+                                                <EditorTextarea rows={3} value={exp.description} onChange={e => handleArrayItemChange('experience', exp.id, 'description', e.target.value)} />
+                                            </div>
                                         </SortableItem>)}
                                     </SortableContext>
                                 </DndContext>
@@ -265,7 +299,6 @@ const ResumeEditorPage: React.FC = () => {
                 {/* Main Content */}
                 <main className="flex-grow h-full flex flex-col">
                     <div className="noprint flex-shrink-0 p-2 border-b bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 flex justify-end items-center gap-2">
-                        <Button variant="secondary" onClick={handleDownload}><Download size={16} className="me-2"/> Download</Button>
                         <Button variant="primary" onClick={handleSave}><Save size={16} className="me-2"/>{t('save')}</Button>
                     </div>
                     <div className="flex-grow overflow-y-auto p-4 md:p-8 bg-slate-200 dark:bg-slate-950">
