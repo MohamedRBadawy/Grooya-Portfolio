@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -41,13 +38,7 @@ const PortfolioCard: React.FC<{
     };
   }, []);
 
-  // FIX: Removed incorrect `MotionProps` type.
-  const menuMotionProps = {
-      initial: { opacity: 0, y: 10 },
-      animate: { opacity: 1, y: 0 },
-      exit: { opacity: 0, y: 10 },
-  };
-
+  // FIX: Removed incorrect `MotionProps` type and inlined props to resolve type error.
   return (
     <Card 
         className="flex flex-col cursor-pointer"
@@ -92,7 +83,9 @@ const PortfolioCard: React.FC<{
                 <AnimatePresence>
                 {isMenuOpen && (
                     <motion.div
-                        {...menuMotionProps}
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
                         className={`absolute bottom-full mb-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 end-0`}
                     >
                         <Link to={`/portfolio/${portfolio.slug}`} target="_blank" rel="noopener noreferrer" className="w-full text-start flex items-center gap-2 px-4 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700">
@@ -200,12 +193,6 @@ const PortfolioListPage: React.FC = () => {
       }
   }
 
-  // FIX: Removed incorrect `MotionProps` type.
-  const bannerMotionProps = {
-      initial: { opacity: 0, y: -10 },
-      animate: { opacity: 1, y: 0 },
-  };
-
   return (
     <>
       <div className="h-full">
@@ -223,7 +210,8 @@ const PortfolioListPage: React.FC = () => {
 
           {!canCreate && (
              <motion.div 
-                {...bannerMotionProps}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
                 className="p-4 mb-8 bg-amber-100 dark:bg-amber-500/10 border border-amber-200 dark:border-amber-500/20 rounded-lg text-center"
              >
                 <p className="text-amber-800 dark:text-amber-200 text-sm">You've reached your portfolio limit for the <span className="capitalize font-semibold">{tierName}</span> plan. <Link to="/dashboard/upgrade" className="font-semibold underline hover:text-amber-900 dark:hover:text-amber-100">Upgrade your plan</Link> to create more.</p>
@@ -255,15 +243,13 @@ const PortfolioListPage: React.FC = () => {
           {displayedPortfolios.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              // FIX: Replaced direct animation props with a spread object to bypass type errors.
-              {...{
-                variants: containerVariants,
-                initial: "hidden",
-                animate: "visible",
-              }}
+              // FIX: Replaced spread object with direct props to resolve type errors.
+              variants={containerVariants}
+              initial="hidden"
+              animate="visible"
             >
               {displayedPortfolios.map(p => (
-                <motion.div key={p.id} {...{variants: itemVariants}}>
+                <motion.div key={p.id} variants={itemVariants}>
                   <PortfolioCard portfolio={p} onPreview={handlePreview} onDelete={handleDelete} onDuplicate={handleDuplicate} />
                 </motion.div>
               ))}

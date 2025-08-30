@@ -1,4 +1,3 @@
-
 import React, { useRef } from 'react';
 import type { Portfolio } from '../types';
 import PublicPortfolioPage from '../pages/PublicPortfolioPage';

@@ -35,16 +35,12 @@ const Button: React.FC<ButtonProps> = ({
     lg: 'px-6 py-3 text-lg'
   };
 
-  // FIX: Removed incorrect `MotionProps` type.
-  const motionProps = {
-      whileTap: { scale: 0.97, y: 0 },
-      transition: { type: "spring", stiffness: 400, damping: 17 }
-  };
-
+  // FIX: Removed incorrect `MotionProps` type and inlined props to resolve type error.
   return (
     <motion.button
       className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
-      {...motionProps}
+      whileTap={{ scale: 0.97, y: 0 }}
+      transition={{ type: "spring", stiffness: 400, damping: 17 }}
       {...props}
     >
       {children}

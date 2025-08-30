@@ -1,6 +1,7 @@
 
 
 
+
 import React, { useState, useEffect } from 'react';
 import type { Skill } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
@@ -45,31 +46,23 @@ const SkillEditorModal: React.FC<SkillEditorModalProps> = ({ skill, onClose, onS
       }
   };
 
-  // FIX: Removed incorrect `MotionProps` type.
-  const backdropMotionProps = {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-  };
-
-  // FIX: Removed incorrect `MotionProps` type.
-  const modalMotionProps = {
-      initial: { y: 20, scale: 0.95, opacity: 0 },
-      animate: { y: 0, scale: 1, opacity: 1 },
-      exit: { y: 20, scale: 0.95, opacity: 0 },
-      transition: { type: 'spring', stiffness: 300, damping: 30 },
-  };
-
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
-      {...backdropMotionProps}
+      // FIX: Replaced spread props with direct props to fix framer-motion type error.
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
       <motion.div 
         className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800"
         onClick={e => e.stopPropagation()}
-        {...modalMotionProps}
+        // FIX: Replaced spread props with direct props to fix framer-motion type error.
+        initial={{ y: 20, scale: 0.95, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={{ y: 20, scale: 0.95, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
       >
         <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <h3 className="font-bold text-slate-900 dark:text-slate-200 text-lg font-sora">

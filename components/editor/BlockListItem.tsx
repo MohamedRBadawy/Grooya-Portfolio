@@ -1,5 +1,3 @@
-
-
 import React, { useRef, useState, useEffect } from 'react';
 import type { PortfolioBlock, Page } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
@@ -49,13 +47,6 @@ const BlockListItem: React.FC<BlockListItemProps> = ({
 
     const otherPages = pages.filter(p => p.id !== activePageId);
 
-    // FIX: Removed incorrect `MotionProps` type.
-    const menuMotionProps = {
-        initial: { opacity: 0, y: 10 },
-        animate: { opacity: 1, y: 0 },
-        exit: { opacity: 0, y: 10 },
-    };
-
     return (
         <div
             ref={setNodeRef}
@@ -80,7 +71,9 @@ const BlockListItem: React.FC<BlockListItemProps> = ({
                     <AnimatePresence>
                         {isMenuOpen && (
                             <motion.div
-                                {...menuMotionProps}
+                                initial={{ opacity: 0, y: 10 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: 10 }}
                                 className="absolute top-full end-0 mt-2 w-48 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-md shadow-lg z-20 py-1"
                             >
                                 <div className="relative group">

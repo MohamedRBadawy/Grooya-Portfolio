@@ -50,18 +50,16 @@ const AnimatedUIPreview: React.FC = () => {
     // FIX: Removed incorrect `Variants` type.
     const itemVariants = {
         hidden: { y: 10, opacity: 0 },
-        visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+        visible: { y: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 100 } }
     };
 
     return (
         <motion.div 
             className="relative mt-12 max-w-4xl mx-auto"
-            // FIX: Replaced direct animation props with a spread object to bypass type errors.
-            {...{
-                initial: "hidden",
-                animate: "visible",
-                variants: containerVariants,
-            }}
+            // FIX: Replaced spread props with direct props to fix framer-motion type error.
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
         >
             <div className="relative aspect-[16/10] bg-white/50 dark:bg-slate-900/50 rounded-2xl border border-slate-200/50 dark:border-slate-800/50 shadow-2xl backdrop-blur-lg p-4">
                 <div className="flex items-center gap-1.5 mb-3">
@@ -71,21 +69,21 @@ const AnimatedUIPreview: React.FC = () => {
                 </div>
                 <div className="bg-slate-50 dark:bg-slate-900 rounded-lg h-[calc(100%-24px)] p-4 flex gap-4">
                     {/* Left Pane */}
-                    <motion.div {...{variants: itemVariants}} className="w-1/3 bg-white dark:bg-slate-800/50 rounded-md p-2 space-y-2">
+                    <motion.div variants={itemVariants} className="w-1/3 bg-white dark:bg-slate-800/50 rounded-md p-2 space-y-2">
                         <div className="h-4 w-3/4 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                         <div className="h-3 w-1/2 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                         <div className="h-3 w-5/6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                     </motion.div>
                     {/* Right Pane */}
                     <div className="w-2/3 space-y-3">
-                        <motion.div {...{variants: itemVariants}} className="h-12 w-full rounded-md bg-white dark:bg-slate-800/50 flex items-center p-2">
+                        <motion.div variants={itemVariants} className="h-12 w-full rounded-md bg-white dark:bg-slate-800/50 flex items-center p-2">
                              <div className="w-8 h-8 rounded-full bg-cyan-200 dark:bg-cyan-900/50 mr-2"></div>
                              <div className="space-y-1 flex-grow">
                                 <div className="h-2 w-1/3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                                 <div className="h-2 w-2/3 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                              </div>
                         </motion.div>
-                        <motion.div {...{variants: itemVariants}} className="h-24 w-full rounded-md bg-white dark:bg-slate-800/50 p-2 space-y-1">
+                        <motion.div variants={itemVariants} className="h-24 w-full rounded-md bg-white dark:bg-slate-800/50 p-2 space-y-1">
                             <div className="h-2 w-1/4 rounded-full bg-slate-200 dark:bg-slate-700"></div>
                             <div className="h-2 w-full rounded-full bg-slate-200 dark:bg-slate-700"></div>
                             <div className="h-2 w-5/6 rounded-full bg-slate-200 dark:bg-slate-700"></div>
@@ -214,7 +212,7 @@ const LandingPage: React.FC = () => {
     // FIX: Removed incorrect `Variants` type.
     const itemVariants = {
         hidden: { y: 20, opacity: 0 },
-        visible: { y: 0, opacity: 1, transition: { type: 'spring', stiffness: 100 } }
+        visible: { y: 0, opacity: 1, transition: { type: 'spring' as const, stiffness: 100 } }
     };
     
     const heroMotionProps = {
@@ -248,13 +246,13 @@ const LandingPage: React.FC = () => {
                     className="relative max-w-4xl mx-auto px-4"
                     {...heroMotionProps}
                 >
-                    <motion.h1 {...{variants: itemVariants}} className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">
+                    <motion.h1 variants={itemVariants} className="text-4xl md:text-6xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">
                         Build a job-winning portfolio in <span className="text-cyan-500">minutes</span>.
                     </motion.h1>
-                    <motion.p {...{variants: itemVariants}} className="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-slate-600 dark:text-slate-400">
+                    <motion.p variants={itemVariants} className="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-slate-600 dark:text-slate-400">
                         Grooya is your AI co-pilot for crafting stunning online portfolios and tailored resumes that get you noticed by top recruiters.
                     </motion.p>
-                    <motion.div {...{variants: itemVariants}} className="mt-10">
+                    <motion.div variants={itemVariants} className="mt-10">
                         <Link to="/dashboard">
                             <Button size="lg" variant="primary">
                                 Get Started for Free
@@ -321,7 +319,7 @@ const LandingPage: React.FC = () => {
                         {...gridMotionProps}
                     >
                         {portfolioTemplates.slice(0, 6).map(template => (
-                             <motion.div {...{variants: itemVariants}} key={template.id}>
+                             <motion.div variants={itemVariants} key={template.id}>
                                 <Link to={`/templates/${template.id}`} className="block group">
                                     <div className="h-full rounded-xl overflow-hidden shadow-lg hover:shadow-cyan-500/10 dark:hover:shadow-cyan-400/10 transition-all duration-300 transform hover:-translate-y-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
                                         <TemplateVisual design={template.design} />
@@ -356,7 +354,7 @@ const LandingPage: React.FC = () => {
                         className="mt-16 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto"
                         {...gridMotionProps}
                     >
-                        <motion.div {...{variants: itemVariants}}>
+                        <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="free"
                                 title={plansData.monthly.USD[0].title}
@@ -365,7 +363,7 @@ const LandingPage: React.FC = () => {
                                 features={plansData.monthly.USD[0].features}
                             />
                         </motion.div>
-                         <motion.div {...{variants: itemVariants}}>
+                         <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="pro"
                                 title={plansData.monthly.USD[2].title}
@@ -375,7 +373,7 @@ const LandingPage: React.FC = () => {
                                 isPopular={true}
                             />
                         </motion.div>
-                         <motion.div {...{variants: itemVariants}}>
+                         <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="starter"
                                 title={plansData.monthly.USD[1].title}
@@ -402,7 +400,7 @@ const LandingPage: React.FC = () => {
                         {...gridMotionProps}
                     >
                         {faqs.map((faq, i) => (
-                             <motion.div {...{variants: itemVariants}} key={i}>
+                             <motion.div variants={itemVariants} key={i}>
                                 <details className="bg-white dark:bg-slate-800/50 p-6 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 group">
                                     <summary className="font-semibold text-lg cursor-pointer flex justify-between items-center text-slate-900 dark:text-slate-100">
                                         {faq.q}

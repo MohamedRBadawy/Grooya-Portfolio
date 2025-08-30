@@ -42,16 +42,13 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
 
   const audiences = ['Technical Recruiter', 'Hiring Manager', 'Potential Client'];
 
-  // FIX: Removed incorrect `MotionProps` type.
-  const motionProps = {
-      initial: { opacity: 0, y: 10, x: '-50%' },
-      animate: { opacity: 1, y: 0, x: '-50%' },
-      exit: { opacity: 0, y: 10, x: '-50%' },
-      transition: { duration: 0.2 },
-  };
+  // FIX: Removed incorrect `MotionProps` type and inlined props to resolve type error.
   return (
     <motion.div
-      {...motionProps}
+      initial={{ opacity: 0, y: 10, x: '-50%' }}
+      animate={{ opacity: 1, y: 0, x: '-50%' }}
+      exit={{ opacity: 0, y: 10, x: '-50%' }}
+      transition={{ duration: 0.2 }}
       className="absolute top-[-44px] left-1/2 z-30 flex items-center gap-1 bg-teal-600/95 backdrop-blur-sm rounded-lg shadow-lg p-1"
       onClick={e => e.stopPropagation()}
     >
@@ -95,11 +92,9 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
                 {isTuneMenuOpen && (
                     <motion.div
                         // FIX: Replaced direct animation props with a spread object to bypass type errors.
-                        {...{
-                          initial: { opacity: 0, y: 5 },
-                          animate: { opacity: 1, y: 0 },
-                          exit: { opacity: 0, y: 5 },
-                        }}
+                        initial={{ opacity: 0, y: 5 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 5 }}
                         className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-slate-700 rounded-md shadow-lg z-20 py-1"
                     >
                         {audiences.map(audience => (

@@ -38,8 +38,12 @@ const PublicLayout: React.FC = () => {
                 <Outlet />
             </main>
             <footer className="bg-slate-100 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
-                <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500 dark:text-slate-400">
+                <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 text-center text-sm text-slate-500 dark:text-slate-400">
                     <p>&copy; {new Date().getFullYear()} Grooya. All rights reserved.</p>
+                    <div className="mt-4 flex justify-center items-center gap-6">
+                        <Link to="/terms" className="hover:text-slate-800 dark:hover:text-slate-200 hover:underline">Terms of Service</Link>
+                        <Link to="/privacy" className="hover:text-slate-800 dark:hover:text-slate-200 hover:underline">Privacy Policy</Link>
+                    </div>
                 </div>
             </footer>
         </div>

@@ -31,6 +31,9 @@ import TemplatePreviewPage from './pages/TemplatePreviewPage';
 import PrintResumePage from './pages/PrintResumePage';
 import { useData } from './contexts/DataContext';
 import AnalyticsPage from './pages/AnalyticsPage';
+import TermsOfServicePage from './pages/TermsOfServicePage';
+import PrivacyPolicyPage from './pages/PrivacyPolicyPage';
+import NotFoundPage from './pages/NotFoundPage';
 
 /**
  * A wrapper component for routes that require authentication.
@@ -121,6 +124,8 @@ const App: React.FC = () => {
                     <Route path="/" element={<LandingPage />} />
                     <Route path="/login" element={<LoginPage />} />
                     <Route path="/templates/:templateId" element={<TemplatePreviewPage />} />
+                    <Route path="/terms" element={<TermsOfServicePage />} />
+                    <Route path="/privacy" element={<PrivacyPolicyPage />} />
                 </Route>
 
                 {/* Public portfolio route remains accessible */}
@@ -160,7 +165,7 @@ const App: React.FC = () => {
                 </Route>
                 
                 {/* Catch-all for not found pages */}
-                <Route path="*" element={<Navigate to="/" replace />} />
+                <Route path="*" element={<NotFoundPage />} />
               </Routes>
             </div>
           </HashRouter>

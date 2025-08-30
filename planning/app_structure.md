@@ -48,8 +48,8 @@ This phase focuses on building the public-facing "storefront" of the application
         -   `[x]` Sign Up Page with social login options (Google/GitHub).
         -   `[x]` Login Page.
     -   `[x]` **Public "Template Preview" Page:** A route (`/templates/:templateId`) to display a live, non-editable preview of an official template.
-    -   `[ ]` **Terms of Service & Privacy Policy Pages:** Static legal pages.
-    -   `[ ]` **Custom 404 "Not Found" Page:** A user-friendly error page.
+    -   `[x]` **Terms of Service & Privacy Policy Pages:** Static legal pages.
+    -   `[x]` **Custom 404 "Not Found" Page:** A user-friendly error page.
 
 ## Phase 3: Enhancing the Core Product Loop
 

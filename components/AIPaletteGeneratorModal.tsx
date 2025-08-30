@@ -3,7 +3,7 @@ import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Sparkles } from 'lucide-react';
-import { motion, type MotionProps } from 'framer-motion';
+import { motion } from 'framer-motion';
 import type { Palette } from '../types';
 import { generateColorPalette, ApiKeyMissingError } from '../services/aiService';
 import toast from 'react-hot-toast';
@@ -52,29 +52,22 @@ const AIPaletteGeneratorModal: React.FC<AIPaletteGeneratorModalProps> = ({ onClo
     }
   };
   
-  const backdropMotionProps: MotionProps = {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-  };
-
-  const modalMotionProps: MotionProps = {
-    initial: { y: 20, scale: 0.95, opacity: 0 },
-    animate: { y: 0, scale: 1, opacity: 1 },
-    exit: { y: 20, scale: 0.95, opacity: 0 },
-    transition: { type: 'spring', stiffness: 400, damping: 30 },
-  };
 
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
-      {...backdropMotionProps}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
     >
       <motion.div 
         className="bg-white dark:bg-slate-900 w-full max-w-lg rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800"
         onClick={e => e.stopPropagation()}
-        {...modalMotionProps}
+        initial={{ y: 20, scale: 0.95, opacity: 0 }}
+        animate={{ y: 0, scale: 1, opacity: 1 }}
+        exit={{ y: 20, scale: 0.95, opacity: 0 }}
+        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       >
         <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
             <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg font-sora flex items-center gap-2">

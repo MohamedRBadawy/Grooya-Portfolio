@@ -55,21 +55,6 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
         logout();
         navigate('/');
     };
-
-    // FIX: Removed incorrect `MotionProps` type.
-    const userMenuMotionProps = {
-        initial: { opacity: 0, y: 10, scale: 0.95 },
-        animate: { opacity: 1, y: 0, scale: 1 },
-        exit: { opacity: 0, y: 10, scale: 0.95 },
-        transition: { duration: 0.15 },
-    };
-
-    // FIX: Removed incorrect `MotionProps` type.
-    const mobileMenuMotionProps = {
-        initial: { opacity: 0, height: 0 },
-        animate: { opacity: 1, height: 'auto' },
-        exit: { opacity: 0, height: 0 },
-    };
     
     const hasLifetime = user?.oneTimePurchases?.includes('proLifetime');
     const isPaidTier = user?.subscription.tier !== 'free' || hasLifetime;
@@ -105,7 +90,10 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                     <AnimatePresence>
                                         {isUserMenuOpen && (
                                             <motion.div
-                                                {...userMenuMotionProps}
+                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                transition={{ duration: 0.15 }}
                                                 className="absolute top-full right-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden"
                                             >
                                                 <div className="p-4 border-b border-slate-200 dark:border-slate-700">
@@ -167,7 +155,9 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                     {isMobileMenuOpen && (
                         <motion.div
                             ref={mobileMenuRef}
-                            {...mobileMenuMotionProps}
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
                             className="md:hidden border-t border-slate-200 dark:border-slate-800 overflow-hidden"
                         >
                             <nav className="p-4 space-y-3">
