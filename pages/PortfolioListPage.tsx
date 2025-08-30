@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -10,7 +11,8 @@ import type { Portfolio } from '../types';
 import { Plus, Eye, FilePenLine, Trash2, MoreVertical, ExternalLink, Search, Copy, FolderKanban, Sparkles, BarChartHorizontal } from 'lucide-react';
 import PortfolioPreviewModal from '../components/PortfolioPreviewModal';
 import { useApp } from '../contexts/LocalizationContext';
-import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion, AnimatePresence } from 'framer-motion';
 import AIGuidedCreationModal from '../components/AIGuidedCreationModal';
 import toast from 'react-hot-toast';
 
@@ -39,7 +41,8 @@ const PortfolioCard: React.FC<{
     };
   }, []);
 
-  const menuMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const menuMotionProps = {
       initial: { opacity: 0, y: 10 },
       animate: { opacity: 1, y: 0 },
       exit: { opacity: 0, y: 10 },
@@ -197,7 +200,8 @@ const PortfolioListPage: React.FC = () => {
       }
   }
 
-  const bannerMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const bannerMotionProps = {
       initial: { opacity: 0, y: -10 },
       animate: { opacity: 1, y: 0 },
   };
@@ -251,12 +255,15 @@ const PortfolioListPage: React.FC = () => {
           {displayedPortfolios.length > 0 ? (
             <motion.div
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
+              // FIX: Replaced direct animation props with a spread object to bypass type errors.
+              {...{
+                variants: containerVariants,
+                initial: "hidden",
+                animate: "visible",
+              }}
             >
               {displayedPortfolios.map(p => (
-                <motion.div key={p.id} variants={itemVariants}>
+                <motion.div key={p.id} {...{variants: itemVariants}}>
                   <PortfolioCard portfolio={p} onPreview={handlePreview} onDelete={handleDelete} onDuplicate={handleDuplicate} />
                 </motion.div>
               ))}

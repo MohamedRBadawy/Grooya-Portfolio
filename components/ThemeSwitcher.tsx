@@ -1,7 +1,8 @@
 import React from 'react';
 import { useApp } from '../contexts/LocalizationContext';
 import { Sun, Moon } from 'lucide-react';
-import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion, AnimatePresence } from 'framer-motion';
 
 const ThemeSwitcher: React.FC = () => {
   const { theme, setTheme } = useApp();
@@ -10,7 +11,8 @@ const ThemeSwitcher: React.FC = () => {
     setTheme(theme === 'light' ? 'dark' : 'light');
   };
 
-  const motionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const motionProps = {
       initial: { y: -20, opacity: 0 },
       animate: { y: 0, opacity: 1 },
       exit: { y: 20, opacity: 0 },

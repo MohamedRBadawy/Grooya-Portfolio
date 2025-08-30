@@ -4,8 +4,6 @@ import React from 'react';
 import { Link, Outlet } from 'react-router-dom';
 import Button from '../ui/Button';
 import { useAuth } from '../../contexts/AuthContext';
-import LanguageSwitcher from '../LanguageSwitcher';
-import ThemeSwitcher from '../ThemeSwitcher';
 
 const PublicLayout: React.FC = () => {
     const { isAuthenticated } = useAuth();
@@ -18,8 +16,6 @@ const PublicLayout: React.FC = () => {
                             <h1 className="text-2xl font-bold text-cyan-500 font-sora">Grooya</h1>
                         </Link>
                         <div className="flex items-center gap-2">
-                             <LanguageSwitcher />
-                             <ThemeSwitcher />
                              {isAuthenticated ? (
                                 <Link to="/dashboard">
                                     <Button variant="primary" size="sm">Dashboard</Button>

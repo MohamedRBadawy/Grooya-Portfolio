@@ -49,6 +49,13 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
         } else {
             newOverrides = { ...currentOverrides, [field]: value };
         }
+        
+        if (field === 'backgroundImage' && value) {
+            delete newOverrides.videoBackground;
+        }
+        if (field === 'videoBackground' && value) {
+            delete newOverrides.backgroundImage;
+        }
 
         if (Object.keys(newOverrides).length === 0) {
             handleUpdate({ designOverrides: undefined });
@@ -208,11 +215,24 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
                                 )}
                             </div>
                         </div>
-                        {block.designOverrides?.backgroundImage && (
+                        <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                            <EditorLabel htmlFor={`override-videoBg-${block.id}`}>Background Video URL (mp4, webm)</EditorLabel>
+                            <div className="flex items-center gap-2">
+                                <EditorInput id={`override-videoBg-${block.id}`} type="text" value={block.designOverrides?.videoBackground || ''} placeholder="None (or paste URL)" onChange={e => handleDesignOverrideChange('videoBackground', e.target.value || undefined)} />
+                                {block.designOverrides?.videoBackground && (
+                                    <Button variant="ghost" size="sm" className="text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={() => {
+                                            handleDesignOverrideChange('videoBackground', undefined);
+                                            handleDesignOverrideChange('backgroundOpacity', undefined);
+                                            handleDesignOverrideChange('textColor', undefined);
+                                        }}>Remove</Button>
+                                )}
+                            </div>
+                        </div>
+                        {(block.designOverrides?.backgroundImage || block.designOverrides?.videoBackground) && (
                             <>
                                 <div>
-                                    <EditorLabel>Image Opacity ({block.designOverrides?.backgroundOpacity ?? 1})</EditorLabel>
-                                    <input type="range" min="0" max="1" step="0.05" value={block.designOverrides?.backgroundOpacity ?? 1} onChange={e => handleDesignOverrideChange('backgroundOpacity', parseFloat(e.target.value))} className="w-full"/>
+                                    <EditorLabel>Background Opacity ({block.designOverrides?.backgroundOpacity ?? 0.5})</EditorLabel>
+                                    <input type="range" min="0" max="1" step="0.05" value={block.designOverrides?.backgroundOpacity ?? 0.5} onChange={e => handleDesignOverrideChange('backgroundOpacity', parseFloat(e.target.value))} className="w-full"/>
                                 </div>
                                 <div>
                                     <EditorLabel>Text Color Override</EditorLabel>

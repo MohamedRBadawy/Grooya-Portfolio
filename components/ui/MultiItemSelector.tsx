@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Search, Check, FilePenLine } from 'lucide-react';
-import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface Item {
   id: string;
@@ -32,7 +33,8 @@ export const MultiItemSelector: React.FC<MultiItemSelectorProps> = ({
     );
   }, [items, searchTerm]);
 
-  const checkMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const checkMotionProps = {
       initial: { scale: 0 },
       animate: { scale: 1 },
       exit: { scale: 0 },

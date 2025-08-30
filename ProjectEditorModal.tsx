@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
@@ -107,12 +108,14 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
   };
 
   const isPaidTier = user?.subscription?.tier !== 'free';
-  const backdropMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const backdropMotionProps = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
       exit: { opacity: 0 },
   };
-  const modalMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const modalMotionProps = {
       initial: { y: 20, scale: 0.95, opacity: 0 },
       animate: { y: 0, scale: 1, opacity: 1 },
       exit: { y: 20, scale: 0.95, opacity: 0 },

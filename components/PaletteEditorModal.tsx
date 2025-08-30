@@ -1,11 +1,13 @@
 
 
+
 import React, { useState, useEffect } from 'react';
 import type { Palette } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-import { motion, type MotionProps } from 'framer-motion';
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion } from 'framer-motion';
 
 interface PaletteEditorModalProps {
   palette?: Palette | null;
@@ -83,13 +85,15 @@ const PaletteEditorModal: React.FC<PaletteEditorModalProps> = ({ palette, onClos
     onSave(currentPalette);
   };
 
-  const backdropMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const backdropMotionProps = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
       exit: { opacity: 0 },
   };
 
-  const modalMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const modalMotionProps = {
       initial: { y: 20, scale: 0.95, opacity: 0 },
       animate: { y: 0, scale: 1, opacity: 1 },
       exit: { y: 20, scale: 0.95, opacity: 0 },

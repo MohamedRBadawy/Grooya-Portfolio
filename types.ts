@@ -1,8 +1,4 @@
 
-
-
-
-
 /**
  * @description يمثل مستخدم التطبيق.
  * @property {string} id - المعرّف الفريد للمستخدم.
@@ -262,6 +258,7 @@ interface BlockBase {
   designOverrides?: {
     background?: string | Gradient;
     backgroundImage?: string;
+    videoBackground?: string;
     backgroundOpacity?: number;
     textColor?: string;
     padding?: {

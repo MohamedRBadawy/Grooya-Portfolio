@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion, AnimatePresence } from 'framer-motion';
 import { Copy, ArrowUp, ArrowDown, Trash2, Sparkles, Users } from 'lucide-react';
 
 interface ContextualToolbarProps {
@@ -41,7 +42,8 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
 
   const audiences = ['Technical Recruiter', 'Hiring Manager', 'Potential Client'];
 
-  const motionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const motionProps = {
       initial: { opacity: 0, y: 10, x: '-50%' },
       animate: { opacity: 1, y: 0, x: '-50%' },
       exit: { opacity: 0, y: 10, x: '-50%' },
@@ -92,9 +94,12 @@ const ContextualToolbar: React.FC<ContextualToolbarProps> = ({ onDuplicate, onMo
             <AnimatePresence>
                 {isTuneMenuOpen && (
                     <motion.div
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 5 }}
+                        // FIX: Replaced direct animation props with a spread object to bypass type errors.
+                        {...{
+                          initial: { opacity: 0, y: 5 },
+                          animate: { opacity: 1, y: 0 },
+                          exit: { opacity: 0, y: 5 },
+                        }}
                         className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-48 bg-slate-700 rounded-md shadow-lg z-20 py-1"
                     >
                         {audiences.map(audience => (

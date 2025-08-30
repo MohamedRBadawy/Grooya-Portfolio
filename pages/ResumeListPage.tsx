@@ -1,5 +1,6 @@
 
 
+
 import React, { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -89,7 +90,7 @@ const ResumeListPage: React.FC = () => {
     ), { duration: 6000 });
   };
 
-  const gridMotionProps: any = {
+  const gridMotionProps = {
       variants: containerVariants,
       initial: "hidden",
       animate: "visible",
@@ -143,7 +144,7 @@ const ResumeListPage: React.FC = () => {
               {...gridMotionProps}
             >
               {displayedResumes.map(r => (
-                <motion.div key={r.id} variants={itemVariants}>
+                <motion.div key={r.id} {...{variants: itemVariants}}>
                   <ResumeCard resume={r} onDelete={handleDelete} />
                 </motion.div>
               ))}

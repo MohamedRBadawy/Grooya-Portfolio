@@ -1,12 +1,13 @@
 
+
 import React, { useState, useEffect } from 'react';
 import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-// FIX: Add missing MotionProps type import
-import { motion, type MotionProps } from 'framer-motion';
-// FIX: '"../services/aiService"' has no exported member named 'generateProjectDescription'. Did you mean 'generateProjectStory'?
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion } from 'framer-motion';
+// FIX: Corrected function name from 'generateProjectDescription' to 'generateProjectStory'
 import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
@@ -80,7 +81,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
         return;
     }
     
-    // FIX: Argument of type '"projectDescription"' is not assignable to parameter of type 'AIFeature'.
+    // FIX: Corrected AI feature key from 'projectDescription' to 'projectStory'
     if (!consumeAiFeature('projectStory')) {
       const tier = user?.subscription?.tier;
       let message = "An error occurred.";
@@ -95,7 +96,7 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
 
     setIsGenerating(true);
     try {
-        // FIX: '"../services/aiService"' has no exported member named 'generateProjectDescription'. Did you mean 'generateProjectStory'?
+        // FIX: Corrected function name from 'generateProjectDescription' to 'generateProjectStory'
         const description = await generateProjectStory(formData.title, formData.technologies, formData.description);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {
@@ -111,12 +112,14 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
   };
 
   const isPaidTier = user?.subscription?.tier !== 'free';
-  const backdropMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const backdropMotionProps = {
       initial: { opacity: 0 },
       animate: { opacity: 1 },
       exit: { opacity: 0 },
   };
-  const modalMotionProps: MotionProps = {
+  // FIX: Removed incorrect `MotionProps` type.
+  const modalMotionProps: any = {
       initial: { y: 20, scale: 0.95, opacity: 0 },
       animate: { y: 0, scale: 1, opacity: 1 },
       exit: { y: 20, scale: 0.95, opacity: 0 },

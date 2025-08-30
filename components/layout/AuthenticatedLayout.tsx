@@ -4,7 +4,8 @@ import { useData } from '../../contexts/DataContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useTranslation } from '../../hooks/useTranslation';
 import { FolderKanban, Package, Sparkles, Settings, FileText, Menu, X, Shield, Newspaper, LifeBuoy, LogOut, BarChartHorizontal } from 'lucide-react';
-import { motion, AnimatePresence, type MotionProps } from 'framer-motion';
+// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
+import { motion, AnimatePresence } from 'framer-motion';
 
 const HeaderNavLink: React.FC<{ to: string; children: React.ReactNode; onClick?: () => void }> = ({ to, children, onClick }) => {
   const activeClasses = "text-slate-900 dark:text-slate-50";
@@ -55,14 +56,16 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
         navigate('/');
     };
 
-    const userMenuMotionProps: MotionProps = {
+    // FIX: Removed incorrect `MotionProps` type.
+    const userMenuMotionProps = {
         initial: { opacity: 0, y: 10, scale: 0.95 },
         animate: { opacity: 1, y: 0, scale: 1 },
         exit: { opacity: 0, y: 10, scale: 0.95 },
         transition: { duration: 0.15 },
     };
 
-    const mobileMenuMotionProps: MotionProps = {
+    // FIX: Removed incorrect `MotionProps` type.
+    const mobileMenuMotionProps = {
         initial: { opacity: 0, height: 0 },
         animate: { opacity: 1, height: 'auto' },
         exit: { opacity: 0, height: 0 },
