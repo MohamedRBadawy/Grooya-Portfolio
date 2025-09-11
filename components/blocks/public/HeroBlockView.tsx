@@ -17,7 +17,7 @@ interface BlockViewProps {
 
 export const HeroBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
     const buttonProps = getButtonProps(design);
-
+    const { textColor: textColorOverride } = block.designOverrides || {};
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
 
@@ -26,6 +26,9 @@ export const HeroBlockView: React.FC<BlockViewProps> = ({ block, design, theme, 
 
     if (hasBgImage || hasFallbackImage) {
         const bgImage = block.designOverrides?.backgroundImage || block.imageUrl;
+        const finalTextColor = textColorOverride || '#FFFFFF';
+        const finalSubtleTextColor = textColorOverride || '#f1f5f9';
+        
         return (
             <div 
                 className={`text-center relative bg-cover bg-center h-full flex flex-col items-center justify-center`} 
@@ -42,7 +45,8 @@ export const HeroBlockView: React.FC<BlockViewProps> = ({ block, design, theme, 
                             value={block.headline}
                             onSave={(value) => onUpdateBlock?.(block.id, 'headline', value)}
                             isEditable={isEditable}
-                            className={`text-4xl md:text-6xl font-heading text-white ${fontWeightHeadingClass} ${letterSpacingClass}`}
+                            className={`text-4xl md:text-6xl font-heading ${fontWeightHeadingClass} ${letterSpacingClass}`}
+                            style={{ color: finalTextColor }}
                         />
                     </motion.div>
                     <motion.div variants={itemVariant} className="overflow-hidden">
@@ -51,7 +55,8 @@ export const HeroBlockView: React.FC<BlockViewProps> = ({ block, design, theme, 
                             value={block.subheadline}
                             onSave={(value) => onUpdateBlock?.(block.id, 'subheadline', value)}
                             isEditable={isEditable}
-                            className={`mt-4 text-lg md:text-xl max-w-3xl mx-auto text-slate-200`}
+                            className={`mt-4 text-lg md:text-xl max-w-3xl mx-auto`}
+                             style={{ color: finalSubtleTextColor }}
                         />
                     </motion.div>
                      <motion.div variants={itemVariant} className="mt-8">

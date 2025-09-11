@@ -27,8 +27,9 @@ const PlatformIcon: React.FC<{platform: ExternalLink['platform']}> = ({ platform
 };
 
 export const LinksBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     

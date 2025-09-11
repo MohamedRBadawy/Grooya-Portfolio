@@ -16,10 +16,11 @@ interface BlockViewProps {
 }
 
 export const ExperienceBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const textColor = hasBgImage ? '#f1f5f9' : theme.text;
-    const subtleColor = hasBgImage ? '#cbd5e1' : theme.subtle;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
+    const textColor = textColorOverride || (hasBgImage ? '#f1f5f9' : theme.text);
+    const subtleColor = textColorOverride || (hasBgImage ? '#cbd5e1' : theme.subtle);
     const accent = design.accentColor;
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';

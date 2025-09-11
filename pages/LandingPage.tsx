@@ -274,7 +274,7 @@ const LandingPage: React.FC = () => {
                             title="Your Personal AI Co-Pilot"
                             description="Never face a blank page again. Our AI, powered by Gemini, helps you generate professional headlines, write compelling project descriptions in the STAR format, and suggest design themes tailored to your profession."
                         >
-                            <img src="https://picsum.photos/seed/feature1/600/450" alt="AI Co-pilot" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                            <img src="https://images.unsplash.com/photo-1611117775350-ac3950943898?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="AI Co-pilot" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
                         </FeatureShowcase>
                     </motion.div>
 
@@ -285,7 +285,7 @@ const LandingPage: React.FC = () => {
                             title="The Intelligent Resume Hub"
                             description="Transform your portfolio into an ATS-friendly resume with one click. Paste a job description and let our AI tailor your resume, optimizing it with relevant keywords to get you past the first filter."
                         >
-                             <img src="https://picsum.photos/seed/feature2/600/450" alt="Intelligent Resumes" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                             <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Intelligent Resumes" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
                         </FeatureShowcase>
                     </motion.div>
 
@@ -296,7 +296,7 @@ const LandingPage: React.FC = () => {
                             title="Unmatched Customization"
                             description="Take full control of your brand. Choose from pre-designed themes, create custom color palettes, select professional font pairings, and override styles on any block for a truly unique look. Your portfolio, your rules."
                         >
-                            <img src="https://picsum.photos/seed/feature3/600/450" alt="Design Customization" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                            <img src="https://images.unsplash.com/photo-1553877522-c36980345985?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Design Customization" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
                         </FeatureShowcase>
                     </motion.div>
                 </div>

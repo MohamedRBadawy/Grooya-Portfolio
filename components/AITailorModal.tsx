@@ -58,30 +58,22 @@ const AITailorModal: React.FC<AITailorModalProps> = ({ resume, onClose, onApplyS
       }
   }
 
-  const backdropMotionProps: any = {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-  };
-
-  const modalMotionProps: any = {
-      initial: { y: 20, opacity: 0 },
-      animate: { y: 0, opacity: 1 },
-      exit: { y: 20, opacity: 0 },
-      transition: { type: 'spring', stiffness: 400, damping: 30 },
-  };
-
   return (
     <>
         <motion.div
           className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={onClose}
-          {...backdropMotionProps}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
           <motion.div
             className="bg-white dark:bg-slate-900 w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800 max-h-[90vh]"
             onClick={(e) => e.stopPropagation()}
-            {...modalMotionProps}
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 20, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 400, damping: 30 }}
           >
             <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
               <h3 className="font-bold text-slate-800 dark:text-slate-200 text-lg font-sora flex items-center gap-2">

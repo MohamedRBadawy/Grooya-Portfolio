@@ -44,12 +44,10 @@ export const developerTemplate: PortfolioTemplate = {
                     type: 'hero',
                     headline: 'John Doe, Software Engineer',
                     subheadline: 'I build robust and scalable full-stack web applications.',
-                    imageUrl: '',
+                    imageUrl: 'https://images.unsplash.com/photo-1550439062-609e1531270e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
                     ctaText: 'View My Work',
                     ctaLink: '#temp-projects-dev',
                     designOverrides: {
-                        backgroundImage: 'https://picsum.photos/seed/dev-hero/1600/900',
-                        backgroundOpacity: 0.6,
                         shapeDividers: {
                             bottom: { type: 'slant', color: '#020617', flipX: true, height: 80 }
                         }
@@ -60,7 +58,7 @@ export const developerTemplate: PortfolioTemplate = {
                     type: 'about',
                     title: 'About Me',
                     content: 'I am a passionate developer with a knack for solving complex problems. With a background in computer science and several years of hands-on experience, I specialize in creating efficient, user-friendly, and maintainable code using modern frameworks.',
-                    mediaUrl: 'https://picsum.photos/seed/dev-about/600/800',
+                    mediaUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=464&q=80',
                     mediaType: 'image',
                     mediaPosition: 'left',
                     stickyMedia: true,
@@ -83,7 +81,6 @@ export const developerTemplate: PortfolioTemplate = {
                     title: 'My Technical Stack',
                     skillIds: ['skill-1', 'skill-2', 'skill-3', 'skill-9', 'skill-4', 'skill-7', 'skill-10'],
                      designOverrides: {
-                        backgroundImage: 'https://www.transparenttextures.com/patterns/subtle-carbon.png',
                         border: { top: { width: 1, style: 'dashed', color: '#334155' }, bottom: { width: 1, style: 'dashed', color: '#334155' } },
                         padding: { top: '8rem', bottom: '8rem' }
                     }
@@ -137,7 +134,7 @@ export const developerTemplate: PortfolioTemplate = {
                     type: 'testimonials',
                     title: 'What My Colleagues Say',
                     testimonials: [
-                        { id: 'test-1', quote: 'John is an exceptional developer with a keen eye for detail and architecture. A true asset to any engineering team.', author: 'Jane Smith', authorTitle: 'Project Manager', authorAvatarUrl: 'https://picsum.photos/seed/avatar1/100/100' },
+                        { id: 'test-1', quote: 'John is an exceptional developer with a keen eye for detail and architecture. A true asset to any engineering team.', author: 'Jane Smith', authorTitle: 'Project Manager', authorAvatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80' },
                     ],
                 },
                 {

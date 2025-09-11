@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -5,6 +6,7 @@ import Button from '../components/ui/Button';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import BillingCard from '../components/BillingCard';
+import ImageUploader from '../components/ui/ImageUploader';
 
 const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string }> = ({ children, htmlFor }) => (
     <label htmlFor={htmlFor} className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">{children}</label>
@@ -113,23 +115,14 @@ const ProfilePage: React.FC = () => {
 
           {/* Right Sidebar: Avatar & Billing */}
           <div className="xl:col-span-2 space-y-8">
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
-              <div className="flex flex-col items-center">
-                <img
-                  src={formData.avatarUrl}
-                  alt="User avatar"
-                  className="w-40 h-40 rounded-full object-cover mb-4 border-4 border-slate-200 dark:border-slate-700"
-                />
-                <div className="w-full mt-2">
-                  <EditorLabel htmlFor="avatarUrl">{t('avatarUrl')}</EditorLabel>
-                  <EditorInput
-                    id="avatarUrl"
-                    name="avatarUrl"
-                    type="url"
+            <div className="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col items-center">
+              <div className="flex flex-col items-center w-40">
+                 <ImageUploader
+                    label="Upload Avatar"
                     value={formData.avatarUrl}
-                    onChange={handleChange}
-                  />
-                </div>
+                    onChange={(value) => setFormData(prev => prev ? { ...prev, avatarUrl: value || '' } : null)}
+                    className="h-40 w-40 !rounded-full"
+                 />
               </div>
             </div>
             <BillingCard />

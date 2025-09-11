@@ -18,11 +18,12 @@ interface BlockViewProps {
 
 export const SkillsBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, allSkills, isEditable, onUpdateBlock }) => {
     const skills = allSkills.filter(s => block.skillIds.includes(s.id));
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
     const skillBg = hasBgImage ? 'rgba(255, 255, 255, 0.1)' : theme.cardBackground;
     const skillBorder = hasBgImage ? 'rgba(255, 255, 255, 0.2)' : theme.cardBorder;
-    const skillColor = hasBgImage ? '#FFFFFF' : theme.text;
+    const skillColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.text);
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     

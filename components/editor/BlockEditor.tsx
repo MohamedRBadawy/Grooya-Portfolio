@@ -1,10 +1,12 @@
 
+
 import React, { useState } from 'react';
 import type { PortfolioBlock, Gradient, ShapeDivider, Project, Skill } from '../../types';
 import { useTranslation } from '../../hooks/useTranslation';
 import { Waves } from 'lucide-react';
 import Button from '../ui/Button';
 import { EditorLabel, EditorInput } from '../ui/editor/EditorControls';
+import ImageUploader from '../ui/ImageUploader';
 
 // Import all the new block-specific editor components
 import {
@@ -50,13 +52,6 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
             newOverrides = { ...currentOverrides, [field]: value };
         }
         
-        if (field === 'backgroundImage' && value) {
-            delete newOverrides.videoBackground;
-        }
-        if (field === 'videoBackground' && value) {
-            delete newOverrides.backgroundImage;
-        }
-
         if (Object.keys(newOverrides).length === 0) {
             handleUpdate({ designOverrides: undefined });
         } else {
@@ -203,42 +198,36 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
                             </div>
                         )}
                         <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
-                            <EditorLabel htmlFor={`override-bgImage-${block.id}`}>Background Image URL</EditorLabel>
-                            <div className="flex items-center gap-2">
-                                <EditorInput id={`override-bgImage-${block.id}`} type="text" value={block.designOverrides?.backgroundImage || ''} placeholder="None (or paste URL)" onChange={e => handleDesignOverrideChange('backgroundImage', e.target.value || undefined)} />
-                                {block.designOverrides?.backgroundImage && (
-                                    <Button variant="ghost" size="sm" className="text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={() => {
-                                            handleDesignOverrideChange('backgroundImage', undefined);
-                                            handleDesignOverrideChange('backgroundOpacity', undefined);
-                                            handleDesignOverrideChange('textColor', undefined);
-                                        }}>Remove</Button>
-                                )}
-                            </div>
+                            <ImageUploader 
+                                label="Upload Background Image"
+                                value={block.designOverrides?.backgroundImage}
+                                onChange={(value) => handleDesignOverrideChange('backgroundImage', value)}
+                            />
                         </div>
-                        <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
-                            <EditorLabel htmlFor={`override-videoBg-${block.id}`}>Background Video URL (mp4, webm)</EditorLabel>
-                            <div className="flex items-center gap-2">
-                                <EditorInput id={`override-videoBg-${block.id}`} type="text" value={block.designOverrides?.videoBackground || ''} placeholder="None (or paste URL)" onChange={e => handleDesignOverrideChange('videoBackground', e.target.value || undefined)} />
-                                {block.designOverrides?.videoBackground && (
-                                    <Button variant="ghost" size="sm" className="text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={() => {
-                                            handleDesignOverrideChange('videoBackground', undefined);
-                                            handleDesignOverrideChange('backgroundOpacity', undefined);
-                                            handleDesignOverrideChange('textColor', undefined);
-                                        }}>Remove</Button>
-                                )}
-                            </div>
-                        </div>
-                        {(block.designOverrides?.backgroundImage || block.designOverrides?.videoBackground) && (
-                            <>
+                        {block.designOverrides?.backgroundImage && (
+                            <div className="space-y-4 pt-4 border-t border-slate-200 dark:border-slate-700 mt-4">
                                 <div>
-                                    <EditorLabel>Background Opacity ({block.designOverrides?.backgroundOpacity ?? 0.5})</EditorLabel>
-                                    <input type="range" min="0" max="1" step="0.05" value={block.designOverrides?.backgroundOpacity ?? 0.5} onChange={e => handleDesignOverrideChange('backgroundOpacity', parseFloat(e.target.value))} className="w-full"/>
+                                    <EditorLabel>Background Overlay ({Math.round((block.designOverrides?.backgroundOpacity ?? 0.5) * 100)}%)</EditorLabel>
+                                    <input 
+                                        type="range" 
+                                        min="0" 
+                                        max="1" 
+                                        step="0.05" 
+                                        value={block.designOverrides?.backgroundOpacity ?? 0.5} 
+                                        onChange={e => handleDesignOverrideChange('backgroundOpacity', parseFloat(e.target.value))}
+                                        className="w-full"
+                                    />
                                 </div>
                                 <div>
                                     <EditorLabel>Text Color Override</EditorLabel>
-                                    <input type="color" value={block.designOverrides?.textColor || '#FFFFFF'} onChange={e => handleDesignOverrideChange('textColor', e.target.value)} className="w-full h-10 rounded-md border border-slate-300 dark:border-slate-600 bg-transparent"/>
+                                    <EditorInput 
+                                        type="text" 
+                                        placeholder="#FFFFFF" 
+                                        value={block.designOverrides?.textColor || ''} 
+                                        onChange={e => handleDesignOverrideChange('textColor', e.target.value || undefined)}
+                                    />
                                 </div>
-                            </>
+                            </div>
                         )}
                          <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
                             <details className="group">

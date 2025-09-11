@@ -145,7 +145,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
             <div className="flex-grow overflow-y-auto pb-24 md:pb-0">
                 <div className="sticky top-0 bg-white dark:bg-slate-900 z-10 px-4 py-2 border-b border-slate-200 dark:border-slate-800">
                     <nav className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-800 rounded-lg">
-                        {['pages', 'content', 'design', 'assets'].map(tab => (
+                        {['content', 'design', 'pages', 'assets'].map(tab => (
                             <button
                                 key={tab}
                                 onClick={() => props.setActiveTab(tab as any)}

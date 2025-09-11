@@ -46,9 +46,7 @@ export const writerTemplate: PortfolioTemplate = {
                 },
                 {
                     id: 'writer-about', type: 'about', title: 'About Me', content: 'I am a professional writer with a focus on long-form journalism and cultural commentary. My work has been featured in several national publications, where I strive to uncover the human stories behind the headlines.',
-                     designOverrides: {
-                        backgroundImage: 'https://www.transparenttextures.com/patterns/clean-textile.png',
-                    }
+                     designOverrides: {}
                 },
                 {
                     id: 'writer-blog', type: 'blog', title: 'Published Articles',

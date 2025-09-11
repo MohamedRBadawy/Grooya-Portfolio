@@ -3,13 +3,12 @@ import type { Project } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
 import { motion } from 'framer-motion';
-// FIX: Corrected function name from 'generateProjectDescription' to 'generateProjectStory'
 import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
 import { useData } from '../contexts/DataContext';
+import ImageUploader from './ui/ImageUploader';
 
 interface ProjectEditorModalProps {
   project: Project | null;
@@ -79,7 +78,6 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
         return;
     }
     
-    // FIX: Corrected AI feature key from 'projectDescription' to 'projectStory'
     if (!consumeAiFeature('projectStory')) {
       const tier = user?.subscription?.tier;
       let message = "An error occurred.";
@@ -94,7 +92,6 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
 
     setIsGenerating(true);
     try {
-        // FIX: Corrected function name from 'generateProjectDescription' to 'generateProjectStory'
         const description = await generateProjectStory(formData.title, formData.technologies, formData.description);
         setFormData(prev => ({ ...prev, description }));
     } catch (error) {
@@ -155,8 +152,11 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
                 <EditorTextarea id="description" name="description" value={formData.description} onChange={handleChange} rows={4} required />
             </div>
             <div>
-                <EditorLabel htmlFor="imageUrl">{t('projectImageUrl')}</EditorLabel>
-                <EditorInput id="imageUrl" name="imageUrl" type="url" value={formData.imageUrl} onChange={handleChange} />
+                <ImageUploader 
+                    label="Upload Project Image"
+                    value={formData.imageUrl}
+                    onChange={(value) => setFormData(prev => ({ ...prev, imageUrl: value || '' }))}
+                />
             </div>
             <div>
                 <EditorLabel htmlFor="technologies">{t('projectTechnologies')}</EditorLabel>

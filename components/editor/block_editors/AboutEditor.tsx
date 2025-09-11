@@ -1,7 +1,9 @@
+
 import React from 'react';
 import type { AboutBlock } from '../../../types';
-import { EditorLabel, EditorInput } from '../../ui/editor/EditorControls';
+import { EditorLabel } from '../../ui/editor/EditorControls';
 import Button from '../../ui/Button';
+import ImageUploader from '../../ui/ImageUploader';
 
 interface AboutEditorProps {
   block: AboutBlock;
@@ -11,20 +13,14 @@ interface AboutEditorProps {
 export const AboutEditor: React.FC<AboutEditorProps> = ({ block, onUpdate }) => {
   return (
     <>
-      <div>
-        <EditorLabel htmlFor={`a-mediaUrl-${block.id}`}>Image/Video URL (optional)</EditorLabel>
-        <EditorInput id={`a-mediaUrl-${block.id}`} value={block.mediaUrl || ''} onChange={e => onUpdate({ mediaUrl: e.target.value })} />
-      </div>
+      <ImageUploader
+        label="Upload Media Image"
+        value={block.mediaUrl}
+        onChange={(value) => onUpdate({ mediaUrl: value, mediaType: value ? 'image' : undefined })}
+      />
       {block.mediaUrl && (
         <>
           <div className="space-y-4">
-            <div>
-              <EditorLabel>Media Type</EditorLabel>
-              <div className="flex gap-2">
-                <Button size="sm" variant={!block.mediaType || block.mediaType === 'image' ? 'primary' : 'secondary'} onClick={() => onUpdate({ mediaType: 'image' })}>Image</Button>
-                <Button size="sm" variant={block.mediaType === 'video' ? 'primary' : 'secondary'} onClick={() => onUpdate({ mediaType: 'video' })}>Video</Button>
-              </div>
-            </div>
             <div>
               <EditorLabel>Media Position</EditorLabel>
               <div className="grid grid-cols-2 gap-2">

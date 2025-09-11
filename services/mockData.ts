@@ -6,7 +6,7 @@ export const mockUser: User = {
   title: 'Senior Frontend Engineer',
   email: 'alex.doe@example.com',
   bio: 'Creative frontend developer with a passion for building beautiful, responsive, and intuitive user interfaces. I turn complex problems into elegant solutions.',
-  avatarUrl: 'https://picsum.photos/seed/alexdoe/200/200',
+  avatarUrl: 'https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
   role: 'admin',
   isEarlyAdopter: true,
   subscription: {
@@ -15,8 +15,8 @@ export const mockUser: User = {
     renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000, // 30 days from now
     freeFeaturesUsed: {},
     credits: {
-      text: 100,
-      image: 20,
+      text: 150,
+      image: 30,
     },
   },
 };
@@ -29,7 +29,7 @@ export const mockAllUsers: User[] = [
       title: 'Platform Administrator',
       email: 'admin@Grooya.com',
       bio: 'System administrator for the Grooya platform.',
-      avatarUrl: 'https://picsum.photos/seed/admingrooya/200/200',
+      avatarUrl: 'https://images.unsplash.com/photo-1519389950473-47ba0277781c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
       role: 'admin',
       isEarlyAdopter: true,
       subscription: {
@@ -38,8 +38,8 @@ export const mockAllUsers: User[] = [
         renewsAt: Date.now() + 365 * 24 * 60 * 60 * 1000,
         freeFeaturesUsed: {},
         credits: {
-          text: 9999,
-          image: 9999,
+          text: 500,
+          image: 100,
         },
       },
     },
@@ -49,7 +49,7 @@ export const mockAllUsers: User[] = [
       title: 'UX/UI Designer',
       email: 'jane.smith@example.com',
       bio: 'Designing user-centric digital experiences that are both beautiful and functional.',
-      avatarUrl: 'https://picsum.photos/seed/janesmith/200/200',
+      avatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
       role: 'user',
       isEarlyAdopter: false,
       subscription: {
@@ -65,15 +65,15 @@ export const mockAllUsers: User[] = [
       title: 'Backend Developer',
       email: 'sam.wilson@example.com',
       bio: 'Building scalable and efficient server-side applications.',
-      avatarUrl: 'https://picsum.photos/seed/samwilson/200/200',
+      avatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
       role: 'user',
       isEarlyAdopter: false,
       subscription: {
-        tier: 'pro',
+        tier: 'starter',
         status: 'active',
         renewsAt: Date.now() + 15 * 24 * 60 * 60 * 1000,
         freeFeaturesUsed: {},
-        credits: { text: 85, image: 12 },
+        credits: { text: 50, image: 10 },
       },
     },
     {
@@ -82,7 +82,7 @@ export const mockAllUsers: User[] = [
       title: 'Product Manager',
       email: 'maria.garcia@example.com',
       bio: 'Leading product strategy from concept to launch.',
-      avatarUrl: 'https://picsum.photos/seed/mariagarcia/200/200',
+      avatarUrl: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=200&q=80',
       role: 'user',
       isEarlyAdopter: false,
       subscription: {
@@ -112,7 +112,7 @@ export const initialProjects: Project[] = [
     id: 'proj-1',
     title: 'E-commerce Platform',
     description: 'A full-stack e-commerce site with a custom CMS, payment integration, and a responsive user-facing storefront.',
-    imageUrl: 'https://picsum.photos/seed/ecomm/600/400',
+    imageUrl: 'https://images.unsplash.com/photo-1557821552-17105176677c?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
     technologies: ['React', 'Node.js', 'PostgreSQL'],
     link: '#',
   },
@@ -120,7 +120,7 @@ export const initialProjects: Project[] = [
     id: 'proj-2',
     title: 'Data Visualization Dashboard',
     description: 'An interactive dashboard for visualizing complex datasets using D3.js and React, providing real-time insights.',
-    imageUrl: 'https://picsum.photos/seed/dataviz/600/400',
+    imageUrl: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
     technologies: ['React', 'TypeScript', 'D3.js'],
     link: '#',
   },
@@ -128,7 +128,7 @@ export const initialProjects: Project[] = [
     id: 'proj-3',
     title: 'Mobile Banking App',
     description: 'A cross-platform mobile application for personal banking, built with React Native and focused on security and UX.',
-    imageUrl: 'https://picsum.photos/seed/banking/600/400',
+    imageUrl: 'https://images.unsplash.com/photo-1601597111158-2f9e2d4d8e25?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
     technologies: ['React Native', 'TypeScript', 'Firebase'],
     link: '#',
   },
@@ -136,7 +136,7 @@ export const initialProjects: Project[] = [
     id: 'proj-4',
     title: 'Project Management Tool',
     description: 'A SaaS application to help teams manage tasks, timelines, and collaboration, featuring a kanban board and calendar views.',
-    imageUrl: 'https://picsum.photos/seed/pmtool/600/400',
+    imageUrl: 'https://images.unsplash.com/photo-1635324239387-a2f8c3f76159?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
     technologies: ['Next.js', 'GraphQL', 'Tailwind CSS'],
     link: '#',
   },
@@ -245,7 +245,7 @@ export const initialPortfolios: Portfolio[] = [
                 type: 'hero',
                 headline: 'Hi, I\'m Alex Doe',
                 subheadline: 'A passionate Frontend Engineer crafting beautiful web experiences.',
-                imageUrl: 'https://picsum.photos/seed/hero/1200/600',
+                imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
                 ctaText: 'View My Work',
                 ctaLink: '#projects',
               },
@@ -321,7 +321,7 @@ export const initialPortfolios: Portfolio[] = [
                     type: 'hero',
                     headline: 'Alex Doe: Creative Developer',
                     subheadline: 'Where design meets code.',
-                    imageUrl: 'https://picsum.photos/seed/creative/1200/600',
+                    imageUrl: 'https://images.unsplash.com/photo-1522542550221-31fd19575a2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
                     ctaText: 'Get In Touch',
                     ctaLink: 'mailto:alex.doe@example.com',
                 },
@@ -385,20 +385,17 @@ export const initialPortfolios: Portfolio[] = [
                 type: 'hero',
                 headline: 'Alex Doe: Full-Stack Problem Solver',
                 subheadline: 'Building robust applications from concept to deployment.',
-                imageUrl: 'https://picsum.photos/seed/comprehensive-hero/1200/600',
+                imageUrl: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1172&q=80',
                 ctaText: 'Explore My Work',
                 ctaLink: '#projects',
-                designOverrides: {
-                    backgroundImage: 'https://picsum.photos/seed/parallax-hero/1600/900',
-                    backgroundOpacity: 0.5,
-                }
+                designOverrides: {}
               },
               {
                 id: 'block-3-2',
                 type: 'about',
                 title: 'My Philosophy',
                 content: 'I believe in the power of technology to solve real-world problems. My approach combines clean code, user-centric design, and scalable architecture to create impactful digital experiences. I am constantly learning and adapting to new technologies, always striving to push the boundaries of what is possible on the web. My goal is to not just build websites, but to create lasting digital assets that provide real value to users and businesses alike. I thrive in collaborative environments where I can work with talented teams to bring ambitious ideas to life.',
-                mediaUrl: 'https://picsum.photos/seed/about-sticky/600/800',
+                mediaUrl: 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
                 mediaType: 'image',
                 mediaPosition: 'left',
                 stickyMedia: true,
@@ -453,9 +450,9 @@ export const initialPortfolios: Portfolio[] = [
                 title: 'Design & UI Explorations',
                 layout: 'grid',
                 images: [
-                  { id: 'gal-1', url: 'https://picsum.photos/seed/gal1/800/600', caption: 'Dashboard UI Concept' },
-                  { id: 'gal-2', url: 'https://picsum.photos/seed/gal2/800/600', caption: 'Mobile App Wireframes' },
-                  { id: 'gal-3', url: 'https://picsum.photos/seed/gal3/800/600', caption: 'Logo Design Process' },
+                  { id: 'gal-1', url: 'https://images.unsplash.com/photo-1581291518857-4e27b48ff24e?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80', caption: 'Dashboard UI Concept' },
+                  { id: 'gal-2', url: 'https://images.unsplash.com/photo-1587440871875-191322ee64b0?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80', caption: 'Mobile App Wireframes' },
+                  { id: 'gal-3', url: 'https://images.unsplash.com/photo-1626785774573-4b799315345d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=800&q=80', caption: 'Logo Design Process' },
                 ],
               },
               {
@@ -473,8 +470,8 @@ export const initialPortfolios: Portfolio[] = [
                 type: 'testimonials',
                 title: 'What My Colleagues Say',
                 testimonials: [
-                  { id: 'test-1', quote: 'Alex is an exceptional developer with a keen eye for detail. A true asset to any team.', author: 'Jane Smith', authorTitle: 'Project Manager', authorAvatarUrl: 'https://picsum.photos/seed/avatar1/100/100' },
-                  { id: 'test-2', quote: 'I was consistently impressed with Alex\'s ability to tackle complex challenges and deliver high-quality results.', author: 'John Davis', authorTitle: 'Lead Engineer', authorAvatarUrl: 'https://picsum.photos/seed/avatar2/100/100' },
+                  { id: 'test-1', quote: 'Alex is an exceptional developer with a keen eye for detail. A true asset to any team.', author: 'Jane Smith', authorTitle: 'Project Manager', authorAvatarUrl: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80' },
+                  { id: 'test-2', quote: 'I was consistently impressed with Alex\'s ability to tackle complex challenges and deliver high-quality results.', author: 'John Davis', authorTitle: 'Lead Engineer', authorAvatarUrl: 'https://images.unsplash.com/photo-1568602471122-7832951cc4c5?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80' },
                 ],
               },
               {
@@ -493,14 +490,14 @@ export const initialPortfolios: Portfolio[] = [
                     id: 'post-1', 
                     title: 'The Rise of Server-Side Rendering with React', 
                     excerpt: 'Exploring the benefits and challenges of SSR frameworks like Next.js and how they are changing the landscape of web development.',
-                    imageUrl: 'https://picsum.photos/seed/blog1/600/400',
+                    imageUrl: 'https://images.unsplash.com/photo-1633356122544-f134324a6cee?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
                     link: '#'
                   },
                   { 
                     id: 'post-2', 
                     title: 'A Deep Dive into CSS Grid and Flexbox', 
                     excerpt: 'A practical guide to mastering modern CSS layouts, with real-world examples and best practices for creating responsive designs.',
-                    imageUrl: 'https://picsum.photos/seed/blog2/600/400',
+                    imageUrl: 'https://images.unsplash.com/photo-1624996752380-8ec242e0f85d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=600&q=80',
                     link: '#'
                   },
                 ]

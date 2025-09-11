@@ -80,12 +80,6 @@ Allow users to break from the global styles for specific sections to create emph
 ### 🖼️ Backgrounds
 - [✅] **Solid Color:** Override the global background for a single block.
 - [✅] **Gradient:** Apply a custom two-color linear gradient.
-- [✅] **Image Background:**
-    - [✅] Use an image as a block background.
-    - [✅] **Overlay Color & Opacity:** Add a color overlay to ensure text readability.
-- [✅] **Video Background:** Allow a looping, muted video as a block background.
-    - [✅] **Source:** URL to MP4/WebM file.
-    - [✅] **Overlay Color & Opacity:** Essential for text readability.
 
 ### 📏 Spacing
 - [✅] **Custom Padding:** Granular control over the top, bottom, left, and right padding of a block.

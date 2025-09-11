@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import type { ExperienceBlock, ExperienceItem } from '../../../types';
 import { EditorLabel, EditorInput, EditorTextarea } from '../../ui/editor/EditorControls';
@@ -7,6 +8,7 @@ import { useData } from '../../../contexts/DataContext';
 import { enhanceExperienceDescription, ApiKeyMissingError } from '../../../services/aiService';
 import toast from 'react-hot-toast';
 import AIAssistButton from '../../ui/AIAssistButton';
+import ImageUploader from '../../ui/ImageUploader';
 
 interface ExperienceEditorProps {
   block: ExperienceBlock;
@@ -84,6 +86,11 @@ export const ExperienceEditor: React.FC<ExperienceEditorProps> = ({ block, onUpd
                 </div>
                 <EditorTextarea placeholder="Description" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} rows={3} />
               </div>
+              <ImageUploader
+                label="Upload Media Image"
+                value={item.mediaUrl}
+                onChange={(value) => updateItem(item.id, 'mediaUrl', value || '')}
+              />
             </div>
           ))}
         </div>

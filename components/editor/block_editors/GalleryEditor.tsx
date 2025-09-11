@@ -3,6 +3,7 @@ import type { GalleryBlock, GalleryImage } from '../../../types';
 import { EditorLabel, EditorInput } from '../../ui/editor/EditorControls';
 import Button from '../../ui/Button';
 import { X, Plus } from 'lucide-react';
+import ImageUploader from '../../ui/ImageUploader';
 
 interface GalleryEditorProps {
   block: GalleryBlock;
@@ -17,7 +18,7 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ block, onUpdate, t
   };
   
   const addImage = () => {
-    const newImage = { id: `img-${Date.now()}`, url: 'https://picsum.photos/seed/new-gallery/800/600', caption: 'A new image' };
+    const newImage = { id: `img-${Date.now()}`, url: 'https://images.unsplash.com/photo-1534237716618-6a2c3a5051ed?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=387&q=80', caption: 'A new image' };
     onUpdate({ images: [...block.images, newImage] });
   };
   
@@ -40,7 +41,11 @@ export const GalleryEditor: React.FC<GalleryEditorProps> = ({ block, onUpdate, t
           {block.images.map(img => (
             <div key={img.id} className="p-3 bg-slate-100 dark:bg-slate-700 rounded-md space-y-2">
               <div className="flex justify-end"><Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removeImage(img.id)}><X size={14} /></Button></div>
-              <EditorInput placeholder="Image URL" value={img.url} onChange={e => updateImage(img.id, 'url', e.target.value)} />
+              <ImageUploader 
+                label="Upload Image"
+                value={img.url}
+                onChange={(value) => updateImage(img.id, 'url', value || '')}
+              />
               <EditorInput placeholder="Caption (optional)" value={img.caption} onChange={e => updateImage(img.id, 'caption', e.target.value)} />
             </div>
           ))}

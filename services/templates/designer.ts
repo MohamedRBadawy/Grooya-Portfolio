@@ -85,9 +85,7 @@ export const designerTemplate: PortfolioTemplate = {
                       { id: 'tier-1', title: 'UX/UI Design', price: '$2,000', frequency: '', description: 'Full design process from wireframes to high-fidelity prototypes.', features: ['User Research', 'Wireframing', 'Prototyping', 'User Testing'], buttonText: 'Inquire', isFeatured: true, link: '#' },
                        { id: 'tier-2', title: 'Design Audit', price: '$800', frequency: '', description: 'A comprehensive review of your existing product with actionable feedback.', features: ['Heuristic Evaluation', 'Usability Report', 'Competitor Analysis'], buttonText: 'Get Audit', isFeatured: false, link: '#' },
                     ],
-                     designOverrides: {
-                        backgroundImage: 'https://www.transparenttextures.com/patterns/az-subtle.png',
-                    }
+                     designOverrides: {}
                 },
                 {
                     id: 'temp-testimonials-designer',

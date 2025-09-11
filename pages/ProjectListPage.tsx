@@ -1,6 +1,3 @@
-
-
-
 import React, { useState, useMemo, useRef, useEffect } from 'react';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -9,7 +6,6 @@ import Button from '../components/ui/Button';
 import type { Project } from '../types';
 import { Plus, Search, FilePenLine, Trash2, MoreVertical } from 'lucide-react';
 import ProjectEditorModal from '../components/ProjectEditorModal';
-// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 
@@ -34,7 +30,6 @@ const ProjectCard: React.FC<{
         };
     }, []);
 
-    // FIX: Removed incorrect `MotionProps` type.
     const menuAnimationProps = {
         initial: { opacity: 0, y: 10 },
         animate: { opacity: 1, y: 0 },
@@ -164,15 +159,12 @@ const ProjectListPage: React.FC = () => {
                     {displayedProjects.length > 0 ? (
                         <motion.div
                           className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
-                          // FIX: Replaced direct animation props with a spread object to bypass type errors.
-                          {...{
-                            variants: containerVariants,
-                            initial: "hidden",
-                            animate: "visible",
-                          }}
+                          variants={containerVariants}
+                          initial="hidden"
+                          animate="visible"
                         >
                             {displayedProjects.map(p => (
-                              <motion.div key={p.id} {...{variants: itemVariants}}>
+                              <motion.div key={p.id} variants={itemVariants}>
                                 <ProjectCard project={p} onEdit={setEditingProject} onDelete={handleDelete} />
                               </motion.div>
                             ))}

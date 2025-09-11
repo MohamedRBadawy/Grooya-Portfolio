@@ -1,6 +1,5 @@
 
 
-
 import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo } from 'react';
 import type { User, Project, Skill, Portfolio, PortfolioBlock, Resume, Page, AIFeature, PortfolioTemplate, PromoCode } from '../types';
 import { mockUser, initialProjects, masterSkillsList, initialPortfolios, initialResumes, mockPromoCodes } from '../services/mockData';

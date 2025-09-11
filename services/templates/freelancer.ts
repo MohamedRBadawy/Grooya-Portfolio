@@ -48,11 +48,7 @@ export const freelancerTemplate: PortfolioTemplate = {
                         { id: 'free-test1', quote: 'Alex\'s strategies helped us double our organic traffic in just three months. Highly recommended!', author: 'Jane Smith', authorTitle: 'CEO, Startup Inc.', authorAvatarUrl: 'https://picsum.photos/seed/free-avatar/100/100' }, 
                         { id: 'free-test2', quote: 'The most professional and results-oriented consultant we have ever worked with.', author: 'John Davis', authorTitle: 'Founder, E-commerce Brand', authorAvatarUrl: 'https://picsum.photos/seed/free-avatar2/100/100' }
                     ],
-                    designOverrides: {
-                        backgroundImage: 'https://picsum.photos/seed/free-test-bg/1600/900',
-                        backgroundOpacity: 0.8,
-                        textColor: '#FFFFFF'
-                    }
+                    designOverrides: {}
                 },
                 { 
                     id: 'free-services', type: 'services', title: 'How I Can Help',

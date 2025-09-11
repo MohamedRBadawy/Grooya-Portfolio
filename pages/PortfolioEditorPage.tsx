@@ -1,8 +1,8 @@
+
 import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-// FIX: Add HeroBlock and AboutBlock types for tuneContentForAudience
 import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage, HeroBlock, AboutBlock } from '../types';
 import Button from '../components/ui/Button';
 import AddBlockMenu from '../components/AddBlockMenu';
@@ -10,7 +10,6 @@ import { FilePenLine } from 'lucide-react';
 import { useApp } from '../contexts/LocalizationContext';
 import ProjectEditorModal from '../components/ProjectEditorModal';
 import { CommandPalette } from '../components/CommandPalette';
-// FIX: Import tuneContentForAudience
 import { generateHeroContent, generateAboutContent, generateDesignSuggestions, ApiKeyMissingError, tuneContentForAudience } from '../services/aiService';
 import PaletteEditorModal from '../components/PaletteEditorModal';
 import AIImageGenerationModal from '../components/AIImageGenerationModal';
@@ -44,7 +43,7 @@ const PortfolioEditorPage: React.FC = () => {
     } = usePortfolioManager(portfolioId);
 
     // --- UI State ---
-    const [activeTab, setActiveTab] = useState<'pages' | 'content' | 'design' | 'assets'>('pages');
+    const [activeTab, setActiveTab] = useState<'pages' | 'content' | 'design' | 'assets'>('content');
     const [addingBlockIndex, setAddingBlockIndex] = useState<number | null>(null);
     const [activeBlockId, setActiveBlockId] = useState<string | null>(null); // For inline preview highlight
     const [focusedBlockId, setFocusedBlockId] = useState<string | null>(null); // For focused sidebar editing
@@ -52,7 +51,6 @@ const PortfolioEditorPage: React.FC = () => {
     const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
     const [isAIAssistLoading, setIsAIAssistLoading] = useState(false);
     const [isAIDesignLoading, setIsAIDesignLoading] = useState(false);
-    // FIX: Add isTuning state
     const [isTuning, setIsTuning] = useState(false);
     const [editingPalette, setEditingPalette] = useState<Palette | 'new' | null>(null);
     const [isGeneratingAsset, setIsGeneratingAsset] = useState<boolean>(false);
@@ -313,7 +311,6 @@ const PortfolioEditorPage: React.FC = () => {
         }
     };
 
-    // FIX: Add handleTuneContent function
     const handleTuneContent = async (audience: string) => {
         if (!portfolio || !activeBlockId || !user || !activePageId) return;
         const block = activePage?.blocks.find(b => b.id === activeBlockId);
@@ -603,7 +600,6 @@ const PortfolioEditorPage: React.FC = () => {
                     role="separator"
                 />
                 <main className="flex-grow h-full bg-slate-200 dark:bg-slate-950 p-8">
-                    {/* FIX: Pass onTune and isTuning props to PortfolioPreview */}
                     <PortfolioPreview 
                         portfolio={portfolio} 
                         activePage={activePage}
@@ -697,7 +693,6 @@ const PortfolioEditorPage: React.FC = () => {
                 ) : (
                     <main className="h-full relative">
                         <div className="h-full bg-slate-200 dark:bg-slate-950 p-2 sm:p-4">
-                             {/* FIX: Pass onTune and isTuning props to PortfolioPreview */}
                              <PortfolioPreview 
                                 portfolio={portfolio} 
                                 activePage={activePage}

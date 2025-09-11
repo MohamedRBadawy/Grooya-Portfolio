@@ -1,8 +1,10 @@
+
 import React from 'react';
 import type { ServicesBlock, PricingTier } from '../../../types';
 import { EditorLabel, EditorInput, EditorTextarea } from '../../ui/editor/EditorControls';
 import Button from '../../ui/Button';
 import { X, Plus } from 'lucide-react';
+import ImageUploader from '../../ui/ImageUploader';
 
 interface ServicesEditorProps {
   block: ServicesBlock;
@@ -64,6 +66,11 @@ export const ServicesEditor: React.FC<ServicesEditorProps> = ({ block, onUpdate,
               <EditorTextarea placeholder={t('features')} value={tier.features.join('\n')} onChange={e => updateTierFeatures(tier.id, e.target.value)} rows={3} />
               <EditorInput placeholder={t('buttonText')} value={tier.buttonText} onChange={e => updateTier(tier.id, 'buttonText', e.target.value)} />
               <EditorInput placeholder={t('buttonLink')} value={tier.link || ''} onChange={e => updateTier(tier.id, 'link', e.target.value)} type="url" />
+              <ImageUploader
+                  label="Upload Tier Image (optional)"
+                  value={tier.mediaUrl}
+                  onChange={(value) => updateTier(tier.id, 'mediaUrl', value || '')}
+              />
             </div>
           ))}
         </div>

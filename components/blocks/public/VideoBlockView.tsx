@@ -32,9 +32,10 @@ export const VideoBlockView: React.FC<BlockViewProps> = ({ block, design, theme,
         return null;
     };
     const embedUrl = getVideoEmbedUrl(block.videoUrl);
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const captionColor = hasBgImage ? '#f1f5f9' : theme.subtle;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
+    const captionColor = textColorOverride || (hasBgImage ? '#f1f5f9' : theme.subtle);
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';

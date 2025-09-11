@@ -1,3 +1,6 @@
+
+
+
 import React, { useMemo, useRef, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
@@ -139,6 +142,7 @@ const ScrollProgressBar: React.FC<{ accentColor: string }> = ({ accentColor }) =
     );
 };
 
+// FIX: Add a new ParallaxBlock component to handle parallax effects separately and correctly access design override properties.
 const ParallaxBlock: React.FC<{
     block: PortfolioBlock,
     children: React.ReactNode,
@@ -454,14 +458,11 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                      const canUseAI = isActive && onAIAssist && (block.type === 'hero' || block.type === 'about');
                      const canTune = isActive && onTune && (block.type === 'hero' || block.type === 'about');
                      
-// FIX: Add `videoBackground` to destructuring assignment to support video backgrounds in blocks.
-                     const { backgroundImage, backgroundOpacity, background, shapeDividers, border, videoBackground } = block.designOverrides || {};
+                     const { background, backgroundImage, backgroundOpacity, shapeDividers, border } = block.designOverrides || {};
                      const backgroundStyle: React.CSSProperties = {};
                      let hasOverlay = false;
 
-                     if (videoBackground) {
-                        hasOverlay = true;
-                     } else if (backgroundImage) {
+                     if (backgroundImage) {
                         backgroundStyle.backgroundImage = `url("${backgroundImage}")`;
                         backgroundStyle.backgroundSize = 'cover';
                         backgroundStyle.backgroundPosition = 'center';
@@ -496,7 +497,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                         paddingRight: paddingOverrides.right ?? defaultPadding.horizontal,
                     };
                     
-                    const useParallax = design.parallax && backgroundImage && !videoBackground;
+                    const useParallax = design.parallax && backgroundImage;
                     
                     const blockAnimation = block.designOverrides?.animationStyle ?? design.animationStyle;
                     const itemVariant = useMemo(() => {
@@ -580,18 +581,8 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                             className="relative"
                             {...sectionMotionProps}
                         >
-                             {videoBackground && (
-                                <video
-                                    className="absolute inset-0 w-full h-full object-cover z-0"
-                                    autoPlay
-                                    loop
-                                    muted
-                                    playsInline
-                                    src={videoBackground}
-                                />
-                            )}
                              {topDivider && <ShapeDividerComponent {...topDivider} position="top" />}
-                             {hasOverlay && <div className="absolute inset-0 bg-black z-10" style={{ opacity: backgroundOpacity ?? 0.5 }} />}
+                             {hasOverlay && <div className="absolute inset-0 bg-black" style={{ opacity: backgroundOpacity ?? 0.5 }} />}
                              {blockContent}
                             {bottomDivider && <ShapeDividerComponent {...bottomDivider} position="bottom" />}
                         </motion.section>

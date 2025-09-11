@@ -51,30 +51,22 @@ const AddBlockMenu: React.FC<AddBlockMenuProps> = ({ onAddBlock, onClose }) => {
     }
   };
 
-  const backdropMotionProps: any = {
-      initial: { opacity: 0 },
-      animate: { opacity: 1 },
-      exit: { opacity: 0 },
-  };
-
-  const modalMotionProps: any = {
-      initial: { y: 20, scale: 0.95, opacity: 0 },
-      animate: { y: 0, scale: 1, opacity: 1 },
-      exit: { y: 20, scale: 0.95, opacity: 0 },
-      transition: { type: 'spring', stiffness: 300, damping: 30 },
-  };
-
   return (
     <>
         <motion.div 
           className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
           onClick={onClose}
-          {...backdropMotionProps}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
         >
           <motion.div 
             className="bg-slate-100 dark:bg-slate-900 w-full max-w-2xl rounded-2xl shadow-2xl relative border border-slate-200 dark:border-slate-700 flex flex-col max-h-[90vh]"
             onClick={e => e.stopPropagation()}
-            {...modalMotionProps}
+            initial={{ y: 20, scale: 0.95, opacity: 0 }}
+            animate={{ y: 0, scale: 1, opacity: 1 }}
+            exit={{ y: 20, scale: 0.95, opacity: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 30 }}
           >
             <header className="flex-shrink-0 p-4 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
                 <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50 font-sora">{t('addNewBlock')}</h3>

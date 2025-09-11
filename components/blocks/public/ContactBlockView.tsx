@@ -25,9 +25,10 @@ export const ContactBlockView: React.FC<BlockViewProps> = ({ block, design, them
         e.preventDefault();
         toast(t('contact.formDisabled'));
     };
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const subtleColor = hasBgImage ? '#cbd5e1' : theme.subtle;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
+    const subtleColor = textColorOverride || (hasBgImage ? '#cbd5e1' : theme.subtle);
     const inputBg = hasBgImage ? 'rgba(255, 255, 255, 0.1)' : theme.inputBackground;
     const inputBorder = hasBgImage ? 'rgba(255, 255, 255, 0.2)' : theme.inputBorder;
     const inputColor = hasBgImage ? '#FFFFFF' : theme.inputText;

@@ -16,8 +16,9 @@ interface BlockViewProps {
 
 export const ProjectsBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, allProjects, isEditable, onUpdateBlock }) => {
     const projects = allProjects.filter(p => block.projectIds.includes(p.id));
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
     const shadowClass = shadowStyles[design.shadowStyle] || 'shadow-md';

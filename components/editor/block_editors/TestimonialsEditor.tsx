@@ -3,6 +3,7 @@ import type { TestimonialsBlock, Testimonial } from '../../../types';
 import { EditorLabel, EditorInput, EditorTextarea } from '../../ui/editor/EditorControls';
 import Button from '../../ui/Button';
 import { X, Plus } from 'lucide-react';
+import ImageUploader from '../../ui/ImageUploader';
 
 interface TestimonialsEditorProps {
   block: TestimonialsBlock;
@@ -17,7 +18,7 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ block, o
   };
   
   const addTestimonial = () => {
-    const newTestimonial = { id: `test-${Date.now()}`, quote: 'A glowing review about my work.', author: 'Satisfied Client', authorTitle: 'CEO, Acme Inc.', authorAvatarUrl: 'https://picsum.photos/seed/new-avatar/100/100' };
+    const newTestimonial = { id: `test-${Date.now()}`, quote: 'A glowing review about my work.', author: 'Satisfied Client', authorTitle: 'CEO, Acme Inc.', authorAvatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=100&q=80' };
     onUpdate({ testimonials: [...block.testimonials, newTestimonial] });
   };
   
@@ -36,7 +37,12 @@ export const TestimonialsEditor: React.FC<TestimonialsEditorProps> = ({ block, o
               <EditorTextarea placeholder="Quote" value={item.quote} onChange={e => updateTestimonial(item.id, 'quote', e.target.value)} rows={3} />
               <EditorInput placeholder="Author Name" value={item.author} onChange={e => updateTestimonial(item.id, 'author', e.target.value)} />
               <EditorInput placeholder="Author Title" value={item.authorTitle} onChange={e => updateTestimonial(item.id, 'authorTitle', e.target.value)} />
-              <EditorInput placeholder="Author Avatar URL" value={item.authorAvatarUrl} onChange={e => updateTestimonial(item.id, 'authorAvatarUrl', e.target.value)} />
+              <ImageUploader 
+                label="Upload Author Avatar"
+                value={item.authorAvatarUrl}
+                onChange={(value) => updateTestimonial(item.id, 'authorAvatarUrl', value || '')}
+                className="h-24"
+              />
             </div>
           ))}
         </div>

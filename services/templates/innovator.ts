@@ -44,12 +44,10 @@ export const innovatorTemplate: PortfolioTemplate = {
                     type: 'hero',
                     headline: 'Alex Doe | AI Researcher & Innovator',
                     subheadline: 'Building the next generation of intelligent systems.',
-                    imageUrl: '',
+                    imageUrl: 'https://picsum.photos/seed/innovator-hero/1600/900',
                     ctaText: 'Explore My Research',
                     ctaLink: '#innovator-projects',
                     designOverrides: {
-                        backgroundImage: 'https://picsum.photos/seed/innovator-hero/1600/900',
-                        backgroundOpacity: 0.7,
                         shapeDividers: {
                             bottom: { type: 'slant', color: '#020617', flipX: false, height: 120 }
                         }

@@ -40,11 +40,8 @@ export const photographerTemplate: PortfolioTemplate = {
             path: '/',
             blocks: [
                 {
-                    id: 'photo-hero', type: 'hero', headline: 'Alex Doe | Photographer', subheadline: 'Capturing moments that tell a story.', imageUrl: '', ctaText: 'Book a Session', ctaLink: '#photo-services',
-                    designOverrides: {
-                        backgroundImage: 'https://picsum.photos/seed/photo-hero/1600/900',
-                        backgroundOpacity: 0.4,
-                    }
+                    id: 'photo-hero', type: 'hero', headline: 'Alex Doe | Photographer', subheadline: 'Capturing moments that tell a story.', imageUrl: 'https://picsum.photos/seed/photo-hero/1600/900', ctaText: 'Book a Session', ctaLink: '#photo-services',
+                    designOverrides: {}
                 },
                 {
                     id: 'photo-gallery', type: 'gallery', title: 'My Work', layout: 'masonry',
@@ -65,8 +62,7 @@ export const photographerTemplate: PortfolioTemplate = {
                       { id: 'ptier-3', title: 'Wedding Package', price: '$2500', frequency: '', description: 'Complete wedding day coverage.', features: ['Full-day Coverage', 'Engagement Session', 'Photo Album'], buttonText: 'Inquire', isFeatured: false, link: '#' },
                     ],
                     designOverrides: {
-                        backgroundImage: 'https://www.transparenttextures.com/patterns/concrete-wall.png',
-                        backgroundOpacity: 0.05
+                        
                     }
                 },
             ]

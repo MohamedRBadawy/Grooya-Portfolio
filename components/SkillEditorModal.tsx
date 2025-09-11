@@ -1,13 +1,8 @@
-
-
-
-
 import React, { useState, useEffect } from 'react';
 import type { Skill } from '../types';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
-// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
 import { motion } from 'framer-motion';
 
 interface SkillEditorModalProps {
@@ -50,7 +45,6 @@ const SkillEditorModal: React.FC<SkillEditorModalProps> = ({ skill, onClose, onS
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       onClick={onClose}
-      // FIX: Replaced spread props with direct props to fix framer-motion type error.
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
@@ -58,7 +52,6 @@ const SkillEditorModal: React.FC<SkillEditorModalProps> = ({ skill, onClose, onS
       <motion.div 
         className="bg-white dark:bg-slate-900 w-full max-w-md rounded-2xl shadow-2xl flex flex-col relative border border-slate-200 dark:border-slate-800"
         onClick={e => e.stopPropagation()}
-        // FIX: Replaced spread props with direct props to fix framer-motion type error.
         initial={{ y: 20, scale: 0.95, opacity: 0 }}
         animate={{ y: 0, scale: 1, opacity: 1 }}
         exit={{ y: 20, scale: 0.95, opacity: 0 }}

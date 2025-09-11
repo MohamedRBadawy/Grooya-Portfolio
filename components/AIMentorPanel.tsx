@@ -3,7 +3,6 @@ import type { Portfolio, PortfolioBlock, HeroBlock, AboutBlock, ProjectsBlock, S
 import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { Lightbulb, CheckCircle, ArrowRight, X, Circle, Check } from 'lucide-react';
-// FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
 import { motion, AnimatePresence } from 'framer-motion';
 import { useData } from '../contexts/DataContext';
 import { getSuggestedBlocks, ApiKeyMissingError } from '../services/aiService';
@@ -298,7 +297,6 @@ const AIAssistantPanel: React.FC<AIAssistantPanelProps> = ({ portfolio, onUpdate
         {suggestions && suggestions.length > 0 && (
             <motion.div
                 className="p-4 bg-white dark:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700"
-                // FIX: Replaced direct animation props with a spread object to bypass type errors.
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5 }}

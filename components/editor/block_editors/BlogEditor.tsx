@@ -3,6 +3,7 @@ import type { BlogBlock, BlogPost } from '../../../types';
 import { EditorLabel, EditorInput, EditorTextarea } from '../../ui/editor/EditorControls';
 import Button from '../../ui/Button';
 import { X, Plus } from 'lucide-react';
+import ImageUploader from '../../ui/ImageUploader';
 
 interface BlogEditorProps {
   block: BlogBlock;
@@ -17,7 +18,7 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({ block, onUpdate, t }) =>
   };
   
   const addPost = () => {
-    const newPost: BlogPost = { id: `post-${Date.now()}`, title: 'New Article', excerpt: 'A brief description of the article.', imageUrl: 'https://picsum.photos/seed/new-post-2/600/400', link: '#' };
+    const newPost: BlogPost = { id: `post-${Date.now()}`, title: 'New Article', excerpt: 'A brief description of the article.', imageUrl: 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80', link: '#' };
     onUpdate({ posts: [...block.posts, newPost] });
   };
   
@@ -35,7 +36,11 @@ export const BlogEditor: React.FC<BlogEditorProps> = ({ block, onUpdate, t }) =>
               <div className="flex justify-end"><Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => removePost(post.id)}><X size={14} /></Button></div>
               <EditorInput placeholder="Post Title" value={post.title} onChange={e => updatePost(post.id, 'title', e.target.value)} />
               <EditorTextarea placeholder="Excerpt" value={post.excerpt} onChange={e => updatePost(post.id, 'excerpt', e.target.value)} rows={2} />
-              <EditorInput placeholder="Image URL" value={post.imageUrl} onChange={e => updatePost(post.id, 'imageUrl', e.target.value)} />
+              <ImageUploader 
+                label="Upload Post Image"
+                value={post.imageUrl}
+                onChange={(value) => updatePost(post.id, 'imageUrl', value || '')}
+              />
               <EditorInput placeholder="Article Link URL" value={post.link} onChange={e => updatePost(post.id, 'link', e.target.value)} type="url" />
             </div>
           ))}

@@ -1,4 +1,5 @@
 
+
 /**
  * @description يمثل مستخدم التطبيق.
  * @property {string} id - المعرّف الفريد للمستخدم.
@@ -258,8 +259,10 @@ interface BlockBase {
   designOverrides?: {
     background?: string | Gradient;
     backgroundImage?: string;
-    videoBackground?: string;
     backgroundOpacity?: number;
+    backgroundSize?: 'cover' | 'contain' | 'auto';
+    backgroundPosition?: string; // e.g., 'center', 'top right'
+    backgroundRepeat?: 'no-repeat' | 'repeat' | 'repeat-x' | 'repeat-y';
     textColor?: string;
     padding?: {
       top?: string;
@@ -297,7 +300,7 @@ export interface AboutBlock extends BlockBase {
   title: string;
   content: string; // Can contain HTML
   mediaUrl?: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'image';
   mediaPosition?: 'left' | 'right' | 'top' | 'bottom';
   stickyMedia?: boolean;
 }
@@ -377,7 +380,7 @@ export interface ExperienceItem {
   dateRange: string;
   description: string;
   mediaUrl?: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'image';
 }
 
 export interface ExperienceBlock extends BlockBase {
@@ -411,7 +414,7 @@ export interface PricingTier {
   isFeatured: boolean;
   link?: string;
   mediaUrl?: string;
-  mediaType?: 'image' | 'video';
+  mediaType?: 'image';
 }
 
 export interface ServicesBlock extends BlockBase {

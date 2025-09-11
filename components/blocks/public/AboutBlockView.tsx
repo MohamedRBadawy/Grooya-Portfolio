@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { motion } from 'framer-motion';
 import type { Portfolio } from '../../../types';
@@ -13,54 +15,17 @@ interface BlockViewProps {
     onUpdateBlock?: (blockId: string, field: string, value: any) => void;
 }
 
-const getVideoEmbedUrl = (url: string) => {
-    if (!url) return null;
-    if (url.includes('youtube.com/watch?v=')) {
-        const videoId = url.split('v=')[1].split('&')[0];
-        return `https://www.youtube.com/embed/${videoId}`;
-    }
-    if (url.includes('youtu.be/')) {
-        const videoId = url.split('youtu.be/')[1].split('?')[0];
-        return `https://www.youtube.com/embed/${videoId}`;
-    }
-    if (url.includes('vimeo.com/')) {
-        const videoId = url.split('vimeo.com/')[1].split('?')[0];
-        return `https://player.vimeo.com/video/${videoId}`;
-    }
-    return null; // Not a supported video URL
-};
-
 const MediaComponent: React.FC<{ block: any, design: Portfolio['design'] }> = ({ block, design }) => {
-    const mediaType = block.mediaType || 'image'; // Default to image if not specified
-    
-    if (mediaType === 'video') {
-        const embedUrl = getVideoEmbedUrl(block.mediaUrl);
-        if (embedUrl) {
-            return (
-                <div className={`aspect-video w-full overflow-hidden ${cornerRadiusStyles[design.cornerRadius]}`}>
-                    <iframe
-                        src={embedUrl}
-                        width="100%"
-                        height="100%"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                        title={block.title || 'Embedded video'}
-                    ></iframe>
-                </div>
-            );
-        }
-    }
-
-    // Fallback to image if it's an image type or an unsupported video URL
+    // The block can now only display images.
     return <img src={block.mediaUrl} alt={block.title} className={`w-full h-auto object-cover ${cornerRadiusStyles[design.cornerRadius]}`} loading="lazy" decoding="async" />;
 };
 
 
 export const AboutBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
-    const hasBgImage = !!block.designOverrides?.backgroundImage;
-    const headingColor = hasBgImage ? '#FFFFFF' : theme.heading;
-    const textColor = hasBgImage ? '#f1f5f9' : theme.text;
+    const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
+    const hasBgImage = !!backgroundImage;
+    const headingColor = textColorOverride || (hasBgImage ? '#FFFFFF' : theme.heading);
+    const textColor = textColorOverride || (hasBgImage ? '#f1f5f9' : theme.text);
     const fontWeightHeadingClass = fontWeightStyles[design.fontWeightHeading] || 'font-bold';
     const letterSpacingClass = letterSpacingStyles[design.letterSpacing] || 'tracking-normal';
 
