@@ -5,10 +5,11 @@ import { EditorLabel, EditorInput, EditorTextarea } from '../../ui/editor/Editor
 import Button from '../../ui/Button';
 import { X, Plus } from 'lucide-react';
 import { useData } from '../../../contexts/DataContext';
-import { enhanceExperienceDescription, ApiKeyMissingError } from '../../../services/aiService';
+import { ApiKeyMissingError, requestExperienceSuggestion } from '../../../services/aiService';
 import toast from 'react-hot-toast';
 import AIAssistButton from '../../ui/AIAssistButton';
 import ImageUploader from '../../ui/ImageUploader';
+import AISuggestionReviewModal from '../../ai/AISuggestionReviewModal';
 
 interface ExperienceEditorProps {
   block: ExperienceBlock;
@@ -17,8 +18,15 @@ interface ExperienceEditorProps {
 }
 
 export const ExperienceEditor: React.FC<ExperienceEditorProps> = ({ block, onUpdate, t }) => {
-  const { user, consumeAiFeature } = useData();
+  const { user, consumeAiFeature, featureFlags } = useData();
+  const isAiEnabled = featureFlags.aiEnabled;
   const [enhancingId, setEnhancingId] = useState<string | null>(null);
+  const [reviewState, setReviewState] = useState<{
+    itemId: string;
+    original: Record<string, string>;
+    suggestion: Record<string, string>;
+    summary: string;
+  } | null>(null);
 
   const updateItem = (itemId: string, field: keyof Omit<ExperienceItem, 'id'>, value: string) => {
     const newItems = block.items.map(item => item.id === itemId ? { ...item, [field]: value } : item);
@@ -35,6 +43,8 @@ export const ExperienceEditor: React.FC<ExperienceEditorProps> = ({ block, onUpd
   };
   
   const handleEnhanceDescription = async (item: ExperienceItem) => {
+    if (!isAiEnabled) return;
+
     if (!item.description) {
         toast.error("Please enter a description first.");
         return;
@@ -54,8 +64,16 @@ export const ExperienceEditor: React.FC<ExperienceEditorProps> = ({ block, onUpd
     
     setEnhancingId(item.id);
     try {
-        const enhancedDescription = await enhanceExperienceDescription(item.description);
-        updateItem(item.id, 'description', enhancedDescription);
+        const result = await requestExperienceSuggestion(item.description, {
+          title: item.title,
+          company: item.company,
+        });
+        setReviewState({
+          itemId: item.id,
+          original: result.original,
+          suggestion: result.suggestion,
+          summary: result.reasoningSummary,
+        });
     } catch (error) {
         console.error(error);
         if (error instanceof ApiKeyMissingError) {
@@ -82,7 +100,7 @@ export const ExperienceEditor: React.FC<ExperienceEditorProps> = ({ block, onUpd
               <div>
                 <div className="flex justify-between items-center">
                     <EditorLabel>Description</EditorLabel>
-                    <AIAssistButton onClick={() => handleEnhanceDescription(item)} isLoading={enhancingId === item.id} />
+                    {isAiEnabled && <AIAssistButton onClick={() => handleEnhanceDescription(item)} isLoading={enhancingId === item.id} />}
                 </div>
                 <EditorTextarea placeholder="Description" value={item.description} onChange={e => updateItem(item.id, 'description', e.target.value)} rows={3} />
               </div>
@@ -100,6 +118,21 @@ export const ExperienceEditor: React.FC<ExperienceEditorProps> = ({ block, onUpd
         </div>
       )}
       <Button size="sm" variant="secondary" onClick={addItem}><Plus size={14} className="me-2" />{t('addExperienceItem')}</Button>
+      <AISuggestionReviewModal
+        isOpen={!!reviewState}
+        title="Review AI Experience Rewrite"
+        summary={reviewState?.summary || 'Review the rewritten experience entry before you apply it.'}
+        original={reviewState?.original || { description: '' }}
+        suggestion={reviewState?.suggestion || { description: '' }}
+        onClose={() => setReviewState(null)}
+        onApply={(editedSuggestion) => {
+          if (reviewState) {
+            updateItem(reviewState.itemId, 'description', editedSuggestion.description || '');
+            toast.success('Experience rewrite applied.');
+          }
+          setReviewState(null);
+        }}
+      />
     </>
   );
 };

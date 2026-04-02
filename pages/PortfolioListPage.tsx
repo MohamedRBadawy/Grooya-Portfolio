@@ -10,7 +10,7 @@ import PortfolioPreviewModal from '../components/PortfolioPreviewModal';
 import { useApp } from '../contexts/LocalizationContext';
 // FIX: The type `MotionProps` does not seem to include animation properties in this project's setup, so we remove the explicit type to let TypeScript infer it.
 import { motion, AnimatePresence } from 'framer-motion';
-import AIGuidedCreationModal from '../components/AIGuidedCreationModal';
+import GuidedPortfolioCreationModal from '../components/GuidedPortfolioCreationModal';
 import toast from 'react-hot-toast';
 
 const PortfolioCard: React.FC<{
@@ -174,7 +174,7 @@ const PortfolioListPage: React.FC = () => {
         <div className="flex flex-col items-start gap-3">
             <span className="font-medium">{t('deleteConfirm')}</span>
             <div className="flex gap-2 self-stretch">
-                <Button variant="danger" size="sm" className="flex-grow" onClick={() => { deletePortfolio(portfolioId); toast.dismiss(toastInstance.id); }}>
+                <Button variant="danger" size="sm" className="flex-grow" onClick={() => { void deletePortfolio(portfolioId); toast.dismiss(toastInstance.id); }}>
                     Confirm
                 </Button>
                 <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>
@@ -187,7 +187,7 @@ const PortfolioListPage: React.FC = () => {
   
   const handleDuplicate = (portfolioId: string) => {
       if (canCreate) {
-        duplicatePortfolio(portfolioId);
+        void duplicatePortfolio(portfolioId);
       } else {
         navigate('/dashboard/upgrade');
       }
@@ -272,7 +272,7 @@ const PortfolioListPage: React.FC = () => {
       </div>
       <AnimatePresence>
         {isCreateModalOpen && (
-            <AIGuidedCreationModal 
+            <GuidedPortfolioCreationModal 
                 onClose={() => setIsCreateModalOpen(false)}
                 onCreationComplete={handleCreationComplete}
             />

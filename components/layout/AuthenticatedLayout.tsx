@@ -51,8 +51,12 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
         };
     }, []);
     
-    const handleLogout = () => {
-        logout();
+    const remainingAiActions = Object.values(user?.subscription.ai?.allowanceByFeature || {}).reduce((total, bucket) => {
+        return total + (bucket?.remaining || 0);
+    }, 0);
+
+    const handleLogout = async () => {
+        await logout();
         navigate('/');
     };
     
@@ -125,10 +129,10 @@ const AuthenticatedLayout: React.FC<{children: React.ReactNode}> = ({ children }
                                                         <LifeBuoy size={16} className="mr-3" /> {t('nav.support')}
                                                     </a>
                                                     <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>
-                                                     {isPaidTier && (
+                                                     {(user?.subscription.ai || isPaidTier) && (
                                                         <div className="px-3 py-2 text-xs text-slate-500 dark:text-slate-400 space-y-1">
-                                                            <div className="flex justify-between items-center"><span>Text Credits</span> <span className="font-semibold text-slate-700 dark:text-slate-300">{user.subscription.credits.text}</span></div>
-                                                            <div className="flex justify-between items-center"><span>Image Credits</span> <span className="font-semibold text-slate-700 dark:text-slate-300">{user.subscription.credits.image}</span></div>
+                                                            <div className="flex justify-between items-center"><span>Plan</span> <span className="font-semibold capitalize text-slate-700 dark:text-slate-300">{user.subscription.tier}</span></div>
+                                                            <div className="flex justify-between items-center"><span>AI Actions Left</span> <span className="font-semibold text-slate-700 dark:text-slate-300">{remainingAiActions}</span></div>
                                                         </div>
                                                      )}
                                                     <div className="border-t border-slate-200 dark:border-slate-700 my-1"></div>

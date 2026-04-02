@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { HashRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
 import { AppProvider, useApp } from './contexts/LocalizationContext';
-import { AuthProvider, useAuth } from './contexts/AuthContext';
 import PortfolioListPage from './pages/PortfolioListPage';
 import PortfolioEditorPage from './pages/PortfolioEditorPage';
 import PublicPortfolioPage from './pages/PublicPortfolioPage';
@@ -40,7 +40,10 @@ import NotFoundPage from './pages/NotFoundPage';
  * If the user is not authenticated, it redirects them to the login page.
  */
 const PrivateRoutes = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-slate-500">Loading dashboard...</div>;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -55,7 +58,10 @@ const PrivateRoutes = () => {
  * A wrapper for private routes that don't need the main application layout.
  */
 const PrivateSimpleLayout = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
+  if (isLoading) {
+    return <div className="flex min-h-screen items-center justify-center text-slate-500">Loading...</div>;
+  }
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -67,8 +73,12 @@ const PrivateSimpleLayout = () => {
  * It checks for both authentication and the 'admin' role.
  */
 const AdminRoutes = () => {
-    const { isAuthenticated } = useAuth();
+    const { isAuthenticated, isLoading } = useAuth();
     const { user } = useData();
+
+    if (isLoading) {
+        return <div className="flex min-h-screen items-center justify-center text-slate-500">Loading admin...</div>;
+    }
     
     // Redirect if not authenticated or if the user is not an admin.
     if (!isAuthenticated || user?.role !== 'admin') {
@@ -112,8 +122,8 @@ const App: React.FC = () => {
   return (
     // Global providers for localization, data, and authentication
     <AppProvider>
-      <DataProvider>
         <AuthProvider>
+      <DataProvider>
           {/* HashRouter is used for client-side routing, compatible with static hosting */}
           <HashRouter>
             <AppToaster />
@@ -169,8 +179,8 @@ const App: React.FC = () => {
               </Routes>
             </div>
           </HashRouter>
-        </AuthProvider>
       </DataProvider>
+        </AuthProvider>
     </AppProvider>
   );
 };

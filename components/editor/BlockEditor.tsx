@@ -15,6 +15,44 @@ import {
     ExperienceEditor, ContactEditor, CodeEditor, ServicesEditor, BlogEditor
 } from './block_editors';
 
+const SECTION_STYLE_PRESETS: Array<{
+    id: string;
+    label: string;
+    overrides: NonNullable<PortfolioBlock['designOverrides']>;
+}> = [
+    {
+        id: 'clean',
+        label: 'Clean Canvas',
+        overrides: {
+            padding: { top: '4rem', bottom: '4rem' },
+            animationStyle: 'fadeIn',
+        },
+    },
+    {
+        id: 'spotlight',
+        label: 'Spotlight',
+        overrides: {
+            background: { direction: 135, color1: '#0f172a', color2: '#134e4a' },
+            textColor: '#f8fafc',
+            padding: { top: '5rem', bottom: '5rem' },
+            animationStyle: 'revealUp',
+        },
+    },
+    {
+        id: 'card',
+        label: 'Soft Card',
+        overrides: {
+            background: '#f8fafc',
+            padding: { top: '3rem', bottom: '3rem', left: '2rem', right: '2rem' },
+            animationStyle: 'fadeIn',
+            border: {
+                top: { width: 1, style: 'solid', color: '#e2e8f0' },
+                bottom: { width: 1, style: 'solid', color: '#e2e8f0' },
+            },
+        },
+    },
+];
+
 interface BlockEditorProps {
     block: PortfolioBlock,
     onUpdate: (blockId: string, newBlockData: any) => void,
@@ -116,6 +154,21 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
     const handleBackgroundChange = (value: string | Gradient | undefined) => {
         handleDesignOverrideChange('background', value)
     };
+
+    const applySectionPreset = (presetId: string) => {
+        const preset = SECTION_STYLE_PRESETS.find(item => item.id === presetId);
+        if (!preset) return;
+        handleUpdate({
+            designOverrides: {
+                ...(block.designOverrides || {}),
+                ...preset.overrides,
+            },
+        });
+    };
+
+    const resetStyleOverrides = () => {
+        handleUpdate({ designOverrides: undefined });
+    };
     
     const renderFields = () => {
         switch (block.type) {
@@ -152,6 +205,28 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
                         <svg className="w-4 h-4 transition-transform transform details-arrow" viewBox="0 0 20 20" fill="currentColor"><path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd"></path></svg>
                     </summary>
                     <div className="mt-4 space-y-4">
+                        <div className="rounded-xl border border-dashed border-slate-300 p-3 dark:border-slate-700">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">Section presets</p>
+                                    <p className="text-xs text-slate-500 dark:text-slate-400">Apply a structured style base, then fine-tune the details below.</p>
+                                </div>
+                                <Button variant="ghost" size="sm" onClick={resetStyleOverrides}>
+                                    Reset overrides
+                                </Button>
+                            </div>
+                            <div className="mt-3 grid grid-cols-1 gap-2 lg:grid-cols-3">
+                                {SECTION_STYLE_PRESETS.map((preset) => (
+                                    <button
+                                        key={preset.id}
+                                        onClick={() => applySectionPreset(preset.id)}
+                                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-left transition-colors hover:border-teal-400 hover:bg-teal-50 dark:border-slate-700 dark:bg-slate-800/70 dark:hover:border-teal-500 dark:hover:bg-slate-800"
+                                    >
+                                        <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{preset.label}</p>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
                         <div>
                             <EditorLabel>Padding</EditorLabel>
                              <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
@@ -218,6 +293,41 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
                                         className="w-full"
                                     />
                                 </div>
+                                <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+                                    <div>
+                                        <EditorLabel>Background Size</EditorLabel>
+                                        <select
+                                            value={block.designOverrides?.backgroundSize || 'cover'}
+                                            onChange={e => handleDesignOverrideChange('backgroundSize', e.target.value)}
+                                            className="block w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                                        >
+                                            <option value="cover">Cover</option>
+                                            <option value="contain">Contain</option>
+                                            <option value="auto">Auto</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <EditorLabel>Background Repeat</EditorLabel>
+                                        <select
+                                            value={block.designOverrides?.backgroundRepeat || 'no-repeat'}
+                                            onChange={e => handleDesignOverrideChange('backgroundRepeat', e.target.value)}
+                                            className="block w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+                                        >
+                                            <option value="no-repeat">No repeat</option>
+                                            <option value="repeat">Repeat</option>
+                                            <option value="repeat-x">Repeat X</option>
+                                            <option value="repeat-y">Repeat Y</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <EditorLabel>Background Position</EditorLabel>
+                                        <EditorInput
+                                            placeholder="center"
+                                            value={block.designOverrides?.backgroundPosition || ''}
+                                            onChange={e => handleDesignOverrideChange('backgroundPosition', e.target.value || undefined)}
+                                        />
+                                    </div>
+                                </div>
                                 <div>
                                     <EditorLabel>Text Color Override</EditorLabel>
                                     <EditorInput 
@@ -277,6 +387,30 @@ const BlockEditor: React.FC<BlockEditorProps> = (props) => {
                                     })}
                                 </div>
                             </details>
+                        </div>
+                        <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
+                            <EditorLabel>Border Preset</EditorLabel>
+                            <div className="grid grid-cols-1 gap-2 lg:grid-cols-4">
+                                {[
+                                    { id: 'none', label: 'None' },
+                                    { id: 'top', label: 'Top Rule', border: { top: { width: 2, style: 'solid', color: '#cbd5e1' } } },
+                                    { id: 'bottom', label: 'Bottom Rule', border: { bottom: { width: 2, style: 'solid', color: '#cbd5e1' } } },
+                                    { id: 'frame', label: 'Frame', border: {
+                                        top: { width: 1, style: 'solid', color: '#cbd5e1' },
+                                        bottom: { width: 1, style: 'solid', color: '#cbd5e1' },
+                                        left: { width: 1, style: 'solid', color: '#cbd5e1' },
+                                        right: { width: 1, style: 'solid', color: '#cbd5e1' },
+                                    } },
+                                ].map((preset) => (
+                                    <button
+                                        key={preset.id}
+                                        onClick={() => handleDesignOverrideChange('border', preset.id === 'none' ? undefined : preset.border)}
+                                        className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm text-slate-700 transition-colors hover:border-teal-400 hover:bg-teal-50 dark:border-slate-700 dark:bg-slate-800/70 dark:text-slate-200 dark:hover:border-teal-500"
+                                    >
+                                        {preset.label}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
                          <div className="border-t border-slate-200 dark:border-slate-700 pt-4 mt-4">
                             <EditorLabel>Animation Style Override</EditorLabel>

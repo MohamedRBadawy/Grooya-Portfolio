@@ -1,29 +1,55 @@
 
-
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useTranslation } from '../../../hooks/useTranslation';
 import type { Portfolio } from '../../../types';
 import EditableText from '../../ui/EditableText';
 import toast from 'react-hot-toast';
 import { getButtonProps, cornerRadiusStyles, fontWeightStyles, letterSpacingStyles } from './utils';
+import { submitLead } from '../../../services/platform/publicPortfolio';
 
 interface BlockViewProps {
     block: any;
     design: Portfolio['design'];
     theme: Portfolio['customPalettes'][0]['colors'];
+    portfolioSlug?: string;
     itemVariant: any;
     isEditable?: boolean;
     onUpdateBlock?: (blockId: string, field: string, value: any) => void;
 }
 
-export const ContactBlockView: React.FC<BlockViewProps> = ({ block, design, theme, itemVariant, isEditable, onUpdateBlock }) => {
+export const ContactBlockView: React.FC<BlockViewProps> = ({ block, design, theme, portfolioSlug, itemVariant, isEditable, onUpdateBlock }) => {
     const { t } = useTranslation();
     const buttonProps = getButtonProps(design);
+    const [formState, setFormState] = useState({ name: '', email: '', message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        toast(t('contact.formDisabled'));
+        if (isEditable || !portfolioSlug) {
+            toast(t('contact.formDisabled'));
+            return;
+        }
+
+        setIsSubmitting(true);
+        try {
+            await submitLead({
+                portfolioSlug,
+                name: formState.name,
+                email: formState.email,
+                message: formState.message,
+                metadata: {
+                    blockId: block.id,
+                },
+            });
+            setFormState({ name: '', email: '', message: '' });
+            toast.success('Message sent successfully.');
+        } catch (error) {
+            console.error(error);
+            toast.error('Could not send your message right now. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
     };
     const { backgroundImage, textColor: textColorOverride } = block.designOverrides || {};
     const hasBgImage = !!backgroundImage;
@@ -46,18 +72,18 @@ export const ContactBlockView: React.FC<BlockViewProps> = ({ block, design, them
                 <motion.form variants={itemVariant} onSubmit={handleSubmit} className="space-y-6">
                     <div>
                         <label htmlFor="name" className="sr-only">{t('contact.name')}</label>
-                        <input type="text" id="name" name="name" placeholder={t('contact.name')} required className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties} />
+                        <input type="text" id="name" name="name" value={formState.name} onChange={(event) => setFormState(prev => ({ ...prev, name: event.target.value }))} placeholder={t('contact.name')} required className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties} />
                     </div>
                     <div>
                         <label htmlFor="email" className="sr-only">{t('contact.email')}</label>
-                        <input type="email" id="email" name="email" placeholder={t('contact.email')} required className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties} />
+                        <input type="email" id="email" name="email" value={formState.email} onChange={(event) => setFormState(prev => ({ ...prev, email: event.target.value }))} placeholder={t('contact.email')} required className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties} />
                     </div>
                     <div>
                         <label htmlFor="message" className="sr-only">{t('contact.message')}</label>
-                        <textarea id="message" name="message" placeholder={t('contact.message')} required rows={5} className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties}></textarea>
+                        <textarea id="message" name="message" value={formState.message} onChange={(event) => setFormState(prev => ({ ...prev, message: event.target.value }))} placeholder={t('contact.message')} required rows={5} className={inputStyle} style={{'--tw-ring-color': design.accentColor, backgroundColor: inputBg, borderColor: inputBorder, color: inputColor} as React.CSSProperties}></textarea>
                     </div>
-                    <button type="submit" {...buttonProps} className={`${buttonProps.className} w-full`}>
-                        {block.buttonText || t('contact.submit')}
+                    <button type="submit" {...buttonProps} disabled={isSubmitting} className={`${buttonProps.className} w-full ${isSubmitting ? 'opacity-70' : ''}`}>
+                        {isSubmitting ? 'Sending...' : block.buttonText || t('contact.submit')}
                     </button>
                 </motion.form>
             </div>

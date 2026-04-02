@@ -83,7 +83,9 @@ const StickyHeaderNav: React.FC<StickyHeaderNavProps> = ({
     const navLinks: NavLinkItem[] = useMemo(() => {
         if (design.customNavigation) return design.customNavigation;
         // Fallback to page-based navigation if custom navigation is not set up.
-        return pages.map(p => ({
+        return pages
+        .filter((page) => page.showInNavigation !== false)
+        .map(p => ({
             id: p.id,
             label: p.name,
             targetPageId: p.id

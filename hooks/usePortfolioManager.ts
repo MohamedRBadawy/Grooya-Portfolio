@@ -76,14 +76,16 @@ export const usePortfolioManager = (portfolioId?: string) => {
         debouncedSetHistory(newPortfolio);
     }, [portfolio, setPresentOnly, debouncedSetHistory]);
     
-    const savePortfolio = useCallback(() => {
+    const savePortfolio = useCallback(async () => {
         if (portfolio) {
             setSaveStatus('saving');
-            updatePortfolio(portfolio);
-            setTimeout(() => {
+            try {
+                await updatePortfolio(portfolio);
                 setSaveStatus('saved');
                 setTimeout(() => setSaveStatus('idle'), 2000);
-            }, 500);
+            } catch {
+                setSaveStatus('idle');
+            }
         }
     }, [portfolio, updatePortfolio]);
 
@@ -351,6 +353,6 @@ export const usePortfolioManager = (portfolioId?: string) => {
         undo, redo, canUndo, canRedo, saveStatus,
         updatePortfolioImmediate, updatePortfolioDebounced, updateField, updateBlock, updateBlockField,
         addBlock, removeBlock, handleDuplicateBlock, handleMoveBlock, handleMoveBlockToPage, handleDragEnd,
-        addPage, removePage, handleRenamePage, setHomePage,
+        addPage, removePage, updatePage, handleRenamePage, setHomePage,
     };
 }

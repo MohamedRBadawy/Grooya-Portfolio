@@ -13,7 +13,8 @@ import { SortableContext, sortableKeyboardCoordinates, useSortable, arrayMove, v
 import { CSS } from '@dnd-kit/utilities';
 import { motion, AnimatePresence } from 'framer-motion';
 import AIAssistButton from '../components/ui/AIAssistButton';
-import { enhanceExperienceDescription, ApiKeyMissingError } from '../services/aiService';
+import { requestExperienceSuggestion, ApiKeyMissingError } from '../services/aiService';
+import AISuggestionReviewModal from '../components/ai/AISuggestionReviewModal';
 
 // Reusable components for editor fields
 const EditorLabel: React.FC<{ children: React.ReactNode, htmlFor?: string }> = ({ children, htmlFor }) => (
@@ -59,12 +60,19 @@ const SortableItem: React.FC<{id: string, children: React.ReactNode, onRemove: (
 const ResumeEditorPage: React.FC = () => {
     const { resumeId } = useParams<{ resumeId: string }>();
     const navigate = useNavigate();
-    const { getResumeById, updateResume, skills: masterSkillsList, user, consumeAiFeature } = useData();
+    const { getResumeById, updateResume, skills: masterSkillsList, user, consumeAiFeature, featureFlags } = useData();
     const { t } = useTranslation();
+    const isAiEnabled = featureFlags.aiEnabled;
 
     const [resume, setResume] = useState<Resume | null>(null);
     const [skillSearch, setSkillSearch] = useState('');
     const [enhancingId, setEnhancingId] = useState<string | null>(null);
+    const [reviewState, setReviewState] = useState<{
+        itemId: string;
+        original: Record<string, string>;
+        suggestion: Record<string, string>;
+        summary: string;
+    } | null>(null);
 
     useEffect(() => {
         if (resumeId) {
@@ -77,9 +85,9 @@ const ResumeEditorPage: React.FC = () => {
         }
     }, [resumeId, getResumeById, navigate]);
 
-    const handleSave = () => {
+    const handleSave = async () => {
         if (resume) {
-            updateResume(resume);
+            await updateResume(resume);
             toast.success(t('resumeSaved'));
         }
     };
@@ -156,6 +164,8 @@ const ResumeEditorPage: React.FC = () => {
     };
 
     const handleEnhanceDescription = async (item: ExperienceItem) => {
+        if (!isAiEnabled) return;
+
         if (!item.description) {
             toast.error("Please enter a description first.");
             return;
@@ -175,8 +185,16 @@ const ResumeEditorPage: React.FC = () => {
         
         setEnhancingId(item.id);
         try {
-            const enhancedDescription = await enhanceExperienceDescription(item.description);
-            handleArrayItemChange('experience', item.id, 'description', enhancedDescription);
+            const result = await requestExperienceSuggestion(item.description, {
+                title: item.title,
+                company: item.company,
+            });
+            setReviewState({
+                itemId: item.id,
+                original: result.original,
+                suggestion: result.suggestion,
+                summary: result.reasoningSummary,
+            });
         } catch (error) {
             console.error(error);
             if (error instanceof ApiKeyMissingError) {
@@ -233,7 +251,7 @@ const ResumeEditorPage: React.FC = () => {
                                             <div>
                                                 <div className="flex justify-between items-center">
                                                     <EditorLabel>Description</EditorLabel>
-                                                    <AIAssistButton onClick={() => handleEnhanceDescription(exp)} isLoading={enhancingId === exp.id} />
+                                                    {isAiEnabled && <AIAssistButton onClick={() => handleEnhanceDescription(exp)} isLoading={enhancingId === exp.id} />}
                                                 </div>
                                                 <EditorTextarea rows={3} value={exp.description} onChange={e => handleArrayItemChange('experience', exp.id, 'description', e.target.value)} />
                                             </div>
@@ -308,6 +326,21 @@ const ResumeEditorPage: React.FC = () => {
                     </div>
                 </main>
             </div>
+            <AISuggestionReviewModal
+                isOpen={!!reviewState}
+                title="Review AI Experience Rewrite"
+                summary={reviewState?.summary || 'Review the rewritten experience entry before it updates your resume.'}
+                original={reviewState?.original || { description: '' }}
+                suggestion={reviewState?.suggestion || { description: '' }}
+                onClose={() => setReviewState(null)}
+                onApply={(editedSuggestion) => {
+                    if (reviewState) {
+                        handleArrayItemChange('experience', reviewState.itemId, 'description', editedSuggestion.description || '');
+                        toast.success('Experience rewrite applied.');
+                    }
+                    setReviewState(null);
+                }}
+            />
         </>
     );
 };

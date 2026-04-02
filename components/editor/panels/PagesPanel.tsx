@@ -12,6 +12,7 @@ interface PagesPanelProps {
     setActivePageId: (id: string) => void;
     setEditingPageId: (id: string | null) => void;
     handleRenamePage: (pageId: string, newName: string) => void;
+    updatePage: (pageId: string, updates: Partial<Page>) => void;
     setHomePage: (pageId: string) => void;
     removePage: (pageId: string) => void;
 }
@@ -27,6 +28,7 @@ const PagesPanel: React.FC<PagesPanelProps> = ({
     setActivePageId,
     setEditingPageId,
     handleRenamePage,
+    updatePage,
     setHomePage,
     removePage,
 }) => {
@@ -76,6 +78,46 @@ const PagesPanel: React.FC<PagesPanelProps> = ({
                                 </button>
                             </div>
                         </div>
+                        {activePageId === page.id && (
+                            <div
+                                className="mt-3 space-y-3 border-t border-slate-200 pt-3 dark:border-slate-700"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                <label className="flex items-center justify-between gap-3 text-sm text-slate-700 dark:text-slate-300">
+                                    <span>Show in navigation</span>
+                                    <input
+                                        type="checkbox"
+                                        checked={page.showInNavigation !== false}
+                                        onChange={(event) => updatePage(page.id, { showInNavigation: event.target.checked })}
+                                        className="h-4 w-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500"
+                                    />
+                                </label>
+                                <div>
+                                    <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                        SEO title
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={page.seoTitle || ''}
+                                        onChange={(event) => updatePage(page.id, { seoTitle: event.target.value })}
+                                        placeholder={`${page.name} | Grooya`}
+                                        className="w-full rounded-md bg-white p-2 text-sm text-slate-900 dark:bg-slate-700 dark:text-slate-100"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                                        SEO description
+                                    </label>
+                                    <textarea
+                                        rows={3}
+                                        value={page.seoDescription || ''}
+                                        onChange={(event) => updatePage(page.id, { seoDescription: event.target.value })}
+                                        placeholder="Summarize what this page is about and what the visitor should expect."
+                                        className="w-full rounded-md bg-white p-2 text-sm text-slate-900 dark:bg-slate-700 dark:text-slate-100"
+                                    />
+                                </div>
+                            </div>
+                        )}
                     </div>
                 ))}
             </div>

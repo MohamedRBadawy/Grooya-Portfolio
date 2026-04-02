@@ -8,6 +8,7 @@ import { portfolioTemplates } from '../services/templates';
 import { defaultPalettes } from '../services/palettes';
 import { useTranslation } from '../hooks/useTranslation';
 import type { PortfolioTemplate } from '../types';
+import { launchPlans } from '../services/platform/plans';
 
 const plansData = {
   monthly: {
@@ -177,23 +178,23 @@ const PricingCard: React.FC<{
 const faqs = [
     {
       q: 'What is Grooya?',
-      a: 'Grooya is an AI-powered Career Operating System designed to help tech-savvy professionals build stunning portfolios, craft tailored resumes, and manage their career assets in one integrated platform. It uses generative AI to simplify and accelerate the entire process.'
+      a: 'Grooya is a portfolio and resume platform built for professionals who need results. It helps job seekers and freelancers publish stronger portfolios, present their work clearly, and turn attention into opportunities.'
     },
     {
       q: 'Who is this for?',
-      a: 'Grooya is built for software developers, UX/UI designers, product managers, data scientists, and any professional who needs to showcase a body of work. It\'s perfect for those seeking new job opportunities or attracting freelance clients.'
+      a: 'Grooya is designed for developers, designers, marketers, consultants, and other professionals who need to show proof of work. It is especially useful for people trying to get hired or win freelance clients.'
     },
     {
-      q: 'How does the AI help?',
-      a: 'Our AI, powered by Google\'s Gemini models, acts as your creative co-pilot. It can generate professional headlines, write compelling project descriptions, suggest design themes, create unique background images from text, and even tailor your resume for a specific job description.'
+      q: 'What makes Grooya different from a generic site builder?',
+      a: 'Grooya focuses on portfolio outcomes, not just page design. The product guides users toward the right structure, stronger proof of work, recruiter-friendly presentation, better client conversion, and integrated resume support.'
     },
     {
       q: 'Do I need to know how to code?',
       a: 'Not at all! Grooya is a completely no-code platform. All customization is done through our intuitive visual editor. If you do know how to code, we offer a custom CSS block for advanced styling.'
     },
     {
-      q: 'Is the Starter plan really free?',
-      a: 'Yes, the Starter plan is completely free and is not a trial. It provides everything you need to build and publish a professional one-page portfolio. You can upgrade to a Pro plan at any time to unlock more powerful features.'
+      q: 'How does pricing work?',
+      a: 'Grooya launches with Free, Starter, and Pro plans. The paid plans focus on practical advantages like removing branding, stronger analytics, better design controls, and custom domains instead of AI credits or one-time credit packs.'
     },
 ];
 
@@ -250,7 +251,7 @@ const LandingPage: React.FC = () => {
                         Build a job-winning portfolio in <span className="text-cyan-500">minutes</span>.
                     </motion.h1>
                     <motion.p variants={itemVariants} className="mt-6 text-lg md:text-xl max-w-2xl mx-auto text-slate-600 dark:text-slate-400">
-                        Grooya is your AI co-pilot for crafting stunning online portfolios and tailored resumes that get you noticed by top recruiters.
+                        Publish a portfolio that wins opportunities. Grooya helps job seekers and freelancers turn their work, services, and resume into a clearer professional story.
                     </motion.p>
                     <motion.div variants={itemVariants} className="mt-10">
                         <Link to="/dashboard">
@@ -271,10 +272,10 @@ const LandingPage: React.FC = () => {
                         <FeatureShowcase
                             align="left"
                             icon={Sparkles}
-                            title="Your Personal AI Co-Pilot"
-                            description="Never face a blank page again. Our AI, powered by Gemini, helps you generate professional headlines, write compelling project descriptions in the STAR format, and suggest design themes tailored to your profession."
+                            title="Guided structure, not guesswork"
+                            description="Start with a portfolio flow designed for either getting hired or getting clients. Grooya helps you show the right proof, organize it clearly, and launch with confidence."
                         >
-                            <img src="https://images.unsplash.com/photo-1611117775350-ac3950943898?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="AI Co-pilot" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                            <img src="https://images.unsplash.com/photo-1611117775350-ac3950943898?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Guided portfolio building" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
                         </FeatureShowcase>
                     </motion.div>
 
@@ -282,10 +283,10 @@ const LandingPage: React.FC = () => {
                         <FeatureShowcase
                             align="right"
                             icon={FileText}
-                            title="The Intelligent Resume Hub"
-                            description="Transform your portfolio into an ATS-friendly resume with one click. Paste a job description and let our AI tailor your resume, optimizing it with relevant keywords to get you past the first filter."
+                            title="A resume that stays connected"
+                            description="Turn your portfolio into an editable resume draft, keep multiple versions, and present your experience in a format recruiters can scan quickly."
                         >
-                             <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Intelligent Resumes" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
+                             <img src="https://images.unsplash.com/photo-1554224155-1696413565d3?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Resume builder" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
                         </FeatureShowcase>
                     </motion.div>
 
@@ -293,8 +294,8 @@ const LandingPage: React.FC = () => {
                          <FeatureShowcase
                             align="left"
                             icon={Palette}
-                            title="Unmatched Customization"
-                            description="Take full control of your brand. Choose from pre-designed themes, create custom color palettes, select professional font pairings, and override styles on any block for a truly unique look. Your portfolio, your rules."
+                            title="Design control with a professional point of view"
+                            description="Customize your site deeply when you need to, but start from intentional defaults that already look polished on desktop and mobile."
                         >
                             <img src="https://images.unsplash.com/photo-1553877522-c36980345985?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80" alt="Design Customization" className="rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800" />
                         </FeatureShowcase>
@@ -357,29 +358,29 @@ const LandingPage: React.FC = () => {
                         <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="free"
-                                title={plansData.monthly.USD[0].title}
-                                price={plansData.monthly.USD[0].price}
-                                description={plansData.monthly.USD[0].description}
-                                features={plansData.monthly.USD[0].features}
+                                title={launchPlans.free.title}
+                                price="0"
+                                description="Start publishing your professional presence for free."
+                                features={launchPlans.free.features}
                             />
                         </motion.div>
                          <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="pro"
-                                title={plansData.monthly.USD[2].title}
-                                price={plansData.monthly.USD[2].price}
-                                description={plansData.monthly.USD[2].description}
-                                features={plansData.monthly.USD[2].features}
+                                title={launchPlans.pro.title}
+                                price={String(launchPlans.pro.monthlyPriceUsd)}
+                                description="Run your portfolio like a serious professional brand."
+                                features={launchPlans.pro.features}
                                 isPopular={true}
                             />
                         </motion.div>
                          <motion.div variants={itemVariants}>
                             <PricingCard
                                 tier="starter"
-                                title={plansData.monthly.USD[1].title}
-                                price={plansData.monthly.USD[1].price}
-                                description={plansData.monthly.USD[1].description}
-                                features={plansData.monthly.USD[1].features}
+                                title={launchPlans.starter.title}
+                                price={String(launchPlans.starter.monthlyPriceUsd)}
+                                description="Look polished and convert more opportunities."
+                                features={launchPlans.starter.features}
                             />
                         </motion.div>
                     </motion.div>
@@ -422,7 +423,7 @@ const LandingPage: React.FC = () => {
                 >
                     <h2 className="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-slate-50 font-sora">Ready to build your future?</h2>
                     <p className="mt-4 text-lg text-slate-600 dark:text-slate-400">
-                        Join thousands of professionals who trust Grooya to showcase their work and advance their careers.
+                        Build a portfolio that helps people understand your value fast, whether you are trying to get hired or win the next client.
                     </p>
                     <Link to="/dashboard" className="mt-8 inline-block">
                         <Button size="lg" variant="primary">

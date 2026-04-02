@@ -4,11 +4,12 @@ import { useTranslation } from '../hooks/useTranslation';
 import Button from './ui/Button';
 import { X, Save } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { generateProjectStory, ApiKeyMissingError } from '../services/aiService';
+import { ApiKeyMissingError, requestProjectStorySuggestion } from '../services/aiService';
 import AIAssistButton from './ui/AIAssistButton';
 import toast from 'react-hot-toast';
 import { useData } from '../contexts/DataContext';
 import ImageUploader from './ui/ImageUploader';
+import AISuggestionReviewModal from './ai/AISuggestionReviewModal';
 
 interface ProjectEditorModalProps {
   project: Project | null;
@@ -31,7 +32,8 @@ const EditorTextarea: React.FC<React.TextareaHTMLAttributes<HTMLTextAreaElement>
 
 const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClose, onSave }) => {
   const { t } = useTranslation();
-  const { consumeAiFeature, user } = useData();
+  const { consumeAiFeature, user, featureFlags } = useData();
+  const isAiEnabled = featureFlags.aiEnabled;
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
       title: '',
@@ -40,6 +42,11 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
       technologies: '',
       link: ''
   });
+  const [reviewState, setReviewState] = useState<{
+      original: Record<string, string>;
+      suggestion: Record<string, string>;
+      summary: string;
+  } | null>(null);
 
   useEffect(() => {
     if (project) {
@@ -73,6 +80,8 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
   };
   
   const handleGenerateDescription = async () => {
+    if (!isAiEnabled) return;
+
     if (!formData.title) {
         toast.error("Please enter a project title first.");
         return;
@@ -92,8 +101,12 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
 
     setIsGenerating(true);
     try {
-        const description = await generateProjectStory(formData.title, formData.technologies, formData.description);
-        setFormData(prev => ({ ...prev, description }));
+        const result = await requestProjectStorySuggestion(formData.title, formData.technologies, formData.description);
+        setReviewState({
+            original: result.original,
+            suggestion: result.suggestion,
+            summary: result.reasoningSummary,
+        });
     } catch (error) {
         console.error(error);
         if (error instanceof ApiKeyMissingError) {
@@ -106,8 +119,6 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
     }
   };
 
-  const isPaidTier = user?.subscription?.tier !== 'free';
-  
   return (
     <motion.div 
       className="fixed inset-0 bg-slate-950/70 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -144,10 +155,12 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
             <div className="relative">
                 <div className="flex justify-between items-center">
                     <EditorLabel htmlFor="description">{t('projectDescription')}</EditorLabel>
-                     <div className="flex items-center gap-2">
-                        {isPaidTier && <span className="text-xs text-slate-500 dark:text-slate-400">{user?.subscription.credits.text} credits left</span>}
-                        <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
-                    </div>
+                    {isAiEnabled && (
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs text-slate-500 dark:text-slate-400">Review before apply</span>
+                            <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
+                        </div>
+                    )}
                 </div>
                 <EditorTextarea id="description" name="description" value={formData.description} onChange={handleChange} rows={4} required />
             </div>
@@ -175,6 +188,19 @@ const ProjectEditorModal: React.FC<ProjectEditorModalProps> = ({ project, onClos
             </Button>
         </footer>
       </motion.div>
+      <AISuggestionReviewModal
+        isOpen={!!reviewState}
+        title="Review AI Project Draft"
+        summary={reviewState?.summary || 'Review the new project story before it replaces your draft.'}
+        original={reviewState?.original || { description: '' }}
+        suggestion={reviewState?.suggestion || { description: '' }}
+        onClose={() => setReviewState(null)}
+        onApply={(editedSuggestion) => {
+            setFormData(prev => ({ ...prev, description: editedSuggestion.description || prev.description }));
+            setReviewState(null);
+            toast.success('AI project draft applied.');
+        }}
+      />
     </motion.div>
   );
 };

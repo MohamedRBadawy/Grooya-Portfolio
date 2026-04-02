@@ -1,4 +1,68 @@
+export type PlanTier = 'free' | 'starter' | 'pro' | 'premium';
+export type PortfolioTrack = 'jobSeeker' | 'freelancer';
+export type PortfolioStatus = 'draft' | 'published' | 'archived';
+export type DomainStatus = 'pending_dns' | 'verifying' | 'active' | 'misconfigured' | 'disabled';
 
+/**
+ * Launch flags used to hide incomplete features until the backend owns them.
+ */
+export interface FeatureFlags {
+  aiEnabled: boolean;
+  aiGuidedBuildEnabled: boolean;
+  aiPortfolioReviewEnabled: boolean;
+  advancedAnalyticsEnabled: boolean;
+  customDomainsEnabled: boolean;
+  billingCheckoutEnabled: boolean;
+  leadCaptureEnabled: boolean;
+}
+
+export interface AIAllowanceBucket {
+  feature: AIFeature;
+  tier: PlanTier | string;
+  limit: number;
+  used: number;
+  remaining: number;
+  resetAt?: string;
+  heavyAction?: boolean;
+  enabled?: boolean;
+}
+
+export interface AISessionSummary {
+  provider: string;
+  tier: PlanTier | string;
+  allowanceByFeature: Partial<Record<AIFeature, AIAllowanceBucket>>;
+  resetAt?: string;
+}
+
+export interface AISuggestionResponse<T> {
+  original: T;
+  suggestion: T;
+  reasoningSummary: string;
+  alternatives?: T[];
+  quota?: AIAllowanceBucket;
+}
+
+export interface PlanDefinition {
+  tier: PlanTier;
+  title: string;
+  monthlyPriceEgp: number;
+  annualPriceEgp: number;
+  monthlyPriceUsd: number;
+  annualPriceUsd: number;
+  features: string[];
+}
+
+export interface DomainRecord {
+  id: string;
+  userId: string;
+  portfolioId?: string;
+  hostname: string;
+  status: DomainStatus;
+  verificationMethod: 'cname';
+  verifiedAt?: number;
+  sslStatus: 'pending' | 'active' | 'error';
+  lastCheckedAt?: number;
+}
 
 /**
  * @description يمثل مستخدم التطبيق.
@@ -28,7 +92,7 @@ export interface User {
   role: 'user' | 'admin';
   isEarlyAdopter?: boolean;
   subscription: {
-    tier: 'free' | 'starter' | 'pro' | 'premium';
+    tier: PlanTier;
     status: 'active' | 'trial' | 'past_due' | 'canceled';
     renewsAt?: number; // timestamp
     // Tracks which free features have been used up.
@@ -39,6 +103,7 @@ export interface User {
         text: number;
         image: number;
     };
+    ai?: AISessionSummary;
   };
   oneTimePurchases?: ('proLifetime' | 'creditsTextTier1' | 'creditsImageTier1')[];
 }
@@ -293,6 +358,7 @@ export interface HeroBlock extends BlockBase {
   imageUrl: string;
   ctaText: string;
   ctaLink: string;
+  layoutVariant?: 'centered' | 'split' | 'editorial';
 }
 
 export interface AboutBlock extends BlockBase {
@@ -309,6 +375,7 @@ export interface ProjectsBlock extends BlockBase {
   type: 'projects';
   title: string;
   projectIds: string[]; // References Project.id
+  layoutVariant?: 'grid' | 'spotlight' | 'alternating';
 }
 
 export interface SkillsBlock extends BlockBase {
@@ -421,6 +488,7 @@ export interface ServicesBlock extends BlockBase {
   type: 'services';
   title: string;
   tiers: PricingTier[];
+  layoutVariant?: 'cards' | 'comparison' | 'minimal';
 }
 
 export interface BlogPost {
@@ -460,6 +528,9 @@ export interface Page {
   name: string;
   path: string; // e.g., '/', '/about', '/contact'
   blocks: PortfolioBlock[];
+  seoTitle?: string;
+  seoDescription?: string;
+  showInNavigation?: boolean;
 }
 
 /**
@@ -475,6 +546,8 @@ export interface Portfolio {
   design: Design;
   pages: Page[];
   isPublished: boolean;
+  status?: PortfolioStatus;
+  publishedAt?: number;
   createdAt: number;
   updatedAt: number;
   customPalettes?: Palette[];
@@ -483,6 +556,11 @@ export interface Portfolio {
   isGuided?: boolean; // Is the user in the AI-guided creation flow?
   goal?: 'job' | 'freelance' | 'personal';
   role?: string;
+  track?: PortfolioTrack;
+  seoTitle?: string;
+  seoDescription?: string;
+  projectCatalog?: Project[];
+  skillCatalog?: Skill[];
 }
 
 /**

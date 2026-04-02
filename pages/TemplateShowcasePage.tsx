@@ -52,7 +52,7 @@ const TemplateShowcasePage: React.FC = () => {
     const navigate = useNavigate();
     const [previewingTemplate, setPreviewingTemplate] = useState<PortfolioTemplate | null>(null);
 
-    const handleSelectTemplate = (template: PortfolioTemplate) => {
+    const handleSelectTemplate = async (template: PortfolioTemplate) => {
         if (!user) return;
 
         const newPortfolioData: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'> = {
@@ -62,7 +62,7 @@ const TemplateShowcasePage: React.FC = () => {
             pages: template.pages,
             isPublished: false,
         };
-        const newPortfolio = createPortfolio(newPortfolioData);
+        const newPortfolio = await createPortfolio(newPortfolioData);
         toast.success(`Portfolio created from '${t(template.name)}' template!`);
         navigate(`/dashboard/edit/${newPortfolio.id}`);
     };

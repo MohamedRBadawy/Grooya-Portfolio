@@ -17,7 +17,8 @@ interface InlineProjectCreatorProps {
 
 const InlineProjectCreator: React.FC<InlineProjectCreatorProps> = ({ onSave, onCancel }) => {
   const { t } = useTranslation();
-  const { consumeAiFeature, user } = useData();
+  const { consumeAiFeature, user, featureFlags } = useData();
+  const isAiEnabled = featureFlags.aiEnabled;
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
       title: '',
@@ -42,6 +43,8 @@ const InlineProjectCreator: React.FC<InlineProjectCreatorProps> = ({ onSave, onC
   };
   
   const handleGenerateDescription = async () => {
+    if (!isAiEnabled) return;
+
     if (!formData.title) {
         toast.error("Please enter a project title first.");
         return;
@@ -85,7 +88,7 @@ const InlineProjectCreator: React.FC<InlineProjectCreatorProps> = ({ onSave, onC
       <div className="relative">
         <div className="flex justify-between items-center">
             <EditorLabel htmlFor="new-proj-description">{t('projectDescription')}</EditorLabel>
-            <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />
+            {isAiEnabled && <AIAssistButton onClick={handleGenerateDescription} isLoading={isGenerating} />}
         </div>
         <EditorTextarea id="new-proj-description" name="description" value={formData.description} onChange={handleChange} rows={3} required />
       </div>

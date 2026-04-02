@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import Button from '../components/ui/Button';
 import { Github, Eye, EyeOff } from 'lucide-react';
+import { ApiRequestError } from '../services/platform/api';
 
 const GoogleIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" className="text-slate-700 dark:text-slate-200">
@@ -18,30 +19,82 @@ const GoogleIcon = () => (
 
 const LoginPage: React.FC = () => {
     const navigate = useNavigate();
-    const { login } = useAuth();
+    const { login, register, isLoading } = useAuth();
     const [showPassword, setShowPassword] = useState(false);
+    const [mode, setMode] = useState<'login' | 'register'>('login');
+    const [name, setName] = useState('Grooya User');
+    const [title, setTitle] = useState('Frontend Developer');
+    const [email, setEmail] = useState('admin@Grooya.com');
+    const [password, setPassword] = useState('Password123');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleLogin = (e: FormEvent) => {
+    const handleLogin = async (e: FormEvent) => {
         e.preventDefault();
-        login();
-        navigate('/dashboard');
+        setErrorMessage(null);
+        setIsSubmitting(true);
+        try {
+            if (mode === 'login') {
+                await login({ email, password });
+            } else {
+                await register({ name, title, email, password });
+            }
+            navigate('/dashboard');
+        } catch (error) {
+            if (error instanceof ApiRequestError) {
+                setErrorMessage(error.message);
+            } else {
+                setErrorMessage('Authentication failed. Please try again.');
+            }
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
         <div className="w-full flex flex-col items-center justify-center py-12 px-4">
             <div className="text-center mb-8">
                 <h2 className="text-3xl mt-4 font-semibold text-slate-800 dark:text-slate-200">
-                    Welcome Back!
+                    {mode === 'login' ? 'Welcome Back!' : 'Create Your Account'}
                 </h2>
-                <p className="text-slate-600 dark:text-slate-400 mt-2">Sign in to continue to your dashboard.</p>
+                <p className="text-slate-600 dark:text-slate-400 mt-2">
+                    {mode === 'login'
+                        ? 'Sign in with your backend account to continue to the dashboard.'
+                        : 'Create a real account that syncs your portfolios, resumes, and AI quotas from the backend.'}
+                </p>
             </div>
             <div className="w-full max-w-md bg-white dark:bg-slate-900 shadow-xl rounded-2xl p-8 border border-slate-200 dark:border-slate-800">
+                <div className="mb-6 flex rounded-full bg-slate-100 p-1 dark:bg-slate-800">
+                    <button
+                        type="button"
+                        onClick={() => setMode('login')}
+                        className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            mode === 'login'
+                                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-50'
+                                : 'text-slate-500 dark:text-slate-400'
+                        }`}
+                    >
+                        Log In
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setMode('register')}
+                        className={`flex-1 rounded-full px-4 py-2 text-sm font-semibold transition ${
+                            mode === 'register'
+                                ? 'bg-white text-slate-900 shadow-sm dark:bg-slate-700 dark:text-slate-50'
+                                : 'text-slate-500 dark:text-slate-400'
+                        }`}
+                    >
+                        Register
+                    </button>
+                </div>
+
                 <div className="grid grid-cols-2 gap-4">
-                    <Button variant="secondary" className="!bg-slate-100/80 dark:!bg-slate-800 hover:!bg-slate-200 dark:hover:!bg-slate-700 !text-slate-800 dark:!text-slate-200">
+                    <Button variant="secondary" disabled className="!bg-slate-100/80 dark:!bg-slate-800 !text-slate-800 dark:!text-slate-200 disabled:opacity-60">
                        <GoogleIcon />
                        <span className="ml-2">Google</span>
                     </Button>
-                    <Button variant="secondary" className="!bg-slate-100/80 dark:!bg-slate-800 hover:!bg-slate-200 dark:hover:!bg-slate-700 !text-slate-800 dark:!text-slate-200">
+                    <Button variant="secondary" disabled className="!bg-slate-100/80 dark:!bg-slate-800 !text-slate-800 dark:!text-slate-200 disabled:opacity-60">
                         <Github size={18} />
                         <span className="ml-2">GitHub</span>
                     </Button>
@@ -54,6 +107,43 @@ const LoginPage: React.FC = () => {
                 </div>
 
                 <form onSubmit={handleLogin} className="space-y-6">
+                    {mode === 'register' && (
+                        <>
+                            <div>
+                                <label htmlFor="name" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    Full name
+                                </label>
+                                <div className="mt-1">
+                                    <input
+                                        id="name"
+                                        name="name"
+                                        type="text"
+                                        required
+                                        value={name}
+                                        onChange={(event) => setName(event.target.value)}
+                                        className="appearance-none block w-full px-3 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label htmlFor="title" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
+                                    Professional title
+                                </label>
+                                <div className="mt-1">
+                                    <input
+                                        id="title"
+                                        name="title"
+                                        type="text"
+                                        value={title}
+                                        onChange={(event) => setTitle(event.target.value)}
+                                        className="appearance-none block w-full px-3 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
+                                    />
+                                </div>
+                            </div>
+                        </>
+                    )}
+
                     <div>
                         <label htmlFor="email" className="block text-sm font-medium text-slate-700 dark:text-slate-300">
                             Email
@@ -65,7 +155,8 @@ const LoginPage: React.FC = () => {
                                 type="email"
                                 autoComplete="email"
                                 required
-                                defaultValue="admin@Grooya.com"
+                                value={email}
+                                onChange={(event) => setEmail(event.target.value)}
                                 className="appearance-none block w-full px-3 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                             />
                         </div>
@@ -82,7 +173,8 @@ const LoginPage: React.FC = () => {
                                 type={showPassword ? 'text' : 'password'}
                                 autoComplete="current-password"
                                 required
-                                defaultValue="Password123"
+                                value={password}
+                                onChange={(event) => setPassword(event.target.value)}
                                 className="appearance-none block w-full pl-3 pr-10 py-2 border border-slate-400 dark:border-slate-700 rounded-lg shadow-sm placeholder-slate-400 focus:outline-none focus:ring-teal-500 focus:border-teal-500 sm:text-sm bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
                             />
                              <button
@@ -96,15 +188,23 @@ const LoginPage: React.FC = () => {
                         </div>
                     </div>
 
+                    {errorMessage && (
+                        <div className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200">
+                            {errorMessage}
+                        </div>
+                    )}
+
+                    {mode === 'login' && (
                     <div className="text-right">
                         <a href="#" className="text-sm text-teal-600 hover:text-teal-500 font-medium">
                             Forgot your password?
                         </a>
                     </div>
+                    )}
 
                     <div>
-                        <Button type="submit" variant="primary" className="w-full">
-                            Login
+                        <Button type="submit" variant="primary" className="w-full" disabled={isSubmitting || isLoading}>
+                            {isSubmitting ? 'Please wait...' : mode === 'login' ? 'Login' : 'Create Account'}
                         </Button>
                     </div>
                 </form>

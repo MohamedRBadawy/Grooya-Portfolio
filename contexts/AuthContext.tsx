@@ -1,67 +1,92 @@
+/**
+ * AuthContext owns Django session status and exposes login/register/logout
+ * actions to the rest of the frontend.
+ */
+import React, { createContext, useContext, ReactNode, useEffect, useState } from 'react';
+import { fetchSession, loginWithPassword, logoutSession, registerAccount } from '../services/platform/auth';
 
-import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
+const SESSION_EVENT = 'grooya:session-changed';
 
-// Define the shape of the authentication context
-interface AuthContextType {
-  isAuthenticated: boolean;
-  login: () => void;
-  logout: () => void;
+interface AuthCredentials {
+  email: string;
+  password: string;
 }
 
-// Create the context
+interface RegisterPayload extends AuthCredentials {
+  name: string;
+  title?: string;
+}
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (credentials: AuthCredentials) => Promise<void>;
+  register: (payload: RegisterPayload) => Promise<void>;
+  logout: () => Promise<void>;
+  refreshSession: () => Promise<void>;
+}
+
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const AUTH_TOKEN_KEY = 'grooya_auth_token';
-
-/**
- * Provides authentication state and functions to the application.
- * This implementation uses localStorage to simulate a persistent user session.
- */
-export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    try {
-        return !!window.localStorage.getItem(AUTH_TOKEN_KEY);
-    } catch {
-        return false;
-    }
-  });
-
-  useEffect(() => {
-    const handleStorageChange = () => {
-        setIsAuthenticated(!!window.localStorage.getItem(AUTH_TOKEN_KEY));
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
-
-  const login = () => {
-    try {
-        window.localStorage.setItem(AUTH_TOKEN_KEY, 'mock_user_logged_in');
-        setIsAuthenticated(true);
-    } catch (error) {
-        console.error("Could not set auth token in local storage", error);
-    }
-  };
-
-  const logout = () => {
-    try {
-        window.localStorage.removeItem(AUTH_TOKEN_KEY);
-        setIsAuthenticated(false);
-    } catch (error) {
-        console.error("Could not remove auth token from local storage", error);
-    }
-  };
-
-  // Provide the state and functions to children components
-  const value = { isAuthenticated, login, logout };
-
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+const dispatchSessionChanged = () => {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event(SESSION_EVENT));
+  }
 };
 
-/**
- * Custom hook to easily access the authentication context.
- * Throws an error if used outside of an AuthProvider.
- */
+export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const refreshSession = async () => {
+    setIsLoading(true);
+    try {
+      const session = await fetchSession();
+      setIsAuthenticated(Boolean(session.authenticated));
+    } catch (error) {
+      console.warn('Session bootstrap failed; treating the visitor as signed out.', error);
+      setIsAuthenticated(false);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    void refreshSession();
+
+    const handleSessionChanged = () => {
+      void refreshSession();
+    };
+
+    window.addEventListener(SESSION_EVENT, handleSessionChanged);
+    return () => window.removeEventListener(SESSION_EVENT, handleSessionChanged);
+  }, []);
+
+  const login = async (credentials: AuthCredentials) => {
+    await loginWithPassword(credentials);
+    setIsAuthenticated(true);
+    dispatchSessionChanged();
+  };
+
+  const register = async (payload: RegisterPayload) => {
+    await registerAccount(payload);
+    setIsAuthenticated(true);
+    dispatchSessionChanged();
+  };
+
+  const logout = async () => {
+    await logoutSession();
+    setIsAuthenticated(false);
+    dispatchSessionChanged();
+  };
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, isLoading, login, register, logout, refreshSession }}>
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext);
   if (context === undefined) {

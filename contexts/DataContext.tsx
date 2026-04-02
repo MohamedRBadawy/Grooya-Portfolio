@@ -1,96 +1,92 @@
-
-
-import React, { createContext, useState, useEffect, useContext, ReactNode, useMemo } from 'react';
-import type { User, Project, Skill, Portfolio, PortfolioBlock, Resume, Page, AIFeature, PortfolioTemplate, PromoCode } from '../types';
-import { mockUser, initialProjects, masterSkillsList, initialPortfolios, initialResumes, mockPromoCodes } from '../services/mockData';
-import { portfolioTemplates as initialTemplates } from '../services/templates';
+/**
+ * DataContext now hydrates from the backend session/profile/catalog APIs and
+ * uses typed repositories for server-owned portfolio and resume documents.
+ */
+import React, { createContext, useContext, useEffect, useMemo, useRef, useState, ReactNode } from 'react';
 import toast from 'react-hot-toast';
 
-const STARTER_PLAN_CREDITS = { text: 50, image: 10 };
-const PRO_PLAN_CREDITS = { text: 150, image: 30 };
-const PREMIUM_PLAN_CREDITS = { text: 500, image: 100 };
+import type {
+  AIFeature,
+  FeatureFlags,
+  Portfolio,
+  PortfolioTemplate,
+  Project,
+  PromoCode,
+  Resume,
+  Skill,
+  User,
+} from '../types';
+import { masterSkillsList, mockPromoCodes } from '../services/mockData';
+import { portfolioTemplates as initialTemplates } from '../services/templates';
+import { defaultFeatureFlags } from '../services/platform/featureFlags';
+import { fetchSession, updateProfile as updateProfileRecord } from '../services/platform/auth';
+import {
+  createPortfolioRecord,
+  deletePortfolioRecord,
+  listPortfolios,
+  updatePortfolioRecord,
+} from '../services/platform/portfolioRepository';
+import {
+  createResumeRecord,
+  deleteResumeRecord,
+  listResumes,
+  updateResumeRecord,
+} from '../services/platform/resumeRepository';
 
-const FREE_PLAN = { 
-    tier: 'free' as const, 
-    status: 'active' as const,
-    freeFeaturesUsed: {},
-    credits: { text: 0, image: 0 }
-};
-const STARTER_PLAN = { 
-    tier: 'starter' as const, 
-    status: 'active' as const,
-    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    freeFeaturesUsed: {},
-    credits: STARTER_PLAN_CREDITS
-};
-const PRO_PLAN = { 
-    tier: 'pro' as const, 
-    status: 'active' as const,
-    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    freeFeaturesUsed: {},
-    credits: PRO_PLAN_CREDITS
-};
-const PREMIUM_PLAN = { 
-    tier: 'premium' as const, 
-    status: 'active' as const,
-    renewsAt: Date.now() + 30 * 24 * 60 * 60 * 1000,
-    freeFeaturesUsed: {},
-    credits: PREMIUM_PLAN_CREDITS
-};
-
+const SESSION_EVENT = 'grooya:session-changed';
 
 const ENTITLEMENTS = {
-    free: {
-        maxPortfolios: 1,
-        maxResumes: 1,
-        canRemoveBranding: false,
-        canUseCustomDomains: false,
-        atsOptimization: false,
-        advancedAnalytics: false,
-        bilingualSites: false,
-        hasProDesignTools: false,
-        hasProBlocks: false,
-    },
-    starter: {
-        maxPortfolios: 3,
-        maxResumes: 3,
-        canRemoveBranding: true,
-        canUseCustomDomains: false,
-        atsOptimization: false,
-        advancedAnalytics: false,
-        bilingualSites: false,
-        hasProDesignTools: false,
-        hasProBlocks: false,
-    },
-    pro: {
-        maxPortfolios: 10,
-        maxResumes: 999, // Unlimited
-        canRemoveBranding: true,
-        canUseCustomDomains: true,
-        atsOptimization: true,
-        advancedAnalytics: false,
-        bilingualSites: false,
-        hasProDesignTools: true,
-        hasProBlocks: true,
-    },
-    premium: {
-        maxPortfolios: 999, // Unlimited
-        maxResumes: 999, // Unlimited
-        canRemoveBranding: true,
-        canUseCustomDomains: true,
-        atsOptimization: true,
-        advancedAnalytics: true,
-        bilingualSites: true,
-        hasProDesignTools: true,
-        hasProBlocks: true,
-    }
+  free: {
+    maxPortfolios: 1,
+    maxResumes: 1,
+    canRemoveBranding: false,
+    canUseCustomDomains: false,
+    atsOptimization: false,
+    advancedAnalytics: false,
+    bilingualSites: false,
+    hasProDesignTools: false,
+    hasProBlocks: false,
+  },
+  starter: {
+    maxPortfolios: 3,
+    maxResumes: 3,
+    canRemoveBranding: true,
+    canUseCustomDomains: false,
+    atsOptimization: false,
+    advancedAnalytics: false,
+    bilingualSites: false,
+    hasProDesignTools: false,
+    hasProBlocks: false,
+  },
+  pro: {
+    maxPortfolios: 10,
+    maxResumes: 999,
+    canRemoveBranding: true,
+    canUseCustomDomains: true,
+    atsOptimization: true,
+    advancedAnalytics: true,
+    bilingualSites: false,
+    hasProDesignTools: true,
+    hasProBlocks: true,
+  },
+  premium: {
+    maxPortfolios: 999,
+    maxResumes: 999,
+    canRemoveBranding: true,
+    canUseCustomDomains: true,
+    atsOptimization: true,
+    advancedAnalytics: true,
+    bilingualSites: true,
+    hasProDesignTools: true,
+    hasProBlocks: true,
+  },
 };
 
 type Entitlements = typeof ENTITLEMENTS.free;
 
-// Define the shape of the data context
 interface DataContextType {
   user: User | null;
+  featureFlags: FeatureFlags;
   projects: Project[];
   skills: Skill[];
   portfolios: Portfolio[];
@@ -99,19 +95,19 @@ interface DataContextType {
   promoCodes: PromoCode[];
   entitlements: Entitlements;
   getPortfolioById: (id: string) => Portfolio | undefined;
-  updatePortfolio: (updatedPortfolio: Portfolio) => void;
-  createPortfolio: (newPortfolio: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) => Portfolio;
-  deletePortfolio: (portfolioId: string) => void;
-  duplicatePortfolio: (portfolioId: string) => void;
+  updatePortfolio: (updatedPortfolio: Portfolio) => Promise<void>;
+  createPortfolio: (newPortfolio: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) => Promise<Portfolio>;
+  deletePortfolio: (portfolioId: string) => Promise<void>;
+  duplicatePortfolio: (portfolioId: string) => Promise<Portfolio | undefined>;
   createProject: (newProjectData: Omit<Project, 'id'>) => Project;
   updateProject: (updatedProject: Project) => void;
   deleteProject: (projectId: string) => void;
   createSkill: (newSkillData: Omit<Skill, 'id'>) => Skill;
-  updateUser: (updatedUser: User) => void;
+  updateUser: (updatedUser: User) => Promise<void>;
   getResumeById: (id: string) => Resume | undefined;
-  updateResume: (updatedResume: Resume) => void;
-  createResume: (newResumeData: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => Resume;
-  deleteResume: (resumeId: string) => void;
+  updateResume: (updatedResume: Resume) => Promise<void>;
+  createResume: (newResume: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => Promise<Resume>;
+  deleteResume: (resumeId: string) => Promise<void>;
   getTemplateById: (id: string) => PortfolioTemplate | undefined;
   updateTemplate: (updatedTemplate: PortfolioTemplate) => void;
   createTemplate: (newTemplateData: Omit<PortfolioTemplate, 'id'>) => PortfolioTemplate;
@@ -129,225 +125,294 @@ interface DataContextType {
   makeOneTimePurchase: (purchaseId: 'proLifetime' | 'creditsTextTier1' | 'creditsImageTier1') => void;
 }
 
-// Create the context
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Define keys for local storage to persist data across sessions
-const USER_STORAGE_KEY = 'grooya_user';
-const PORTFOLIOS_STORAGE_KEY = 'grooya_portfolios';
-const PROJECTS_STORAGE_KEY = 'grooya_projects';
-const SKILLS_STORAGE_KEY = 'grooya_skills';
-const RESUMES_STORAGE_KEY = 'grooya_resumes';
-const TEMPLATES_STORAGE_KEY = 'grooya_templates';
-const PROMO_CODES_STORAGE_KEY = 'grooya_promo_codes';
+const createPortfolioSlug = (title: string) =>
+  `${title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')}-${Math.random().toString(36).slice(2, 8)}`;
 
-/**
- * The DataProvider component is a central place to manage all application data.
- * It initializes state from localStorage (or mock data if not available),
- * and provides functions to manipulate this data.
- */
+const applyServerFlags = (
+  featureFlags: Record<string, boolean> | undefined,
+): FeatureFlags => ({
+  ...defaultFeatureFlags,
+  aiEnabled: featureFlags?.ai_enabled ?? defaultFeatureFlags.aiEnabled,
+  aiGuidedBuildEnabled: featureFlags?.ai_guided_build_enabled ?? defaultFeatureFlags.aiGuidedBuildEnabled,
+  aiPortfolioReviewEnabled: featureFlags?.ai_portfolio_review_enabled ?? defaultFeatureFlags.aiPortfolioReviewEnabled,
+  advancedAnalyticsEnabled: featureFlags?.advanced_analytics_enabled ?? defaultFeatureFlags.advancedAnalyticsEnabled,
+  customDomainsEnabled: featureFlags?.custom_domains_enabled ?? defaultFeatureFlags.customDomainsEnabled,
+  billingCheckoutEnabled: featureFlags?.billing_checkout_enabled ?? defaultFeatureFlags.billingCheckoutEnabled,
+  leadCaptureEnabled: featureFlags?.lead_capture_enabled ?? defaultFeatureFlags.leadCaptureEnabled,
+});
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  // Initialize user state from local storage or mock data
-  const [user, setUser] = useState<User | null>(() => {
+  const [featureFlags, setFeatureFlags] = useState<FeatureFlags>(defaultFeatureFlags);
+  const [user, setUser] = useState<User | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [skills, setSkills] = useState<Skill[]>(masterSkillsList);
+  const [portfolios, setPortfolios] = useState<Portfolio[]>([]);
+  const [resumes, setResumes] = useState<Resume[]>([]);
+  const [templates, setTemplates] = useState<PortfolioTemplate[]>(initialTemplates);
+  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(mockPromoCodes);
+  const seededSkillCatalog = useRef(false);
+
+  const hydrateServerState = async () => {
     try {
-      const stored = window.localStorage.getItem(USER_STORAGE_KEY);
-      const parsedUser = stored ? JSON.parse(stored) : mockUser;
-      // Ensure existing users have subscription data
-      if (!parsedUser.subscription) {
-        parsedUser.subscription = FREE_PLAN;
+      const session = await fetchSession();
+      setFeatureFlags(applyServerFlags(session.feature_flags));
+
+      if (!session.authenticated || !session.user) {
+        setUser(null);
+        setProjects([]);
+        setSkills(masterSkillsList);
+        setPortfolios([]);
+        setResumes([]);
+        return;
       }
-      return parsedUser;
-    } catch (error) {
-      console.error("Error reading user from local storage", error);
-      return mockUser;
-    }
-  });
-  
-  // Initialize portfolios state
-  const [portfolios, setPortfolios] = useState<Portfolio[]>(() => {
-    try {
-      const stored = window.localStorage.getItem(PORTFOLIOS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : initialPortfolios;
-    } catch (error) {
-      console.error("Error reading portfolios from local storage", error);
-      return initialPortfolios;
-    }
-  });
 
-  // Initialize projects state
-  const [projects, setProjects] = useState<Project[]>(() => {
-    try {
-      const stored = window.localStorage.getItem(PROJECTS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : initialProjects;
-    } catch (error) {
-      console.error("Error reading projects from local storage", error);
-      return initialProjects;
-    }
-  });
-  
-  // Initialize skills state
-  const [skills, setSkills] = useState<Skill[]>(() => {
-    try {
-      const stored = window.localStorage.getItem(SKILLS_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : masterSkillsList;
-    } catch (error) {
-      console.error("Error reading skills from local storage", error);
-      return masterSkillsList;
-    }
-  });
+      setUser(session.user);
+      const serverProjects = session.catalog?.projects || [];
+      const serverSkills = session.catalog?.skills?.length ? session.catalog.skills : masterSkillsList;
+      setProjects(serverProjects);
+      setSkills(serverSkills);
 
-  // Initialize resumes state
-  const [resumes, setResumes] = useState<Resume[]>(() => {
-    try {
-      const stored = window.localStorage.getItem(RESUMES_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : initialResumes;
-    } catch (error) {
-      console.error("Error reading resumes from local storage", error);
-      return initialResumes;
-    }
-  });
+      const [serverPortfolios, serverResumes] = await Promise.all([listPortfolios(), listResumes()]);
+      setPortfolios(serverPortfolios);
+      setResumes(serverResumes);
 
-  // Initialize templates state
-  const [templates, setTemplates] = useState<PortfolioTemplate[]>(() => {
-    try {
-        const stored = window.localStorage.getItem(TEMPLATES_STORAGE_KEY);
-        return stored ? JSON.parse(stored) : initialTemplates;
+      if (!session.catalog?.skills?.length && !seededSkillCatalog.current) {
+        seededSkillCatalog.current = true;
+        void updateProfileRecord({ skill_catalog: masterSkillsList }).catch((error) => {
+          console.warn('Failed to seed the default skill catalog.', error);
+        });
+      }
     } catch (error) {
-        console.error("Error reading templates from local storage", error);
-        return initialTemplates;
+      console.warn('Backend hydration failed; leaving the app in signed-out mode.', error);
+      setUser(null);
+      setProjects([]);
+      setPortfolios([]);
+      setResumes([]);
     }
-  });
-  
-  // Initialize promo codes state
-  const [promoCodes, setPromoCodes] = useState<PromoCode[]>(() => {
-    try {
-      const stored = window.localStorage.getItem(PROMO_CODES_STORAGE_KEY);
-      return stored ? JSON.parse(stored) : mockPromoCodes;
-    } catch (error) {
-      console.error("Error reading promo codes from local storage", error);
-      return mockPromoCodes;
-    }
-  });
+  };
 
-  // --- Effects to persist data to local storage ---
-  useEffect(() => { window.localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user)); }, [user]);
-  useEffect(() => { window.localStorage.setItem(PORTFOLIOS_STORAGE_KEY, JSON.stringify(portfolios)); }, [portfolios]);
-  useEffect(() => { window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects)); }, [projects]);
-  useEffect(() => { window.localStorage.setItem(SKILLS_STORAGE_KEY, JSON.stringify(skills)); }, [skills]);
-  useEffect(() => { window.localStorage.setItem(RESUMES_STORAGE_KEY, JSON.stringify(resumes)); }, [resumes]);
-  useEffect(() => { window.localStorage.setItem(TEMPLATES_STORAGE_KEY, JSON.stringify(templates)); }, [templates]);
-  useEffect(() => { window.localStorage.setItem(PROMO_CODES_STORAGE_KEY, JSON.stringify(promoCodes)); }, [promoCodes]);
-  
-  // --- Entitlements Calculation ---
+  useEffect(() => {
+    void hydrateServerState();
+
+    const handleSessionChanged = () => {
+      void hydrateServerState();
+    };
+
+    window.addEventListener(SESSION_EVENT, handleSessionChanged);
+    return () => window.removeEventListener(SESSION_EVENT, handleSessionChanged);
+  }, []);
+
   const entitlements = useMemo(() => {
     if (!user) return ENTITLEMENTS.free;
-
-    const hasProLifetime = user.oneTimePurchases?.includes('proLifetime');
-    
-    // User gets Pro entitlements if they have a Pro subscription OR a lifetime license.
-    if (hasProLifetime) return ENTITLEMENTS.pro;
-    
-    const tier = user.subscription?.tier || 'free';
-    return ENTITLEMENTS[tier];
+    return ENTITLEMENTS[user.subscription.tier] || ENTITLEMENTS.free;
   }, [user]);
 
-  // --- Portfolio CRUD ---
-  const getPortfolioById = (id: string) => portfolios.find(p => p.id === id);
-  const updatePortfolio = (updatedPortfolio: Portfolio) => {
-    const portfolioWithTimestamp = { ...updatedPortfolio, updatedAt: Date.now() };
-    setPortfolios(prev => prev.map(p => p.id === portfolioWithTimestamp.id ? portfolioWithTimestamp : p));
+  const persistCatalog = async (nextProjects: Project[], nextSkills: Skill[]) => {
+    if (!user) return;
+    try {
+      const response = await updateProfileRecord({
+        project_catalog: nextProjects,
+        skill_catalog: nextSkills,
+      });
+      setUser(response.user);
+      setProjects(response.catalog.projects);
+      setSkills(response.catalog.skills.length ? response.catalog.skills : masterSkillsList);
+      setFeatureFlags(applyServerFlags(response.feature_flags));
+    } catch (error) {
+      console.error('Failed to persist the user catalog.', error);
+      toast.error('Could not sync your project catalog to the backend.');
+    }
   };
-   const createPortfolio = (newPortfolioData: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>) => {
-    const slug = newPortfolioData.title.toLowerCase().replace(/\s+/g, '-') + `-${Math.random().toString(36).substring(2, 8)}`;
+
+  const getPortfolioById = (id: string) => portfolios.find((portfolio) => portfolio.id === id);
+
+  const updatePortfolio = async (updatedPortfolio: Portfolio) => {
+    const previousPortfolios = portfolios;
+    setPortfolios((current) =>
+      current.map((portfolio) =>
+        portfolio.id === updatedPortfolio.id
+          ? { ...updatedPortfolio, updatedAt: Date.now(), projectCatalog: projects, skillCatalog: skills }
+          : portfolio,
+      ),
+    );
+
+    try {
+      const savedPortfolio = await updatePortfolioRecord(updatedPortfolio);
+      setPortfolios((current) => current.map((portfolio) => (portfolio.id === savedPortfolio.id ? savedPortfolio : portfolio)));
+    } catch (error) {
+      console.error('Failed to update portfolio.', error);
+      setPortfolios(previousPortfolios);
+      toast.error('Could not save your portfolio to the backend.');
+      throw error;
+    }
+  };
+
+  const createPortfolio = async (
+    newPortfolioData: Omit<Portfolio, 'id' | 'slug' | 'createdAt' | 'updatedAt'>,
+  ): Promise<Portfolio> => {
     const now = Date.now();
-    const newPortfolio: Portfolio = {
-        ...newPortfolioData,
-        id: `port-${now}`,
-        slug,
-        createdAt: now,
-        updatedAt: now,
+    const draftPortfolio: Portfolio = {
+      ...newPortfolioData,
+      id: `pending-${now}`,
+      slug: createPortfolioSlug(newPortfolioData.title),
+      status: newPortfolioData.status || (newPortfolioData.isPublished ? 'published' : 'draft'),
+      publishedAt: newPortfolioData.isPublished ? newPortfolioData.publishedAt || now : undefined,
+      createdAt: now,
+      updatedAt: now,
+      userId: user?.id || newPortfolioData.userId,
+      assets: newPortfolioData.assets || [],
+      track: newPortfolioData.track || 'jobSeeker',
+      seoTitle: newPortfolioData.seoTitle || newPortfolioData.title,
+      seoDescription: newPortfolioData.seoDescription || `A portfolio for ${newPortfolioData.title}.`,
+      projectCatalog: projects,
+      skillCatalog: skills,
     };
-    setPortfolios(prev => [...prev, newPortfolio]);
-    return newPortfolio;
-  };
-  const deletePortfolio = (portfolioId: string) => {
-    setPortfolios(prev => prev.filter(p => p.id !== portfolioId));
-  };
-  const duplicatePortfolio = (portfolioId: string) => {
-      const portfolioToDuplicate = portfolios.find(p => p.id === portfolioId);
-      if (portfolioToDuplicate) {
-          const now = Date.now();
-          const newPortfolio = {
-              ...JSON.parse(JSON.stringify(portfolioToDuplicate)), // Deep copy
-              id: `port-${now}`,
-              title: `${portfolioToDuplicate.title} (Copy)`,
-              slug: `${portfolioToDuplicate.slug}-copy`,
-              createdAt: now,
-              updatedAt: now,
-              isPublished: false,
-          };
-          setPortfolios(prev => [...prev, newPortfolio]);
-          toast.success('Portfolio duplicated!');
-      }
+
+    const savedPortfolio = await createPortfolioRecord(draftPortfolio);
+    setPortfolios((current) => [...current, savedPortfolio]);
+    return savedPortfolio;
   };
 
+  const deletePortfolio = async (portfolioId: string) => {
+    const previousPortfolios = portfolios;
+    setPortfolios((current) => current.filter((portfolio) => portfolio.id !== portfolioId));
+    try {
+      await deletePortfolioRecord(portfolioId);
+    } catch (error) {
+      console.error('Failed to delete portfolio.', error);
+      setPortfolios(previousPortfolios);
+      toast.error('Could not delete the portfolio on the backend.');
+      throw error;
+    }
+  };
 
-  // --- Project CRUD ---
+  const duplicatePortfolio = async (portfolioId: string) => {
+    const portfolioToDuplicate = portfolios.find((portfolio) => portfolio.id === portfolioId);
+    if (!portfolioToDuplicate) return undefined;
+
+    const duplicatedPortfolio = await createPortfolio({
+      ...JSON.parse(JSON.stringify(portfolioToDuplicate)),
+      title: `${portfolioToDuplicate.title} (Copy)`,
+      isPublished: false,
+      status: 'draft',
+      publishedAt: undefined,
+    });
+    toast.success('Portfolio duplicated!');
+    return duplicatedPortfolio;
+  };
+
   const createProject = (newProjectData: Omit<Project, 'id'>) => {
     const newProject: Project = { ...newProjectData, id: `proj-${Date.now()}` };
-    setProjects(prev => [...prev, newProject]);
+    const nextProjects = [...projects, newProject];
+    setProjects(nextProjects);
+    void persistCatalog(nextProjects, skills);
     return newProject;
   };
+
   const updateProject = (updatedProject: Project) => {
-    setProjects(prev => prev.map(p => p.id === updatedProject.id ? updatedProject : p));
-  };
-  const deleteProject = (projectId: string) => {
-    setProjects(prev => prev.filter(p => p.id !== projectId));
+    const nextProjects = projects.map((project) => (project.id === updatedProject.id ? updatedProject : project));
+    setProjects(nextProjects);
+    void persistCatalog(nextProjects, skills);
   };
 
-  // --- Skill CRUD ---
+  const deleteProject = (projectId: string) => {
+    const nextProjects = projects.filter((project) => project.id !== projectId);
+    setProjects(nextProjects);
+    void persistCatalog(nextProjects, skills);
+  };
+
   const createSkill = (newSkillData: Omit<Skill, 'id'>) => {
     const newSkill: Skill = { ...newSkillData, id: `skill-${Date.now()}` };
-    setSkills(prev => [...prev, newSkill]);
+    const nextSkills = [...skills, newSkill];
+    setSkills(nextSkills);
+    void persistCatalog(projects, nextSkills);
     return newSkill;
   };
-  
-  // --- Resume CRUD ---
-  const getResumeById = (id: string) => resumes.find(r => r.id === id);
-  const updateResume = (updatedResume: Resume) => {
-    const resumeWithTimestamp = { ...updatedResume, updatedAt: Date.now() };
-    setResumes(prev => prev.map(r => r.id === resumeWithTimestamp.id ? resumeWithTimestamp : r));
-  };
-  const createResume = (newResumeData: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>) => {
-      const now = Date.now();
-      const newResume: Resume = {
-          ...newResumeData,
-          id: `resume-${now}`,
-          createdAt: now,
-          updatedAt: now,
-      };
-      setResumes(prev => [...prev, newResume]);
-      return newResume;
-  };
-  const deleteResume = (resumeId: string) => {
-      setResumes(prev => prev.filter(r => r.id !== resumeId));
-  };
-  
-  // --- Template CRUD (Admin) ---
-  const getTemplateById = (id: string) => templates.find(t => t.id === id);
-  const updateTemplate = (updatedTemplate: PortfolioTemplate) => {
-      setTemplates(prev => prev.map(t => t.id === updatedTemplate.id ? updatedTemplate : t));
-  };
-  const createTemplate = (newTemplateData: Omit<PortfolioTemplate, 'id'>) => {
-      const newTemplate: PortfolioTemplate = { ...newTemplateData, id: `template-${Date.now()}` };
-      setTemplates(prev => [...prev, newTemplate]);
-      return newTemplate;
-  };
-  const deleteTemplate = (templateId: string) => {
-      setTemplates(prev => prev.filter(t => t.id !== templateId));
+
+  const updateUser = async (updatedUser: User) => {
+    try {
+      const response = await updateProfileRecord({
+        name: updatedUser.name,
+        email: updatedUser.email,
+        title: updatedUser.title,
+        bio: updatedUser.bio,
+        avatar_url: updatedUser.avatarUrl,
+      });
+      setUser(response.user);
+      setProjects(response.catalog.projects);
+      setSkills(response.catalog.skills.length ? response.catalog.skills : masterSkillsList);
+      toast.success('Profile updated.');
+    } catch (error) {
+      console.error('Failed to update user profile.', error);
+      toast.error('Could not save your profile changes.');
+      throw error;
+    }
   };
 
-  // --- Promo Code CRUD (Admin) ---
+  const getResumeById = (id: string) => resumes.find((resume) => resume.id === id);
+
+  const updateResume = async (updatedResume: Resume) => {
+    const previousResumes = resumes;
+    setResumes((current) =>
+      current.map((resume) => (resume.id === updatedResume.id ? { ...updatedResume, updatedAt: Date.now() } : resume)),
+    );
+    try {
+      const savedResume = await updateResumeRecord(updatedResume);
+      setResumes((current) => current.map((resume) => (resume.id === savedResume.id ? savedResume : resume)));
+    } catch (error) {
+      console.error('Failed to update resume.', error);
+      setResumes(previousResumes);
+      toast.error('Could not save your resume to the backend.');
+      throw error;
+    }
+  };
+
+  const createResume = async (
+    newResumeData: Omit<Resume, 'id' | 'createdAt' | 'updatedAt'>,
+  ): Promise<Resume> => {
+    const draftResume: Resume = {
+      ...newResumeData,
+      id: `pending-resume-${Date.now()}`,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+      userId: user?.id || newResumeData.userId,
+    };
+    const savedResume = await createResumeRecord(draftResume);
+    setResumes((current) => [...current, savedResume]);
+    return savedResume;
+  };
+
+  const deleteResume = async (resumeId: string) => {
+    const previousResumes = resumes;
+    setResumes((current) => current.filter((resume) => resume.id !== resumeId));
+    try {
+      await deleteResumeRecord(resumeId);
+    } catch (error) {
+      console.error('Failed to delete resume.', error);
+      setResumes(previousResumes);
+      toast.error('Could not delete the resume on the backend.');
+      throw error;
+    }
+  };
+
+  const getTemplateById = (id: string) => templates.find((template) => template.id === id);
+  const updateTemplate = (updatedTemplate: PortfolioTemplate) =>
+    setTemplates((current) => current.map((template) => (template.id === updatedTemplate.id ? updatedTemplate : template)));
+  const createTemplate = (newTemplateData: Omit<PortfolioTemplate, 'id'>) => {
+    const newTemplate: PortfolioTemplate = { ...newTemplateData, id: `template-${Date.now()}` };
+    setTemplates((current) => [...current, newTemplate]);
+    return newTemplate;
+  };
+  const deleteTemplate = (templateId: string) =>
+    setTemplates((current) => current.filter((template) => template.id !== templateId));
+
   const createPromoCode = (newPromoCodeData: Omit<PromoCode, 'id' | 'createdAt' | 'timesUsed'>) => {
     const newCode: PromoCode = {
       ...newPromoCodeData,
@@ -355,196 +420,94 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       createdAt: Date.now(),
       timesUsed: 0,
     };
-    setPromoCodes(prev => [...prev, newCode]);
+    setPromoCodes((current) => [...current, newCode]);
     return newCode;
   };
-  
-  const deletePromoCode = (promoCodeId: string) => {
-    setPromoCodes(prev => prev.filter(p => p.id !== promoCodeId));
-  };
 
-  // --- User Profile ---
-  const updateUser = (updatedUser: User) => {
-    setUser(updatedUser);
-  };
-  
-  // --- Subscription Management ---
-  const upgradeToStarter = () => setUser(prev => prev ? { ...prev, subscription: STARTER_PLAN } : null);
-  const upgradeToPro = () => setUser(prev => prev ? { ...prev, subscription: PRO_PLAN } : null);
-  const upgradeToPremium = () => setUser(prev => prev ? { ...prev, subscription: PREMIUM_PLAN } : null);
-  const switchToFree = () => setUser(prev => prev ? { ...prev, subscription: FREE_PLAN } : null);
-  
-  const cancelSubscription = () => {
-    setUser(prev => {
-        if (!prev || prev.subscription.tier === 'free') return prev;
-        return {
-            ...prev,
-            subscription: {
-                ...prev.subscription,
-                status: 'canceled'
-            }
-        };
-    });
-    toast.success('Your subscription has been canceled and will expire at the end of the current period.');
-  };
+  const deletePromoCode = (promoCodeId: string) =>
+    setPromoCodes((current) => current.filter((promoCode) => promoCode.id !== promoCodeId));
 
-  const renewSubscription = () => {
-        setUser(prev => {
-        if (!prev || prev.subscription.tier === 'free') return prev;
-        return {
-            ...prev,
-            subscription: {
-                ...prev.subscription,
-                status: 'active'
-            }
-        };
-    });
-    toast.success('Your subscription has been renewed!');
-  };
+  const upgradeMessage = 'Checkout is now backend-owned and will be enabled once Stripe is connected.';
+  const upgradeToStarter = () => toast(upgradeMessage);
+  const upgradeToPro = () => toast(upgradeMessage);
+  const upgradeToPremium = () => toast(upgradeMessage);
+  const switchToFree = () => toast('Plan changes are managed through the upcoming billing portal.');
+  const applyPromoCode = (_code: string) =>
+    toast('Promo codes will be redeemed through backend billing when Stripe is connected.');
+  const cancelSubscription = () => toast('Subscription cancellation will be handled by the backend billing portal.');
+  const renewSubscription = () => toast('Renewal will be handled through backend billing once enabled.');
+  const makeOneTimePurchase = (_purchaseId: 'proLifetime' | 'creditsTextTier1' | 'creditsImageTier1') =>
+    toast('One-time AI purchases were removed from the production pricing model.');
 
-  const applyPromoCode = (code: string) => {
-    const promo = promoCodes.find(p => p.code.toUpperCase() === code.toUpperCase());
-
-    if (!promo) {
-        toast.error('Invalid promo code.');
-        return;
+  const consumeAiFeature = (feature: AIFeature) => {
+    if (!user) return false;
+    if (!featureFlags.aiEnabled) {
+      toast.error('AI is currently disabled for this environment.');
+      return false;
     }
 
-    if (promo.timesUsed >= promo.usageLimit) {
-        toast.error('This promo code has reached its usage limit.');
-        return;
+    if (feature === 'imageGeneration') {
+      toast.error('AI image generation is not included in this release.');
+      return false;
     }
 
-    const plans = {
-        starter: STARTER_PLAN,
-        pro: PRO_PLAN,
-        premium: PREMIUM_PLAN,
-    };
-    const planToGrant = plans[promo.grantsTier];
-    
-    setUser(prev => prev ? { 
-        ...prev, 
-        subscription: planToGrant, 
-        isEarlyAdopter: prev.isEarlyAdopter || promo.isEarlyAdopter 
-    } : null);
+    const allowance = user.subscription.ai?.allowanceByFeature?.[feature];
+    if (allowance && (!allowance.enabled || allowance.remaining <= 0)) {
+      toast.error('You have reached the limit for this AI action on your current plan.');
+      return false;
+    }
 
-    // Update promo code usage
-    setPromoCodes(prev => prev.map(p => 
-        p.id === promo.id ? { ...p, timesUsed: p.timesUsed + 1 } : p
-    ));
-
-    toast.success(`Promo code applied! You now have the ${promo.grantsTier} plan.`);
+    return true;
   };
-
-    const makeOneTimePurchase = (purchaseId: 'proLifetime' | 'creditsTextTier1' | 'creditsImageTier1') => {
-        setUser(prev => {
-            if (!prev) return null;
-            let updatedUser = { ...prev };
-            
-            if (purchaseId === 'proLifetime') {
-                updatedUser.oneTimePurchases = [...(updatedUser.oneTimePurchases || []), 'proLifetime'];
-                toast.success('Pro Lifetime Access Unlocked!');
-            }
-            if (purchaseId === 'creditsTextTier1') {
-                updatedUser.subscription.credits.text += 50;
-                toast.success('50 AI Text Credits added!');
-            }
-             if (purchaseId === 'creditsImageTier1') {
-                updatedUser.subscription.credits.image += 10;
-                toast.success('10 AI Image Credits added!');
-            }
-            return updatedUser;
-        });
-    };
-
-  // --- AI Credit Consumption ---
-    const consumeAiFeature = (feature: AIFeature): boolean => {
-        if (!user) return false;
-
-        const { subscription } = user;
-        const isTextFeature = feature !== 'imageGeneration';
-        const cost = 1; // All features currently cost 1 credit
-
-        if (subscription.tier === 'free') {
-            if (!isTextFeature) {
-                toast.error("AI Image Generation is a feature for paid plans. Please upgrade to continue.");
-                return false;
-            }
-            if (subscription.freeFeaturesUsed[feature]) {
-                toast.error("You've already used your one free credit for this feature. Please upgrade to use it again.");
-                return false;
-            }
-
-            setUser(prev => {
-                if (!prev) return null;
-                const newFreeFeaturesUsed = { ...prev.subscription.freeFeaturesUsed, [feature]: true };
-                return {
-                    ...prev,
-                    subscription: { ...prev.subscription, freeFeaturesUsed: newFreeFeaturesUsed }
-                };
-            });
-            toast.success("Used 1 free AI credit.");
-            return true;
-        }
-
-        if (isTextFeature) {
-            if (subscription.credits.text >= cost) {
-                setUser(prev => {
-                    if (!prev) return null;
-                    return {
-                        ...prev,
-                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, text: prev.subscription.credits.text - cost } }
-                    };
-                });
-                toast.success(`Used ${cost} Text Credit.`);
-                return true;
-            } else {
-                toast.error("You've run out of AI text credits. Please upgrade your plan or purchase more.");
-                return false;
-            }
-        } else { // Image generation
-            if (subscription.credits.image >= cost) {
-                setUser(prev => {
-                    if (!prev) return null;
-                    return {
-                        ...prev,
-                        subscription: { ...prev.subscription, credits: { ...prev.subscription.credits, image: prev.subscription.credits.image - cost } }
-                    };
-                });
-                toast.success(`Used ${cost} Image Credit.`);
-                return true;
-            } else {
-                toast.error("You've run out of AI image credits. Please upgrade your plan or purchase more.");
-                return false;
-            }
-        }
-    };
-
 
   return (
-    <DataContext.Provider value={{
-      user, projects, skills, portfolios, resumes, templates, promoCodes,
-      entitlements,
-      getPortfolioById, updatePortfolio, createPortfolio, deletePortfolio, duplicatePortfolio,
-      createProject, updateProject, deleteProject,
-      createSkill,
-      getResumeById, updateResume, createResume, deleteResume,
-      getTemplateById, updateTemplate, createTemplate, deleteTemplate,
-      createPromoCode, deletePromoCode,
-      updateUser,
-      upgradeToStarter, upgradeToPro, upgradeToPremium, switchToFree,
-      consumeAiFeature,
-      applyPromoCode,
-      cancelSubscription,
-      renewSubscription,
-      makeOneTimePurchase,
-    }}>
+    <DataContext.Provider
+      value={{
+        user,
+        featureFlags,
+        projects,
+        skills,
+        portfolios,
+        resumes,
+        templates,
+        promoCodes,
+        entitlements,
+        getPortfolioById,
+        updatePortfolio,
+        createPortfolio,
+        deletePortfolio,
+        duplicatePortfolio,
+        createProject,
+        updateProject,
+        deleteProject,
+        createSkill,
+        updateUser,
+        getResumeById,
+        updateResume,
+        createResume,
+        deleteResume,
+        getTemplateById,
+        updateTemplate,
+        createTemplate,
+        deleteTemplate,
+        createPromoCode,
+        deletePromoCode,
+        upgradeToStarter,
+        upgradeToPro,
+        upgradeToPremium,
+        switchToFree,
+        consumeAiFeature,
+        applyPromoCode,
+        cancelSubscription,
+        renewSubscription,
+        makeOneTimePurchase,
+      }}
+    >
       {children}
     </DataContext.Provider>
   );
 };
 
-// Custom hook to use the data context
 export const useData = (): DataContextType => {
   const context = useContext(DataContext);
   if (context === undefined) {

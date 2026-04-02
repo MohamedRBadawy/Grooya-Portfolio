@@ -7,6 +7,7 @@ import { Sparkles, ImageIcon, Trash2, RefreshCw, Plus, Upload, Download } from '
 interface AssetsPanelProps {
     portfolio: Portfolio;
     activePage: Page | null;
+    showGeneratedAssets: boolean;
     onAddAsset: (assetData: Omit<PortfolioAsset, 'id' | 'createdAt'>) => void;
     setIsGeneratingAsset: (isGenerating: boolean) => void;
     handleDeleteAsset: (assetId: string) => void;
@@ -18,11 +19,12 @@ interface AssetsPanelProps {
 }
 
 /**
- * A UI panel within the editor sidebar for managing AI-generated image assets.
+ * A UI panel within the editor sidebar for managing uploaded and generated image assets.
  */
 const AssetsPanel: React.FC<AssetsPanelProps> = ({
     portfolio,
     activePage,
+    showGeneratedAssets,
     onAddAsset,
     setIsGeneratingAsset,
     handleDeleteAsset,
@@ -80,10 +82,12 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                     <Upload size={14} className="me-2" />
                     Upload
                 </Button>
-                <Button variant="primary" size="sm" onClick={() => setIsGeneratingAsset(true)}>
-                    <Sparkles size={14} className="me-2" />
-                    {t('generateNewImage')}
-                </Button>
+                {showGeneratedAssets && (
+                    <Button variant="primary" size="sm" onClick={() => setIsGeneratingAsset(true)}>
+                        <Sparkles size={14} className="me-2" />
+                        {t('generateNewImage')}
+                    </Button>
+                )}
             </div>
 
             {/* Conditionally render the list of assets or the empty state. */}
@@ -101,7 +105,9 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                             {/* Action Buttons for the Asset */}
                             <div className="p-2 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-end gap-1">
                                 <Button size="sm" variant="ghost" className="p-1.5 h-auto" onClick={() => handleDownloadAsset(asset)} title="Download Asset"><Download size={14} /></Button>
-                                <Button size="sm" variant="ghost" className="p-1.5 h-auto" onClick={() => { setRegeneratingPrompt(asset.prompt); setIsGeneratingAsset(true); }} title="Regenerate with same prompt"><RefreshCw size={14} /></Button>
+                                {showGeneratedAssets && (
+                                    <Button size="sm" variant="ghost" className="p-1.5 h-auto" onClick={() => { setRegeneratingPrompt(asset.prompt); setIsGeneratingAsset(true); }} title="Regenerate with same prompt"><RefreshCw size={14} /></Button>
+                                )}
                                 <Button size="sm" variant="ghost" className="p-1.5 h-auto text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-900/50" onClick={() => handleDeleteAsset(asset.id)} title="Delete Asset"><Trash2 size={14} /></Button>
                                 <div className="relative">
                                     {/* The "Apply" button toggles a dropdown menu. */}
@@ -156,7 +162,9 @@ const AssetsPanel: React.FC<AssetsPanelProps> = ({
                 <div className="text-center py-16 border-2 border-dashed border-slate-300 dark:border-slate-700 rounded-lg">
                     <ImageIcon size={32} className="mx-auto text-slate-400 dark:text-slate-500" />
                     <h3 className="mt-4 text-lg font-medium text-slate-800 dark:text-slate-300">{t('noAssets')}</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{t('getStartedAssets')}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        {showGeneratedAssets ? t('getStartedAssets') : 'Upload brand assets, project images, and supporting media to reuse throughout your portfolio.'}
+                    </p>
                 </div>
             )}
         </div>

@@ -205,6 +205,11 @@ export const initialPortfolios: Portfolio[] = [
     slug: 'alex-doe-frontend',
     userId: 'user-1',
     isPublished: true,
+    status: 'published',
+    publishedAt: now - (oneDay * 9),
+    track: 'jobSeeker',
+    seoTitle: 'Alex Doe | Frontend Developer Portfolio',
+    seoDescription: 'Frontend portfolio focused on shipped work, technical strengths, and recruiter-ready presentation.',
     design: {
       paletteId: 'default-dark',
       headingFont: 'Sora',
@@ -239,6 +244,9 @@ export const initialPortfolios: Portfolio[] = [
             id: 'page-1-1',
             name: 'Home',
             path: '/',
+            showInNavigation: true,
+            seoTitle: 'Alex Doe | Home',
+            seoDescription: 'Frontend developer portfolio home page with projects, skills, and contact details.',
             blocks: [
               {
                 id: 'block-1-1',
@@ -248,6 +256,7 @@ export const initialPortfolios: Portfolio[] = [
                 imageUrl: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=1170&q=80',
                 ctaText: 'View My Work',
                 ctaLink: '#projects',
+                layoutVariant: 'split',
               },
               {
                 id: 'block-1-2',
@@ -281,6 +290,10 @@ export const initialPortfolios: Portfolio[] = [
     slug: 'alex-doe-creative',
     userId: 'user-1',
     isPublished: false,
+    status: 'draft',
+    track: 'freelancer',
+    seoTitle: 'Alex Doe | Creative Portfolio',
+    seoDescription: 'A service-focused creative portfolio draft for freelance and client-facing work.',
     design: {
       paletteId: 'default-mint',
       headingFont: 'Playfair Display',
@@ -315,6 +328,9 @@ export const initialPortfolios: Portfolio[] = [
             id: 'page-2-1',
             name: 'Home',
             path: '/',
+            showInNavigation: true,
+            seoTitle: 'Creative Portfolio',
+            seoDescription: 'Creative portfolio home page with featured work and contact pathways.',
             blocks: [
                 {
                     id: 'block-2-1',
@@ -345,6 +361,11 @@ export const initialPortfolios: Portfolio[] = [
     slug: 'comprehensive-showcase',
     userId: 'user-1',
     isPublished: true,
+    status: 'published',
+    publishedAt: now - (oneDay * 1),
+    track: 'freelancer',
+    seoTitle: 'Comprehensive Showcase',
+    seoDescription: 'A multi-section portfolio with services, testimonials, work history, and public contact blocks.',
     design: {
       paletteId: 'default-light',
       headingFont: 'Poppins',
@@ -379,6 +400,9 @@ export const initialPortfolios: Portfolio[] = [
             id: 'page-3-1',
             name: 'Home',
             path: '/',
+            showInNavigation: true,
+            seoTitle: 'Comprehensive Showcase | Home',
+            seoDescription: 'A comprehensive portfolio home page covering projects, services, testimonials, and contact.',
             blocks: [
               {
                 id: 'block-3-1',
@@ -414,6 +438,7 @@ export const initialPortfolios: Portfolio[] = [
                 type: 'projects',
                 title: 'Selected Works',
                 projectIds: ['proj-1', 'proj-2', 'proj-3', 'proj-4'],
+                layoutVariant: 'spotlight',
               },
               {
                 id: 'block-3-4',
@@ -459,6 +484,7 @@ export const initialPortfolios: Portfolio[] = [
                 id: 'block-3-13',
                 type: 'services',
                 title: 'My Services',
+                layoutVariant: 'comparison',
                 tiers: [
                     { id: 'tier-1', title: 'Website Development', price: '$1,500', frequency: 'one-time', description: 'A fully responsive and customized website to meet your business needs.', features: ['Up to 5 Pages', 'Custom Design', 'Mobile Responsive', 'Basic SEO'], buttonText: 'Get Started', isFeatured: false },
                     { id: 'tier-2', title: 'Web Application', price: '$4,000', frequency: 'one-time', description: 'A powerful web application with a custom backend and database.', features: ['Unlimited Pages', 'API Integration', 'Database Setup', 'Admin Dashboard'], buttonText: 'Get Started', isFeatured: true },

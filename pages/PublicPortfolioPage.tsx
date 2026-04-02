@@ -1,7 +1,5 @@
 
-
-
-import React, { useMemo, useRef, useEffect } from 'react';
+import React, { useMemo, useRef, useEffect, useState } from 'react';
 import { useParams, Link, useLocation } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
@@ -30,6 +28,7 @@ import { CodeBlockView } from '../components/blocks/public/CodeBlockView';
 import { ServicesBlockView } from '../components/blocks/public/ServicesBlockView';
 import { BlogBlockView } from '../components/blocks/public/BlogBlockView';
 import FloatingDotsNav from '../components/ui/FloatingDotsNav';
+import { fetchPublicPortfolioBySlug } from '../services/platform/publicPortfolio';
 
 const animationDefinitions = {
     fadeIn: { hidden: { opacity: 0, y: 20 }, visible: { opacity: 1, y: 0, transition: { type: 'spring', damping: 30, stiffness: 200 } } },
@@ -60,7 +59,7 @@ const lineHeightStyles: { [key: string]: string } = {
 };
 
 
-const BlockRenderer: React.FC<{ block: PortfolioBlock, design: Portfolio['design'], theme: any, allProjects: Project[], allSkills: Skill[], isEditable?: boolean, onUpdateBlock?: (blockId: string, field: string, value: any) => void, itemVariant: any }> = (props) => {
+const BlockRenderer: React.FC<{ block: PortfolioBlock, design: Portfolio['design'], theme: any, allProjects: Project[], allSkills: Skill[], portfolioSlug?: string, isEditable?: boolean, onUpdateBlock?: (blockId: string, field: string, value: any) => void, itemVariant: any }> = (props) => {
     switch (props.block.type) {
         case 'hero': return <HeroBlockView {...props} />;
         case 'about': return <AboutBlockView {...props} />;
@@ -207,11 +206,42 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     const { portfolios, projects, skills, user: loggedInUser } = useData();
     const { t } = useTranslation();
     const location = useLocation();
+    const [remotePortfolio, setRemotePortfolio] = useState<Portfolio | null>(null);
+    const [isRemoteLoading, setIsRemoteLoading] = useState(false);
+
+    useEffect(() => {
+        if (portfolioForPreview || !slug) return;
+
+        let ignore = false;
+        setIsRemoteLoading(true);
+
+        fetchPublicPortfolioBySlug(slug)
+            .then((result) => {
+                if (!ignore) {
+                    setRemotePortfolio(result);
+                }
+            })
+            .catch((error) => {
+                if (!ignore) {
+                    console.warn('Could not load the public portfolio from the backend.', error);
+                    setRemotePortfolio(null);
+                }
+            })
+            .finally(() => {
+                if (!ignore) {
+                    setIsRemoteLoading(false);
+                }
+            });
+
+        return () => {
+            ignore = true;
+        };
+    }, [portfolioForPreview, slug]);
     
     const portfolio = useMemo(() => {
         if (portfolioForPreview) return portfolioForPreview;
-        return portfolios.find(p => p.slug === slug);
-    }, [slug, portfolios, portfolioForPreview]);
+        return remotePortfolio || portfolios.find(p => p.slug === slug);
+    }, [slug, portfolios, portfolioForPreview, remotePortfolio]);
 
     const activePage = useMemo(() => {
         if (activePageForPreview) return activePageForPreview;
@@ -245,11 +275,17 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     }, [portfolio, loggedInUser, isEditable]);
 
     const canRemoveBranding = ['starter', 'pro', 'premium'].includes(portfolioOwner?.subscription?.tier ?? 'free');
+    const resolvedProjects = portfolio?.projectCatalog?.length ? portfolio.projectCatalog : projects;
+    const resolvedSkills = portfolio?.skillCatalog?.length ? portfolio.skillCatalog : skills;
     
     const osPrefersReducedMotion = useMemo(() => {
         if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return false;
         return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
     }, []);
+
+    if (!portfolio && isRemoteLoading) {
+        return <div className="flex items-center justify-center min-h-screen">Loading portfolio...</div>;
+    }
 
     if (!portfolio) {
         return <div className="flex items-center justify-center min-h-screen">{t('portfolioNotFound')}</div>;
@@ -387,7 +423,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
     if (isEditable && focusedBlockId) {
         const focusedBlock = activePage?.blocks.find(b => b.id === focusedBlockId);
         if (focusedBlock) {
-             const { backgroundImage, backgroundOpacity, background, shapeDividers } = focusedBlock.designOverrides || {};
+             const { backgroundImage, backgroundOpacity, background, shapeDividers, backgroundSize, backgroundPosition, backgroundRepeat } = focusedBlock.designOverrides || {};
              const backgroundStyle: React.CSSProperties = {};
              let hasOverlay = false;
              
@@ -396,6 +432,9 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
 
              if (backgroundImage) {
                 backgroundStyle.backgroundImage = `url("${backgroundImage}")`;
+                backgroundStyle.backgroundSize = backgroundSize || 'cover';
+                backgroundStyle.backgroundPosition = backgroundPosition || 'center';
+                backgroundStyle.backgroundRepeat = backgroundRepeat || 'no-repeat';
                 hasOverlay = true;
              } else if (background) {
                 if (typeof background === 'string') {
@@ -415,8 +454,9 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                                 block={focusedBlock} 
                                 design={design} 
                                 theme={theme} 
-                                allProjects={projects} 
-                                allSkills={skills} 
+                                allProjects={resolvedProjects} 
+                                allSkills={resolvedSkills}
+                                portfolioSlug={portfolio.slug}
                                 isEditable={false} // Disable inline editing in focused preview
                                 itemVariant={itemVariant} 
                             />
@@ -458,14 +498,15 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                      const canUseAI = isActive && onAIAssist && (block.type === 'hero' || block.type === 'about');
                      const canTune = isActive && onTune && (block.type === 'hero' || block.type === 'about');
                      
-                     const { background, backgroundImage, backgroundOpacity, shapeDividers, border } = block.designOverrides || {};
+                     const { background, backgroundImage, backgroundOpacity, shapeDividers, border, backgroundSize, backgroundPosition, backgroundRepeat } = block.designOverrides || {};
                      const backgroundStyle: React.CSSProperties = {};
                      let hasOverlay = false;
 
                      if (backgroundImage) {
                         backgroundStyle.backgroundImage = `url("${backgroundImage}")`;
-                        backgroundStyle.backgroundSize = 'cover';
-                        backgroundStyle.backgroundPosition = 'center';
+                        backgroundStyle.backgroundSize = backgroundSize || 'cover';
+                        backgroundStyle.backgroundPosition = backgroundPosition || 'center';
+                        backgroundStyle.backgroundRepeat = backgroundRepeat || 'no-repeat';
                         hasOverlay = true;
                      } else if (background) {
                         if (typeof background === 'string') {
@@ -540,7 +581,7 @@ const PublicPortfolioPage: React.FC<PublicPortfolioPageProps> = ({
                                 }
                             }}
                         >
-                            <BlockRenderer block={block} design={design} theme={theme} allProjects={projects} allSkills={skills} isEditable={isEditable} onUpdateBlock={onUpdateBlock} itemVariant={itemVariant} />
+                            <BlockRenderer block={block} design={design} theme={theme} allProjects={resolvedProjects} allSkills={resolvedSkills} portfolioSlug={portfolio.slug} isEditable={isEditable} onUpdateBlock={onUpdateBlock} itemVariant={itemVariant} />
                             {isActive && onDuplicateBlock && onMoveBlock && onDeleteBlock && (
                                 <ContextualToolbar
                                     onDuplicate={() => onDuplicateBlock(block.id)}

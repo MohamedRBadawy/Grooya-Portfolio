@@ -45,6 +45,19 @@ export const ServicesEditor: React.FC<ServicesEditorProps> = ({ block, onUpdate,
   
   return (
     <>
+      <div>
+        <EditorLabel htmlFor={`services-layout-${block.id}`}>Services Layout</EditorLabel>
+        <select
+          id={`services-layout-${block.id}`}
+          value={block.layoutVariant || 'cards'}
+          onChange={(e) => onUpdate({ layoutVariant: e.target.value as ServicesBlock['layoutVariant'] })}
+          className="block w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+        >
+          <option value="cards">Cards</option>
+          <option value="comparison">Comparison</option>
+          <option value="minimal">Minimal List</option>
+        </select>
+      </div>
       {block.tiers.length > 0 ? (
         <div className="space-y-3">
           <EditorLabel>Pricing Tiers</EditorLabel>

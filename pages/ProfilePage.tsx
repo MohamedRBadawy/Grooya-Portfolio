@@ -4,7 +4,6 @@ import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
 import Button from '../components/ui/Button';
 import { Save } from 'lucide-react';
-import toast from 'react-hot-toast';
 import BillingCard from '../components/BillingCard';
 import ImageUploader from '../components/ui/ImageUploader';
 
@@ -37,11 +36,10 @@ const ProfilePage: React.FC = () => {
     setFormData(prev => prev ? { ...prev, [name]: value } : null);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (formData) {
-      updateUser(formData);
-      toast.success(t('profileUpdated'));
+      await updateUser(formData);
     }
   };
 

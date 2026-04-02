@@ -3,23 +3,24 @@ import React, { useCallback, useRef, useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom';
 import { useData } from '../contexts/DataContext';
 import { useTranslation } from '../hooks/useTranslation';
-import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage, HeroBlock, AboutBlock } from '../types';
+import type { Portfolio, PortfolioBlock, Project, Skill, Palette, PortfolioAsset, Page, ColorTheme, GalleryImage } from '../types';
 import Button from '../components/ui/Button';
 import AddBlockMenu from '../components/AddBlockMenu';
 import { FilePenLine } from 'lucide-react';
 import { useApp } from '../contexts/LocalizationContext';
 import ProjectEditorModal from '../components/ProjectEditorModal';
 import { CommandPalette } from '../components/CommandPalette';
-import { generateHeroContent, generateAboutContent, generateDesignSuggestions, ApiKeyMissingError, tuneContentForAudience } from '../services/aiService';
+import { generateDesignSuggestions, ApiKeyMissingError, requestAboutSuggestion, requestHeroSuggestion } from '../services/aiService';
 import PaletteEditorModal from '../components/PaletteEditorModal';
 import AIImageGenerationModal from '../components/AIImageGenerationModal';
 import AIPortfolioReviewModal from '../components/AIPortfolioReviewModal';
-import AIMentorPanel from '../components/AIMentorPanel';
+import PortfolioCoachPanel from '../components/PortfolioCoachPanel';
 import EditorSidebar from '../components/editor/EditorSidebar';
 import PortfolioPreview from '../components/editor/PortfolioPreview';
 import { AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast';
 import AIPaletteGeneratorModal from '../components/AIPaletteGeneratorModal';
+import AISuggestionReviewModal from '../components/ai/AISuggestionReviewModal';
 
 // Import the new hooks
 import { useResizableSidebar } from '../hooks/useResizableSidebar';
@@ -29,9 +30,10 @@ import { usePortfolioManager } from '../hooks/usePortfolioManager';
 const PortfolioEditorPage: React.FC = () => {
     const { portfolioId } = useParams<{ portfolioId: string }>();
     const navigate = useNavigate();
-    const { user, projects, skills, createProject, updateProject, deletePortfolio, createSkill, consumeAiFeature } = useData();
+    const { user, projects, skills, createProject, updateProject, deletePortfolio, createSkill, featureFlags } = useData();
     const { t } = useTranslation();
     const { direction } = useApp();
+    const isAiEnabled = featureFlags.aiEnabled;
 
     // --- State Management and Data Logic from Custom Hook ---
     const {
@@ -39,7 +41,7 @@ const PortfolioEditorPage: React.FC = () => {
         undo, redo, canUndo, canRedo, saveStatus,
         updatePortfolioImmediate, updatePortfolioDebounced, updateField, updateBlock, updateBlockField,
         addBlock, removeBlock, handleDuplicateBlock: originalHandleDuplicate, handleMoveBlock,
-        handleMoveBlockToPage, handleDragEnd, addPage, removePage, handleRenamePage, setHomePage
+        handleMoveBlockToPage, handleDragEnd, addPage, removePage, updatePage, handleRenamePage, setHomePage
     } = usePortfolioManager(portfolioId);
 
     // --- UI State ---
@@ -59,6 +61,14 @@ const PortfolioEditorPage: React.FC = () => {
     const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
     const [mobileView, setMobileView] = useState<'editor' | 'preview'>('editor');
     const [isAIPaletteModalOpen, setAIPaletteModalOpen] = useState(false);
+    const [previewMode, setPreviewMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+    const [pendingSuggestion, setPendingSuggestion] = useState<{
+        title: string;
+        summary: string;
+        original: Record<string, string>;
+        suggestion: Record<string, string>;
+        apply: (editedSuggestion: Record<string, string>) => void;
+    } | null>(null);
     
     // State for triggering inline creation forms
     const [creatingInBlockId, setCreatingInBlockId] = useState<string | null>(null);
@@ -119,9 +129,10 @@ const PortfolioEditorPage: React.FC = () => {
                 <span className="font-medium">{t('deleteConfirmEditor')}</span>
                 <div className="flex gap-2 self-stretch">
                     <Button variant="danger" size="sm" className="flex-grow" onClick={() => {
-                        deletePortfolio(portfolio.id);
-                        navigate('/dashboard');
-                        toast.dismiss(toastInstance.id);
+                        void deletePortfolio(portfolio.id).then(() => {
+                            navigate('/dashboard');
+                            toast.dismiss(toastInstance.id);
+                        });
                     }}>
                         Confirm
                     </Button>
@@ -225,27 +236,33 @@ const PortfolioEditorPage: React.FC = () => {
         const block = activePage?.blocks.find(b => b.id === activeBlockId);
         if (!block || (block.type !== 'hero' && block.type !== 'about')) return;
 
-        const feature = block.type === 'hero' ? 'heroContent' : 'aboutContent';
-        if (!consumeAiFeature(feature)) {
-            const tier = user?.subscription?.tier;
-            let message = "An error occurred.";
-            if (tier === 'free') {
-                message = "You've used your one free AI content generation. Please upgrade to use it again.";
-            } else if (tier) {
-                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
-            }
-            toast.error(message);
-            return;
-        }
-
         setIsAIAssistLoading(true);
         try {
             if (block.type === 'hero') {
-                const { headline, subheadline } = await generateHeroContent(user.name, user.title);
-                updateBlock(block.id, { headline, subheadline });
+                const result = await requestHeroSuggestion(user.name, user.title, {
+                    track: portfolio.track,
+                    currentHeadline: block.headline,
+                    currentSubheadline: block.subheadline,
+                });
+                setPendingSuggestion({
+                    title: 'Review AI Hero Suggestion',
+                    summary: result.reasoningSummary,
+                    original: result.original,
+                    suggestion: result.suggestion,
+                    apply: (editedSuggestion) => updateBlock(block.id, editedSuggestion),
+                });
             } else if (block.type === 'about') {
-                const content = await generateAboutContent(user.name, user.title, (block as any).content);
-                updateBlock(block.id, { content });
+                const result = await requestAboutSuggestion(user.name, user.title, {
+                    track: portfolio.track,
+                    existingContent: (block as any).content,
+                });
+                setPendingSuggestion({
+                    title: 'Review AI About Draft',
+                    summary: result.reasoningSummary,
+                    original: result.original,
+                    suggestion: result.suggestion,
+                    apply: (editedSuggestion) => updateBlock(block.id, editedSuggestion),
+                });
             }
         } catch (error) {
             console.error("AI Assist failed:", error);
@@ -261,17 +278,6 @@ const PortfolioEditorPage: React.FC = () => {
     
     const handleAIDesignSuggest = async () => {
         if (!user) return;
-        if (!consumeAiFeature('designSuggestions')) {
-            const tier = user?.subscription?.tier;
-            let message = "An error occurred.";
-            if (tier === 'free') {
-                message = "You've used your one free AI design suggestion. Please upgrade to use it again.";
-            } else if (tier) {
-                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
-            }
-            toast.error(message);
-            return;
-        }
 
         setIsAIDesignLoading(true);
         try {
@@ -297,17 +303,10 @@ const PortfolioEditorPage: React.FC = () => {
     };
 
     const handleOpenReviewModal = () => {
-        if (consumeAiFeature('portfolioReview')) {
+        if (featureFlags.aiPortfolioReviewEnabled) {
             setIsReviewModalOpen(true);
         } else {
-            const tier = user?.subscription?.tier;
-            let message = "An error occurred.";
-            if (tier === 'free') {
-                message = "You've used your one free portfolio review. Please upgrade to use it again.";
-            } else if (tier) {
-                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
-            }
-            toast.error(message);
+            toast.error('Portfolio review is currently disabled by the backend feature flags.');
         }
     };
 
@@ -316,25 +315,39 @@ const PortfolioEditorPage: React.FC = () => {
         const block = activePage?.blocks.find(b => b.id === activeBlockId);
         if (!block || (block.type !== 'hero' && block.type !== 'about')) return;
 
-        if (!consumeAiFeature('contentTuning')) {
-            const tier = user?.subscription?.tier;
-            let message = "An error occurred.";
-            if (tier === 'free') {
-                message = "You've used your one free AI content tuning. Please upgrade to use it again.";
-            } else if (tier) {
-                message = "You've run out of AI text credits. Please upgrade your plan or purchase more credits.";
-            }
-            toast.error(message);
-            return;
-        }
-
         setIsTuning(true);
         toast.loading(`Tuning content for ${audience}...`);
         try {
-            const newContent = await tuneContentForAudience(block as HeroBlock | AboutBlock, audience, user.title);
-            updateBlock(block.id, newContent);
+            if (block.type === 'hero') {
+                const result = await requestHeroSuggestion(user.name, user.title, {
+                    track: portfolio.track,
+                    currentHeadline: block.headline,
+                    currentSubheadline: block.subheadline,
+                    audience,
+                });
+                setPendingSuggestion({
+                    title: `Review Hero Draft for ${audience}`,
+                    summary: result.reasoningSummary,
+                    original: result.original,
+                    suggestion: result.suggestion,
+                    apply: (editedSuggestion) => updateBlock(block.id, editedSuggestion),
+                });
+            } else {
+                const result = await requestAboutSuggestion(user.name, user.title, {
+                    track: portfolio.track,
+                    existingContent: block.content,
+                    audience,
+                });
+                setPendingSuggestion({
+                    title: `Review About Draft for ${audience}`,
+                    summary: result.reasoningSummary,
+                    original: result.original,
+                    suggestion: result.suggestion,
+                    apply: (editedSuggestion) => updateBlock(block.id, editedSuggestion),
+                });
+            }
             toast.dismiss();
-            toast.success(`Content tuned successfully!`);
+            toast.success('AI draft is ready for review.');
         } catch (error) {
             toast.dismiss();
             console.error("AI Tune failed:", error);
@@ -514,7 +527,7 @@ const PortfolioEditorPage: React.FC = () => {
         <div className="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
              {/* Desktop Layout */}
             <div className="hidden md:flex h-full">
-                {portfolio.isGuided && <AIMentorPanel 
+                {portfolio.isGuided && isAiEnabled && featureFlags.aiGuidedBuildEnabled && <PortfolioCoachPanel 
                     portfolio={portfolio} 
                     onUpdate={updatePortfolioImmediate}
                     setActiveBlockId={setActiveBlockId}
@@ -536,6 +549,7 @@ const PortfolioEditorPage: React.FC = () => {
                         isMac={isMac}
                         setIsCommandPaletteOpen={setIsCommandPaletteOpen}
                         setIsReviewModalOpen={handleOpenReviewModal}
+                        showAiFeatures={isAiEnabled}
                         handleDelete={handleDelete}
                         handleSave={savePortfolio}
                         setMobileView={setMobileView}
@@ -549,6 +563,7 @@ const PortfolioEditorPage: React.FC = () => {
                         setActivePageId={setActivePageId}
                         setEditingPageId={setEditingPageId}
                         handleRenamePage={handleRenamePage}
+                        updatePage={updatePage}
                         setHomePage={setHomePage}
                         removePage={removePage}
 
@@ -604,16 +619,18 @@ const PortfolioEditorPage: React.FC = () => {
                         portfolio={portfolio} 
                         activePage={activePage}
                         activePageId={activePageId}
+                        previewMode={previewMode}
+                        setPreviewMode={setPreviewMode}
                         onUpdateBlock={updateBlockField}
                         activeBlockId={activeBlockId}
                         setActiveBlockId={setActiveBlockId}
                         onDuplicateBlock={handleDuplicateBlock}
                         onMoveBlock={handleMoveBlock}
                         onDeleteBlock={handleRemoveBlock}
-                        onAIAssist={handleAIAssist}
-                        isAIAssistLoading={isAIAssistLoading}
-                        onTune={handleTuneContent}
-                        isTuning={isTuning}
+                        onAIAssist={isAiEnabled ? handleAIAssist : undefined}
+                        isAIAssistLoading={isAiEnabled ? isAIAssistLoading : undefined}
+                        onTune={isAiEnabled ? handleTuneContent : undefined}
+                        isTuning={isAiEnabled ? isTuning : undefined}
                         onPageLinkClick={(pageId) => setActivePageId(pageId)}
                         focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
                         scrollContainerRef={scrollContainerRef}
@@ -634,6 +651,7 @@ const PortfolioEditorPage: React.FC = () => {
                         isMac={isMac}
                         setIsCommandPaletteOpen={setIsCommandPaletteOpen}
                         setIsReviewModalOpen={handleOpenReviewModal}
+                        showAiFeatures={isAiEnabled}
                         handleDelete={handleDelete}
                         handleSave={savePortfolio}
                         setMobileView={setMobileView}
@@ -647,6 +665,7 @@ const PortfolioEditorPage: React.FC = () => {
                         setActivePageId={setActivePageId}
                         setEditingPageId={setEditingPageId}
                         handleRenamePage={handleRenamePage}
+                        updatePage={updatePage}
                         setHomePage={setHomePage}
                         removePage={removePage}
 
@@ -697,16 +716,18 @@ const PortfolioEditorPage: React.FC = () => {
                                 portfolio={portfolio} 
                                 activePage={activePage}
                                 activePageId={activePageId}
+                                previewMode={previewMode}
+                                setPreviewMode={setPreviewMode}
                                 onUpdateBlock={updateBlockField}
                                 activeBlockId={activeBlockId}
                                 setActiveBlockId={setActiveBlockId}
                                 onDuplicateBlock={handleDuplicateBlock}
                                 onMoveBlock={handleMoveBlock}
                                 onDeleteBlock={handleRemoveBlock}
-                                onAIAssist={handleAIAssist}
-                                isAIAssistLoading={isAIAssistLoading}
-                                onTune={handleTuneContent}
-                                isTuning={isTuning}
+                                onAIAssist={isAiEnabled ? handleAIAssist : undefined}
+                                isAIAssistLoading={isAiEnabled ? isAIAssistLoading : undefined}
+                                onTune={isAiEnabled ? handleTuneContent : undefined}
+                                isTuning={isAiEnabled ? isTuning : undefined}
                                 onPageLinkClick={(pageId) => setActivePageId(pageId)}
                                 focusedBlockId={activeTab === 'content' ? focusedBlockId : null}
                                 scrollContainerRef={scrollContainerRef}
@@ -750,7 +771,7 @@ const PortfolioEditorPage: React.FC = () => {
             )}
         </AnimatePresence>
          <AnimatePresence>
-            {isGeneratingAsset && (
+            {isGeneratingAsset && isAiEnabled && (
                 <AIImageGenerationModal
                     onClose={() => {
                         setIsGeneratingAsset(false);
@@ -762,7 +783,7 @@ const PortfolioEditorPage: React.FC = () => {
             )}
         </AnimatePresence>
          <AnimatePresence>
-            {isAIPaletteModalOpen && (
+            {isAIPaletteModalOpen && isAiEnabled && (
                 <AIPaletteGeneratorModal
                     onClose={() => setAIPaletteModalOpen(false)}
                     onSave={handleSaveGeneratedPalette}
@@ -770,7 +791,7 @@ const PortfolioEditorPage: React.FC = () => {
             )}
         </AnimatePresence>
         <AnimatePresence>
-            {isReviewModalOpen && user && (
+            {isReviewModalOpen && isAiEnabled && user && (
                 <AIPortfolioReviewModal
                     portfolio={portfolio}
                     user={user}
@@ -782,6 +803,19 @@ const PortfolioEditorPage: React.FC = () => {
             isOpen={isCommandPaletteOpen}
             setIsOpen={setIsCommandPaletteOpen}
             actions={commandPaletteActions}
+        />
+        <AISuggestionReviewModal
+            isOpen={!!pendingSuggestion}
+            title={pendingSuggestion?.title || 'Review AI Suggestion'}
+            summary={pendingSuggestion?.summary || 'Review the AI suggestion before it changes your portfolio.'}
+            original={pendingSuggestion?.original || { content: '' }}
+            suggestion={pendingSuggestion?.suggestion || { content: '' }}
+            onClose={() => setPendingSuggestion(null)}
+            onApply={(editedSuggestion) => {
+                pendingSuggestion?.apply(editedSuggestion);
+                setPendingSuggestion(null);
+                toast.success('AI suggestion applied.');
+            }}
         />
         </>
     );

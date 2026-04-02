@@ -79,7 +79,7 @@ const ResumeListPage: React.FC = () => {
         <div className="flex flex-col items-start gap-3">
             <span className="font-medium">{t('deleteResumeConfirm')}</span>
             <div className="flex gap-2 self-stretch">
-                <Button variant="danger" size="sm" className="flex-grow" onClick={() => { deleteResume(resumeId); toast.dismiss(toastInstance.id); }}>
+                <Button variant="danger" size="sm" className="flex-grow" onClick={() => { void deleteResume(resumeId); toast.dismiss(toastInstance.id); }}>
                     Confirm
                 </Button>
                 <Button variant="secondary" size="sm" className="flex-grow" onClick={() => toast.dismiss(toastInstance.id)}>

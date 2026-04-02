@@ -50,6 +50,7 @@ interface EditorSidebarProps {
     isMac: boolean;
     setIsCommandPaletteOpen: (isOpen: boolean) => void;
     setIsReviewModalOpen: () => void;
+    showAiFeatures: boolean;
     handleDelete: () => void;
     handleSave: () => void;
     setMobileView: (view: 'editor' | 'preview') => void;
@@ -64,6 +65,7 @@ interface EditorSidebarProps {
     setActivePageId: (id: string) => void;
     setEditingPageId: (id: string | null) => void;
     handleRenamePage: (pageId: string, newName: string) => void;
+    updatePage: (pageId: string, updates: Partial<Page>) => void;
     setHomePage: (pageId: string) => void;
     removePage: (pageId: string) => void;
 
@@ -125,10 +127,12 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                         <Button variant="ghost" size="sm" onClick={() => { if (props.canUndo) props.undo() }} disabled={!props.canUndo}><Undo2 className="w-4 h-4" /></Button>
                         <Button variant="ghost" size="sm" onClick={() => { if (props.canRedo) props.redo() }} disabled={!props.canRedo}><Redo2 className="w-4 h-4" /></Button>
 
-                        <Button onClick={props.setIsReviewModalOpen} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
-                            <Award size={14} className="me-1.5" />
-                            <span className="hidden sm:inline">{t('aiAssistant.getReview')}</span>
-                        </Button>
+                        {props.showAiFeatures && (
+                            <Button onClick={props.setIsReviewModalOpen} variant="secondary" size="sm" className="!bg-amber-200/50 dark:!bg-amber-500/10 hover:!bg-amber-200/80 dark:hover:!bg-amber-500/20 !text-amber-700 dark:!text-amber-300">
+                                <Award size={14} className="me-1.5" />
+                                <span className="hidden sm:inline">{t('aiAssistant.getReview')}</span>
+                            </Button>
+                        )}
                         <Button onClick={props.handleDelete} variant="danger" size="sm"><Trash2 className="w-4 h-4" /></Button>
                         <SaveButton onSave={props.handleSave} status={props.saveStatus} />
                     </div>
@@ -173,6 +177,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                         setActivePageId={props.setActivePageId}
                         setEditingPageId={props.setEditingPageId}
                         handleRenamePage={props.handleRenamePage}
+                        updatePage={props.updatePage}
                         setHomePage={props.setHomePage}
                         removePage={props.removePage}
                     />
@@ -207,6 +212,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                 {props.activeTab === 'design' && (
                      <DesignPanel
                         portfolio={props.portfolio}
+                        showAiFeatures={props.showAiFeatures}
                         handleAIDesignSuggest={props.handleAIDesignSuggest}
                         isAIDesignLoading={props.isAIDesignLoading}
                         updatePortfolioImmediate={props.updatePortfolioImmediate}
@@ -221,6 +227,7 @@ const EditorSidebar: React.FC<EditorSidebarProps> = (props) => {
                      <AssetsPanel
                         portfolio={props.portfolio}
                         activePage={props.activePage}
+                        showGeneratedAssets={false}
                         onAddAsset={props.onAddAsset}
                         setIsGeneratingAsset={props.setIsGeneratingAsset}
                         handleDeleteAsset={props.handleDeleteAsset}

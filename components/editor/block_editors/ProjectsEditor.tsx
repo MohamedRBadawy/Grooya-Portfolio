@@ -40,6 +40,19 @@ export const ProjectsEditor: React.FC<ProjectsEditorProps> = ({
 
   return (
     <div>
+      <div className="mb-4">
+        <EditorLabel htmlFor={`projects-layout-${block.id}`}>Projects Layout</EditorLabel>
+        <select
+          id={`projects-layout-${block.id}`}
+          value={block.layoutVariant || 'grid'}
+          onChange={(e) => onUpdate({ layoutVariant: e.target.value as ProjectsBlock['layoutVariant'] })}
+          className="block w-full rounded-lg border border-slate-300 bg-white p-2 text-sm text-slate-900 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100"
+        >
+          <option value="grid">Grid</option>
+          <option value="spotlight">Spotlight Lead</option>
+          <option value="alternating">Alternating Rows</option>
+        </select>
+      </div>
       <EditorLabel>Select Projects</EditorLabel>
       <MultiItemSelector
         items={allProjects.map(p => ({ id: p.id, name: p.title }))}
