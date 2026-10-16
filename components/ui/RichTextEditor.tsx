@@ -1,9 +1,8 @@
 
 import React, { useCallback } from 'react';
-import { useEditor, EditorContent } from '@tiptap/react';
+import { useEditor, EditorContent, BubbleMenu } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Link from '@tiptap/extension-link';
-import BubbleMenu, { BubbleMenu as BubbleMenuExtension } from '@tiptap/extension-bubble-menu';
 import { Bold, Italic, Link as LinkIcon } from 'lucide-react';
 
 interface RichTextEditorProps extends React.HTMLAttributes<HTMLElement> {
@@ -34,7 +33,6 @@ const RichTextEditor: React.FC<RichTextEditorProps> = ({ content, onUpdate, onBl
           class: 'text-teal-600 hover:text-teal-500',
         },
       }),
-      BubbleMenuExtension,
     ],
     content: content,
     onUpdate: ({ editor }) => {
